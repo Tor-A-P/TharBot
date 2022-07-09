@@ -34,12 +34,19 @@ namespace TharBot.Handlers
             if (existingBan != null) return;
             var forGuildId = socketMessage.Channel as SocketGuildChannel;
 
+            var existingServerProfile = db.LoadRecordById<GameServerProfile>("GameProfiles", forGuildId.Guild.Id);
+            var showLevelUpMessage = true;
+            if (existingServerProfile != null)
+            {
+                showLevelUpMessage = existingServerProfile.ShowLevelUpMessage;
+            }
+
             var existingWLRec = db.LoadRecordById<Whitelist>("WhitelistedChannels", forGuildId.Guild.Id);
             if (existingWLRec != null)
             {
                 if (existingWLRec.WLChannelId.Any())
                 {
-                    if (!existingWLRec.WLChannelId.Contains(socketMessage.Channel.Id)) return;
+                    if (!existingWLRec.WLChannelId.Contains(socketMessage.Channel.Id)) showLevelUpMessage = false;
                 }
             }
 
@@ -48,12 +55,11 @@ namespace TharBot.Handlers
             {
                 if (existingBLRec.BLChannelId.Any())
                 {
-                    if (existingBLRec.BLChannelId.Contains(socketMessage.Channel.Id)) return;
+                    if (existingBLRec.BLChannelId.Contains(socketMessage.Channel.Id)) showLevelUpMessage = false;
                 }
             }
 
             var random = new Random();
-            var existingServerProfile = db.LoadRecordById<GameServerProfile>("GameProfiles", forGuildId.Guild.Id);
             if (existingServerProfile == null)
             {
                 var newProfile = new GameServerProfile
@@ -77,7 +83,8 @@ namespace TharBot.Handlers
                         Wisdom = 0,
                         Luck = 0
                     },
-                    AttributePoints = GameUserProfile.StartingAttributePoints
+                    AttributePoints = GameUserProfile.StartingAttributePoints,
+                    NumMessages = 1
                 };
                 newUserProfile.CurrentHP = newUserProfile.BaseHP;
                 newUserProfile.CurrentMP = newUserProfile.BaseMP;
@@ -105,7 +112,8 @@ namespace TharBot.Handlers
                             Wisdom = 0,
                             Luck = 0
                         },
-                        AttributePoints = GameUserProfile.StartingAttributePoints
+                        AttributePoints = GameUserProfile.StartingAttributePoints,
+                        NumMessages = 1
                     };
                     newUserProfile.CurrentHP = newUserProfile.BaseHP;
                     newUserProfile.CurrentMP = newUserProfile.BaseMP;
@@ -113,6 +121,7 @@ namespace TharBot.Handlers
                 }
                 else
                 {
+                    existingUserProfile.NumMessages++;
                     if (existingUserProfile.NextRewards < DateTime.UtcNow)
                     {
                         existingUserProfile.NextRewards = DateTime.UtcNow + TimeSpan.FromMinutes(1);
@@ -133,16 +142,18 @@ namespace TharBot.Handlers
                         }
                         existingUserProfile.Exp -= existingUserProfile.ExpToLevel;
                         existingUserProfile.Level++;
-                        var levelUpEmbed = await EmbedHandler.CreateBasicEmbedBuilder("Level up!");
-                        levelUpEmbed = levelUpEmbed.WithDescription($"Congratulations {socketMessage.Author.Mention}, you've reached level {existingUserProfile.Level}!\n" +
-                                                                    $"Your health and mana has been refilled.\n" +
-                                                                    $"You have gained {GameUserProfile.AttributePointsPerLevel} attribute points, use the {prefix}attributes command to spend them!")
-                                                   .WithThumbnailUrl(message.Author.GetAvatarUrl(ImageFormat.Auto, 2048) ?? message.Author.GetDefaultAvatarUrl());
                         existingUserProfile.CurrentHP = existingUserProfile.BaseHP;
                         existingUserProfile.CurrentMP = existingUserProfile.BaseMP;
                         existingUserProfile.AttributePoints += GameUserProfile.AttributePointsPerLevel;
-
-                        await socketMessage.Channel.SendMessageAsync(embed: levelUpEmbed.Build());
+                        if (showLevelUpMessage)
+                        {
+                            var levelUpEmbed = await EmbedHandler.CreateBasicEmbedBuilder("Level up!");
+                            levelUpEmbed = levelUpEmbed.WithDescription($"Congratulations {socketMessage.Author.Mention}, you've reached level {existingUserProfile.Level}!\n" +
+                                                                        $"Your health and mana has been refilled.\n" +
+                                                                        $"You have gained {GameUserProfile.AttributePointsPerLevel} attribute points, use the {prefix}attributes command to spend them!")
+                                                       .WithThumbnailUrl(message.Author.GetAvatarUrl(ImageFormat.Auto, 2048) ?? message.Author.GetDefaultAvatarUrl());
+                            await socketMessage.Channel.SendMessageAsync(embed: levelUpEmbed.Build());
+                        }
                     }
                 }
                 db.UpsertRecord("GameProfiles", forGuildId.Guild.Id, existingServerProfile);

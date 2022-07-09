@@ -13,6 +13,7 @@
         public GameStats? Attributes { get; set; }
         public double CurrentHP { get; set; }
         public double CurrentMP { get; set; }
+        public long NumMessages { get; set; }
         public double ExpToLevel => (3 * Math.Pow(Level, 2)) + (25 * Level) + 100;
         public double BaseHP => 100 + (Level * 30) + (Attributes.Constitution * ConstitutionHPBonus);
         public double BaseMP => 50 + (Level * 15) + (Attributes.Wisdom * WisdomMPBonus);

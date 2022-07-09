@@ -47,55 +47,31 @@ namespace TharBot.Handlers
             }
 
             var existingPrefix = db.LoadRecordById<Prefixes>("Prefixes", commandContext.Guild.Id);
-            if (existingPrefix != null)
+            string? prefix;
+            if (existingPrefix != null) prefix = existingPrefix.Prefix;
+            else prefix = _configuration["Prefix"];
+
+            if (result.Error == CommandError.UnknownCommand)
             {
-                if (result.Error == CommandError.UnknownCommand)
+                var memeList = db.LoadRecordById<MemeCommands>("Memes", commandContext.Guild.Id);
+                if (memeList != null)
                 {
-                    var memeList = db.LoadRecordById<MemeCommands>("Memes", commandContext.Guild.Id);
-                    if (memeList != null)
+                    if (memeList.Memes.ContainsKey(commandContext.Message.ToString().Replace($"{prefix}", "")))
                     {
-                        if (memeList.Memes.ContainsKey(commandContext.Message.ToString().Replace($"{existingPrefix.Prefix ?? _configuration["Prefix"]}", "")))
-                        {
-                            await commandContext.Channel.SendMessageAsync(memeList.Memes[commandContext.Message.ToString()
-                                .Replace($"{existingPrefix.Prefix ?? _configuration["Prefix"]}", "")]);
-                            await LoggingHandler.LogInformationAsync("bot", $"Executed custom meme " +
-                                $"\"{commandContext.Message.ToString().Replace($"{existingPrefix.Prefix ?? _configuration["Prefix"]}", "")}\"!");
-                        }
-                        else await commandContext.Channel.SendMessageAsync($"No command called {commandContext.Message.ToString().Replace($"{existingPrefix.Prefix ?? _configuration["Prefix"]}", "")}!");
+                        await commandContext.Channel.SendMessageAsync(memeList.Memes[commandContext.Message.ToString()
+                            .Replace($"{prefix}", "")]);
+                        await LoggingHandler.LogInformationAsync("bot", $"Executed custom meme " +
+                            $"\"{commandContext.Message.ToString().Replace($"{prefix}", "")}\"!");
                     }
-                    else await commandContext.Channel.SendMessageAsync($"No command called {commandContext.Message.ToString().Replace($"{existingPrefix.Prefix ?? _configuration["Prefix"]}", "")}!");
+                    else await commandContext.Channel.SendMessageAsync($"No command called {commandContext.Message.ToString().Replace($"{prefix}", "")}!");
                 }
-                else
-                {
-                    var embed = await EmbedHandler.CreateErrorEmbed(commandContext.Message.ToString().Replace($"{existingPrefix.Prefix ?? _configuration["Prefix"]}", ""), result.ErrorReason);
-                    await commandContext.Channel.SendMessageAsync(embed: embed);
-                    await LoggingHandler.LogAsync($"COMND: {commandInfo.Value.Name}", LogSeverity.Warning, result.ErrorReason);
-                }
+                else await commandContext.Channel.SendMessageAsync($"No command called {commandContext.Message.ToString().Replace($"{prefix}", "")}!");
             }
             else
             {
-                if (result.Error == CommandError.UnknownCommand)
-                {
-                    var memeList = db.LoadRecordById<MemeCommands>("Memes", commandContext.Guild.Id);
-                    if (memeList != null)
-                    {
-                        if (memeList.Memes.ContainsKey(commandContext.Message.ToString().Replace($"{_configuration["Prefix"]}", "")))
-                        {
-                            await commandContext.Channel.SendMessageAsync(memeList.Memes[commandContext.Message.ToString()
-                                .Replace($"{_configuration["Prefix"]}", "")]);
-                            await LoggingHandler.LogInformationAsync("bot", $"Executed custom meme " +
-                                $"\"{commandContext.Message.ToString().Replace($"{_configuration["Prefix"]}", "")}\"!");
-                        }
-                        else await commandContext.Channel.SendMessageAsync($"No command called {commandContext.Message.ToString().Replace($"{_configuration["Prefix"]}", "")}!");
-                    }
-                    else await commandContext.Channel.SendMessageAsync($"No command called {commandContext.Message.ToString().Replace($"{_configuration["Prefix"]}", "")}!");
-                }
-                else
-                {
-                    var embed = await EmbedHandler.CreateErrorEmbed(commandContext.Message.ToString().Replace($"{_configuration["Prefix"]}", ""), result.ErrorReason);
-                    await commandContext.Channel.SendMessageAsync(embed: embed);
-                    await LoggingHandler.LogAsync($"COMND: {commandInfo.Value.Name}", LogSeverity.Warning, result.ErrorReason);
-                }
+                var embed = await EmbedHandler.CreateErrorEmbed(commandContext.Message.ToString().Replace($"{prefix}", ""), result.ErrorReason);
+                await commandContext.Channel.SendMessageAsync(embed: embed);
+                await LoggingHandler.LogAsync($"COMND: {commandInfo.Value.Name}", LogSeverity.Warning, result.ErrorReason);
             }
         }
 
@@ -108,20 +84,16 @@ namespace TharBot.Handlers
             var forGuildId = socketMessage.Channel as SocketGuildChannel;
 
             var existingPrefix = db.LoadRecordById<Prefixes>("Prefixes", forGuildId.Guild.Id);
+            string? prefix;
+            if (existingPrefix != null) prefix = existingPrefix.Prefix;
+            else prefix = _configuration["Prefix"];
 
             var existingWLRec = db.LoadRecordById<Whitelist>("WhitelistedChannels", forGuildId.Guild.Id);
             if (existingWLRec != null)
             {
                 if (existingWLRec.WLChannelId.Any())
                 {
-                    if (existingPrefix != null)
-                    {
-                        if (!existingWLRec.WLChannelId.Contains(socketMessage.Channel.Id) && (message.Content != $"{existingPrefix.Prefix ?? _configuration["Prefix"]}wlc")) return;
-                    }
-                    else
-                    {
-                        if (!existingWLRec.WLChannelId.Contains(socketMessage.Channel.Id) && (message.Content != $"{_configuration["Prefix"]}wlc")) return;
-                    }
+                    if (!existingWLRec.WLChannelId.Contains(socketMessage.Channel.Id) && (message.Content != $"{prefix}wlc")) return;
                 }
             }
 
@@ -130,26 +102,12 @@ namespace TharBot.Handlers
             {
                 if (existingBLRec.BLChannelId.Any())
                 {
-                    if (existingPrefix != null)
-                    {
-                        if (existingBLRec.BLChannelId.Contains(socketMessage.Channel.Id) && (message.Content != $"{existingPrefix.Prefix ?? _configuration["Prefix"]}blc")) return;
-                    }
-                    else
-                    {
-                        if (existingBLRec.BLChannelId.Contains(socketMessage.Channel.Id) && (message.Content != $"{_configuration["Prefix"]}blc")) return;
-                    }
+                    if (existingBLRec.BLChannelId.Contains(socketMessage.Channel.Id) && (message.Content != $"{prefix}blc")) return;
                 }
             }
 
             var argPos = 0;
-            if (existingPrefix == null)
-            {
-                if (!message.HasStringPrefix(_configuration["Prefix"], ref argPos) && !message.HasMentionPrefix(_client.CurrentUser, ref argPos)) return;
-            }
-            else
-            {
-                if (!message.HasStringPrefix(existingPrefix.Prefix, ref argPos) && !message.HasMentionPrefix(_client.CurrentUser, ref argPos)) return;
-            }
+            if (!message.HasStringPrefix(prefix, ref argPos) && !message.HasMentionPrefix(_client.CurrentUser, ref argPos)) return;
 
             var context = new SocketCommandContext(_client, message);
             await _service.ExecuteAsync(context, argPos, _provider);
