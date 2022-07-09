@@ -6,6 +6,6 @@ namespace TharBot.DBModels
     {
         [BsonId]
         public ulong ServerId { get; set; }
-        public List<ulong> WLChannelId { get; set; }
+        public List<ulong>? WLChannelId { get; set; }
     }
 }

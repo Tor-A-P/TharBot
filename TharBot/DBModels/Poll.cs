@@ -7,8 +7,8 @@ namespace TharBot.DBModels
         [BsonId]
         public ulong MessageId { get; set; }
         public ulong ChannelId { get; set; }
-        public List<ActivePollResponse> Responses { get; set; }
-        public List<string> Emojis { get; set; }
+        public List<ActivePollResponse>? Responses { get; set; }
+        public List<string>? Emojis { get; set; }
         public DateTime CreationTime { get; set; }
         public TimeSpan LifeSpan { get; set; }
         public DateTime CompletionTime { get; set; }
@@ -18,6 +18,6 @@ namespace TharBot.DBModels
     public class ActivePollResponse
     {
         public ulong VoterId { get; set; }
-        public string Vote { get; set; }
+        public string? Vote { get; set; }
     }
 }

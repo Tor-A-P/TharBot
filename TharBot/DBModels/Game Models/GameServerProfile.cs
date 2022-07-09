@@ -6,7 +6,7 @@ namespace TharBot.DBModels
     {
         [BsonId]
         public ulong ServerId { get; set; }
-        public List<GameUserProfile> Users { get; set; }
+        public List<GameUserProfile>? Users { get; set; }
         public bool ShowLevelUpMessage { get; set; }
     }
 }

@@ -23,7 +23,7 @@ namespace TharBot.Commands
         [Remarks("Setup")]
         [RequireUserPermission(Discord.ChannelPermission.ManageChannels, Group = "Permission")]
         [RequireOwner(Group = "Permission")]
-        public async Task PrefixAsync([Remainder] string prefix = null)
+        public async Task PrefixAsync([Remainder] string? prefix = null)
         {
             var existingPrefix = db.LoadRecordById<Prefixes>("Prefixes", Context.Guild.Id);
 

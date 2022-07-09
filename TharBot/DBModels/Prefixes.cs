@@ -6,6 +6,6 @@ namespace TharBot.DBModels
     {
         [BsonId]
         public ulong ServerId { get; set; }
-        public string Prefix { get; set; }
+        public string? Prefix { get; set; }
     }
 }

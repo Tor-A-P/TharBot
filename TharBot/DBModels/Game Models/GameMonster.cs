@@ -5,7 +5,7 @@ namespace TharBot.DBModels
     public class GameMonster
     {
         [BsonId]
-        public string Name { get; set; }
+        public string? Name { get; set; }
         public long Level { get; set; }
         public GameStats? Stats { get; set; }
         public long MinLevel { get; set; }

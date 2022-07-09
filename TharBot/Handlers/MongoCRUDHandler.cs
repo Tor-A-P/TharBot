@@ -18,85 +18,170 @@ namespace TharBot.Handlers
 
         public void InsertRecord<T>(string table, T record)
         {
-            var collection = _db.GetCollection<T>(table);
-            collection.InsertOne(record);
+            try
+            {
+                var collection = _db.GetCollection<T>(table);
+                collection.InsertOne(record);
+            }
+            catch (Exception ex)
+            {
+                LoggingHandler.LogCriticalAsync("database", null, ex);
+            }
         }
 
-        public List<T> LoadRecords<T>(string table)
+        public List<T>? LoadRecords<T>(string table)
         {
-            var collection = _db.GetCollection<T>(table);
-            return collection.Find(new BsonDocument()).ToList();
+            try
+            {
+                var collection = _db.GetCollection<T>(table);
+                return collection.Find(new BsonDocument()).ToList();
+            }
+            catch (Exception ex)
+            {
+                LoggingHandler.LogCriticalAsync("database", null, ex);
+                return null;
+            }
         }
 
-        public T LoadRecordById<T>(string table, ulong id)
+        public T? LoadRecordById<T>(string table, ulong id)
         {
-            var collection = _db.GetCollection<T>(table);
-            var filter = Builders<T>.Filter.Eq("_id", id);
+            try
+            {
+                var collection = _db.GetCollection<T>(table);
+                var filter = Builders<T>.Filter.Eq("_id", id);
 
-            return collection.Find(filter).FirstOrDefault();
+                return collection.Find(filter).FirstOrDefault();
+            }
+            catch (Exception ex)
+            {
+                LoggingHandler.LogCriticalAsync("database", null, ex);
+                return default;
+            }
         }
 
-        public T LoadRecordById<T>(string table, Guid id)
+        public T? LoadRecordById<T>(string table, Guid id)
         {
-            var collection = _db.GetCollection<T>(table);
-            var filter = Builders<T>.Filter.Eq("_id", id);
+            try
+            {
+                var collection = _db.GetCollection<T>(table);
+                var filter = Builders<T>.Filter.Eq("_id", id);
 
-            return collection.Find(filter).FirstOrDefault();
+                return collection.Find(filter).FirstOrDefault();
+            }
+            catch (Exception ex)
+            {
+                LoggingHandler.LogCriticalAsync("database", null, ex);
+                return default;
+            }
         }
 
-        public T LoadRecordById<T>(string table, string id)
+        public T? LoadRecordById<T>(string table, string id)
         {
-            var collection = _db.GetCollection<T>(table);
-            var filter = Builders<T>.Filter.Eq("_id", id);
+            try
+            {
+                var collection = _db.GetCollection<T>(table);
+                var filter = Builders<T>.Filter.Eq("_id", id);
 
-            return collection.Find(filter).FirstOrDefault();
+                return collection.Find(filter).FirstOrDefault();
+            }
+            catch (Exception ex)
+            {
+                LoggingHandler.LogCriticalAsync("database", null, ex);
+                return default;
+            }
         }
 
         public void UpsertRecord<T>(string table, ulong id, T record)
         {
-            var collection = _db.GetCollection<T>(table);
-            collection.ReplaceOne(
-                new BsonDocument("_id", (decimal)id),
-                record,
-                new ReplaceOptions { IsUpsert = true });
+            try
+            {
+                var collection = _db.GetCollection<T>(table);
+                collection.ReplaceOne(
+                    new BsonDocument("_id", (decimal)id),
+                    record,
+                    new ReplaceOptions { IsUpsert = true });
+            }
+            catch (Exception ex)
+            {
+                LoggingHandler.LogCriticalAsync("database", null, ex);
+            }
         }
+
         public void UpsertRecord<T>(string table, Guid id, T record)
         {
-            var collection = _db.GetCollection<T>(table);
-            collection.ReplaceOne(
-                new BsonDocument("_id", id),
-                record,
-                new ReplaceOptions { IsUpsert = true });
+            try
+            {
+                var collection = _db.GetCollection<T>(table);
+                collection.ReplaceOne(
+                    new BsonDocument("_id", id),
+                    record,
+                    new ReplaceOptions { IsUpsert = true });
+            }
+            catch (Exception ex)
+            {
+                LoggingHandler.LogCriticalAsync("database", null, ex);
+            }
         }
+
         public void UpsertRecord<T>(string table, string id, T record)
         {
-            var collection = _db.GetCollection<T>(table);
-            collection.ReplaceOne(
-                new BsonDocument("_id", id),
-                record,
-                new ReplaceOptions { IsUpsert = true });
+            try
+            {
+                var collection = _db.GetCollection<T>(table);
+                collection.ReplaceOne(
+                    new BsonDocument("_id", id),
+                    record,
+                    new ReplaceOptions { IsUpsert = true });
+            }
+            catch (Exception ex)
+            {
+                LoggingHandler.LogCriticalAsync("database", null, ex);
+            }
         }
 
         public void DeleteRecord<T>(string table, ulong id)
         {
-            var collection = _db.GetCollection<T>(table);
-            var filter = Builders<T>.Filter.Eq("_id", id);
+            try
+            {
+                var collection = _db.GetCollection<T>(table);
+                var filter = Builders<T>.Filter.Eq("_id", id);
 
-            collection.DeleteOne(filter);
+                collection.DeleteOne(filter);
+            }
+            catch (Exception ex)
+            {
+                LoggingHandler.LogCriticalAsync("database", null, ex);
+            }
         }
+
         public void DeleteRecord<T>(string table, Guid id)
         {
-            var collection = _db.GetCollection<T>(table);
-            var filter = Builders<T>.Filter.Eq("_id", id);
+            try
+            {
+                var collection = _db.GetCollection<T>(table);
+                var filter = Builders<T>.Filter.Eq("_id", id);
 
-            collection.DeleteOne(filter);
+                collection.DeleteOne(filter);
+            }
+            catch (Exception ex)
+            {
+                LoggingHandler.LogCriticalAsync("database", null, ex);
+            }
         }
+
         public void DeleteRecord<T>(string table, string id)
         {
-            var collection = _db.GetCollection<T>(table);
-            var filter = Builders<T>.Filter.Eq("_id", id);
+            try
+            {
+                var collection = _db.GetCollection<T>(table);
+                var filter = Builders<T>.Filter.Eq("_id", id);
 
-            collection.DeleteOne(filter);
+                collection.DeleteOne(filter);
+            }
+            catch (Exception ex)
+            {
+                LoggingHandler.LogCriticalAsync("database", null, ex);
+            }
         }
     }
 }

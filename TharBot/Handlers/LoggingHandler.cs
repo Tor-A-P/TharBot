@@ -23,7 +23,7 @@ namespace TharBot.Handlers
                 await Append($"{exception.Message ?? "Unknown"}\n{exception.StackTrace ?? "Unknown"}\n", GetConsoleColor(severity));
         }
 
-        public static async Task LogCriticalAsync(string source, string? message, Exception exc = null)
+        public static async Task LogCriticalAsync(string source, string? message, Exception? exc = null)
             => await LogAsync(source, LogSeverity.Critical, message, exc);
 
         public static async Task LogInformationAsync(string source, string? message)
@@ -50,6 +50,7 @@ namespace TharBot.Handlers
                 "lavanode_0_socket" => "LAVAS",
                 "lavanode_0" => "LAVA#",
                 "bot" => "BOTWN",
+                "database" => "DATBS",
                 _ => src,
             };
         }

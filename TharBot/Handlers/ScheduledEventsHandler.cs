@@ -10,8 +10,8 @@ namespace TharBot.Handlers
 {
     public class ScheduledEventsHandler : DiscordClientService
     {
-        private static readonly System.Timers.Timer timer25s = new System.Timers.Timer(25000);
-        private static readonly System.Timers.Timer timer60s = new System.Timers.Timer(60000);
+        private static readonly System.Timers.Timer timer25s = new(25000);
+        private static readonly System.Timers.Timer timer60s = new(60000);
         private readonly DiscordSocketClient _client;
         private readonly IConfiguration _configuration;
         private readonly MongoCRUDHandler db;
@@ -353,11 +353,9 @@ namespace TharBot.Handlers
             {
                 if (fight.LastMoveTime + GameFight.LifeTime < DateTime.UtcNow)
                 {
-                    var chn = await Client.GetChannelAsync(fight.ChannelId) as IMessageChannel;
-                    if (chn != null)
+                    if (await Client.GetChannelAsync(fight.ChannelId) is IMessageChannel chn)
                     {
-                        var msg = await chn.GetMessageAsync(fight.MessageId) as IUserMessage;
-                        if (msg != null)
+                        if (await chn.GetMessageAsync(fight.MessageId) is IUserMessage msg)
                         {
                             var embed = msg.Embeds.FirstOrDefault();
                             if (embed != null)
@@ -391,8 +389,7 @@ namespace TharBot.Handlers
                     {
                         if (dialog.CreationTime + GameAttributeDialog.LifeTime < DateTime.UtcNow)
                         {
-                            var chn = await Client.GetChannelAsync(dialog.ChannelId) as IMessageChannel;
-                            if (chn != null)
+                            if (await Client.GetChannelAsync(dialog.ChannelId) is IMessageChannel chn)
                             {
                                 var msg = await chn.GetMessageAsync(dialog.MessageId);
                                 if (msg != null)

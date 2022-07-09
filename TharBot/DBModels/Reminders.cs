@@ -9,6 +9,6 @@ namespace TharBot.DBModels
         public ulong UserId { get; set; }
         public ulong ChannelId { get; set; }
         public DateTime RemindingTime { get; set; }
-        public string ReminderText { get; set; }
+        public string? ReminderText { get; set; }
     }
 }

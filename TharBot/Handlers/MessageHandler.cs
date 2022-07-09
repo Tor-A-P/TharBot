@@ -65,7 +65,8 @@ namespace TharBot.Handlers
                 var newProfile = new GameServerProfile
                 {
                     ServerId = forGuildId.Guild.Id,
-                    Users = new List<GameUserProfile>()
+                    Users = new List<GameUserProfile>(),
+                    ShowLevelUpMessage = true
                 };
                 var newUserProfile = new GameUserProfile
                 {
