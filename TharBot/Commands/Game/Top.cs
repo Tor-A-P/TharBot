@@ -28,7 +28,7 @@ namespace TharBot.Commands
         public async Task TopAsync(string flag = "messages")
         {
             var serverProfile = db.LoadRecordById<GameServerProfile>("GameProfiles", Context.Guild.Id);
-            if (serverProfile == null)
+            if (serverProfile == null || serverProfile.Users.Where(x => x.UserId == Context.User.Id) == null)
             {
                 var noServerProfEmbed = await EmbedHandler.CreateUserErrorEmbed("Could not find server profile", "It seems this server has no profile, try sending a message (not a command) and then use this command again!");
                 await ReplyAsync(embed: noServerProfEmbed);
