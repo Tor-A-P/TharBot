@@ -154,7 +154,7 @@ namespace TharBot.Handlers
                     }
                     Random random = new();
                     var coinReward = fight.Enemy.Level * 50;
-                    var expReward = fight.Enemy.Level * 25;
+                    var expReward = fight.Enemy.Level * 20;
                     await msg.RemoveReactionAsync(reaction.Emote, reaction.UserId);
                     var serverProfile = db.LoadRecordById<GameServerProfile>("GameProfiles", fight.ServerId);
                     var userProfile = serverProfile.Users.Where(x => x.UserId == fight.UserId).FirstOrDefault();
