@@ -50,7 +50,7 @@ namespace TharBot.Commands
                     {
                         monster = monsterList[random.Next(monsterList.Count)];
                     }
-                    monster.Level = random.NextInt64(userProfile.Level - 3, userProfile.Level + 1);
+                    monster.Level = random.NextInt64(userProfile.Level - 2, userProfile.Level + 2);
                     if (monster.Level < 1) monster.Level = 1;
                     monster.CurrentHP = monster.BaseHP;
                     monster.CurrentMP = monster.BaseMP;

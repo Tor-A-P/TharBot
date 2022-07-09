@@ -12,6 +12,7 @@ namespace TharBot.Handlers
         private readonly DiscordSocketClient _client;
         private readonly IConfiguration _configuration;
         private readonly MongoCRUDHandler db;
+        private readonly Random random = new();
 
         public ReactionsHandler(DiscordSocketClient client, IConfiguration configuration, ILogger<DiscordClientService> logger)
             : base(client, logger)
@@ -152,7 +153,6 @@ namespace TharBot.Handlers
                     {
                         prefix = _configuration["Prefix"];
                     }
-                    Random random = new();
                     var coinReward = fight.Enemy.Level * 50;
                     var expReward = fight.Enemy.Level * 20;
                     await msg.RemoveReactionAsync(reaction.Emote, reaction.UserId);
