@@ -26,8 +26,14 @@ namespace TharBot.Commands
         {
             if (image == null && Context.Message.Attachments.Count == 0)
             {
-                var noImageEmbed = await EmbedHandler.CreateUserErrorEmbed("Imgur", "Please provide either an image url or an image");
+                var noImageEmbed = await EmbedHandler.CreateUserErrorEmbed("Imgur", "Please provide either an image url or an image.");
                 await ReplyAsync(embed: noImageEmbed);
+                return;
+            }
+            if (Context.Message.Attachments.Count > 1)
+            {
+                var tooManyImagesEmbed = await EmbedHandler.CreateUserErrorEmbed("Imgur", "Please only upload one image at a time.");
+                await ReplyAsync(embed: tooManyImagesEmbed);
                 return;
             }
             if (image == null && Context.Message.Attachments.Count == 1)
