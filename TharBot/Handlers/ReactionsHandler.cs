@@ -211,6 +211,7 @@ namespace TharBot.Handlers
                             fight.Enemy.CurrentHP = 0;
                             var winnerEmbed = await EmbedHandler.CreateGameEmbed(fight, userProfile, user.Username);
                             await msg.ModifyAsync(x => x.Embed = winnerEmbed);
+                            userProfile.NumFightsWon++;
                             userProfile.TharCoins += coinReward;
                             userProfile.Exp += expReward;
                             if (userProfile.Exp >= userProfile.ExpToLevel)
