@@ -21,5 +21,17 @@ namespace TharBot.Handlers
         public readonly static Emote Defend = Emote.Parse("<:defend:989151685110812702>");
         public readonly static Emote Consumable = Emote.Parse("<:consumables:989151712008863774>");
         public readonly static Emote Spells = Emote.Parse("<:spells:989151699556003850>");
+        public readonly static Emote Blank = Emote.Parse("<:__:995647072323784775>");
+        public readonly static Emote BoxDownRight = Emote.Parse("<:slotdr:995647087427469432>");
+        public readonly static Emote BoxLeftRight = Emote.Parse("<:slotlr:995647156499267665>");
+        public readonly static Emote BoxLeftDown = Emote.Parse("<:slotld:995647102061391892>");
+        public readonly static Emote BoxUpDown = Emote.Parse("<:slotud:995715618089205780>");
+        public readonly static Emote BoxUpLeft = Emote.Parse("<:slotlu:995647199293743144>");
+        public readonly static Emote BoxUpRight = Emote.Parse("<:slotur:995647220932157450>");
+        public readonly static Emote BoxLeftRight1 = Emote.Parse("<:slotlr1:995647166271987824>");
+        public readonly static Emote BoxLeftRight2 = Emote.Parse("<:slotlr2:995647177328181328>");
+        public readonly static Emote BoxLeftRight3 = Emote.Parse("<:slotlr3:995647187952353380>");
+        public readonly static Emote BoxLeftUpRight = Emote.Parse("<:slotlur:995647209699807272>");
+        public readonly static Emote BoxLeftDownRight = Emote.Parse("<:slotldr:995647113658642442>");
     }
 }

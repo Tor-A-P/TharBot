@@ -132,7 +132,7 @@ namespace TharBot.Handlers
                  .AddField($"{EmoteHandler.Wisdom} Wisdom: {userProfile.Attributes.Wisdom}",
                            $"Increases your mana by {GameUserProfile.WisdomMPBonus} and your mana regen per minute by {GameUserProfile.WisdomMPRegenBonus}% of your max mana per point.")
                  .AddField($"{EmoteHandler.Luck} Luck: {userProfile.Attributes.Luck}",
-                           $"Increases your Critical damage by {GameUserProfile.LuckCritModifier}% per point.")
+                           $"Increases your Critical damage by {GameUserProfile.LuckCritModifier}% per point, and your chance to win the low prize in gambles by 0.33% per point.")
                  .WithThumbnailUrl(user.GetAvatarUrl(ImageFormat.Auto, 2048) ?? user.GetDefaultAvatarUrl())
                  .WithFooter("Use the reactions down below to add 1 point to the specified attribute, if you have available points to spend."));
 

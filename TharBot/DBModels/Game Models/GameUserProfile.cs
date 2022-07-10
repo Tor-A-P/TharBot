@@ -24,6 +24,7 @@
         public double BaseDef => 4 + (Level * 1) + Math.Floor(Attributes.Dexterity * DexDefModifier);
         public double CritChance => 10 + (Attributes.Dexterity * DexCritModifier);
         public double CritDamage => 100 + (Attributes.Luck * LuckCritModifier);
+        public double BonusGambaChance => Attributes.Luck * LuckGambaModifier;
         public long SpentAttributePoints => Attributes.Strength + Attributes.Dexterity + Attributes.Intelligence + Attributes.Constitution + Attributes.Wisdom + Attributes.Luck;
         public long AvailableAttributePoints => AttributePoints - SpentAttributePoints;
         public static long AttributePointsPerLevel => 3;
@@ -37,6 +38,7 @@
         public static double WisdomMPBonus => 5;
         public static double WisdomMPRegenBonus => 0.2;
         public static double LuckCritModifier => 3;
+        public static double LuckGambaModifier => 0.33;
 
         public double TotalExp()
         {

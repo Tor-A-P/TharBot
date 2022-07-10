@@ -29,6 +29,9 @@ namespace TharBot.Commands
             List<CommandInfo> commands = _service.Commands.ToList();
             var embedBuilder = new EmbedBuilder().WithColor(new Color(76, 164, 210));
             var existingPrefix = db.LoadRecordById<Prefixes>("Prefixes", Context.Guild.Id);
+            string? prefix;
+            if (existingPrefix != null) prefix = existingPrefix.Prefix;
+            else prefix = _configuration["Prefix"];
 
             if (command != null)
             {
@@ -37,15 +40,8 @@ namespace TharBot.Commands
                     if (commandInfo.Name.ToLower() == command.ToLower() || commandInfo.Aliases.Any(x => x.ToLower().Equals(command.ToLower())))
                     {
                         string embedFieldText = "";
-                        if (existingPrefix != null)
-                        {
-                            embedFieldText = commandInfo.Summary.Replace("th.", existingPrefix.Prefix ?? _configuration["Prefix"]) ?? "No description available\n";
-                        }
-                        else
-                        {
-                            embedFieldText = commandInfo.Summary.Replace("th.", _configuration["Prefix"]) ?? "No description available\n";
-                        }
-                        
+                        embedFieldText = commandInfo.Summary.Replace("th.", prefix) ?? "No description available\n";
+
                         embedBuilder.WithTitle(commandInfo.Name);
                         embedBuilder.AddField("Aliases", string.Join(", ", commandInfo.Aliases));
                         embedBuilder.AddField("Summary", embedFieldText);
@@ -68,16 +64,8 @@ namespace TharBot.Commands
                     embedBuilder.AddField("Bot Owner (SOOPER SEKRIT DONUT LOOK)", PopulateCategory(commands, "Bot Owner"));
                 }
 
-                if(existingPrefix != null)
-                {
-                    embedBuilder.WithTitle("Available Commands")
-                    .WithFooter($"For help with a specific command, use \"{existingPrefix.Prefix ?? _configuration["Prefix"]}help [COMMAND]\"");
-                }
-                else
-                {
-                    embedBuilder.WithTitle("Available Commands")
-                    .WithFooter($"For help with a specific command, use \"{_configuration["Prefix"]}help [COMMAND]\"");
-                }
+                embedBuilder.WithTitle("Available Commands")
+                    .WithFooter($"For help with a specific command, use \"{prefix}help [COMMAND]\"");
             }
             var embed = embedBuilder.Build();
 

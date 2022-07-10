@@ -74,10 +74,12 @@ namespace TharBot.Commands
                         new Emoji("🍒"),
                         new Emoji("🍓"),
                         new Emoji("🆒")
-                    };
+                        };
                         var random = new Random();
                         var regex = new Regex(Regex.Escape($"{EmoteHandler.Slots}"));
-                        var chance = 33;
+                        var chance = 33 + userProfile.BonusGambaChance;
+                        var user = Context.User;
+                        var embedTitle = "★彡 𝚂𝙻𝙾𝚃 𝙼𝙰𝙲𝙷𝙸𝙽𝙴 ★彡";
 
                         if (amount.ToLower() == "all" || amount.EndsWith('%'))
                         {
@@ -105,7 +107,11 @@ namespace TharBot.Commands
                             userProfile.GambaInProgress = true;
                             db.UpsertRecord("GameProfiles", Context.Guild.Id, serverProfile);
 
-                            var embed = await EmbedHandler.CreateBasicEmbed("Slot Machine", $"{EmoteHandler.Slots} {EmoteHandler.Slots} {EmoteHandler.Slots}");
+                            var embed = await EmbedHandler.CreateBasicEmbed(embedTitle, 
+                                        $"{EmoteHandler.Blank}{EmoteHandler.BoxDownRight}{EmoteHandler.BoxLeftRight}{EmoteHandler.BoxLeftDownRight}{EmoteHandler.BoxLeftRight}{EmoteHandler.BoxLeftDownRight}{EmoteHandler.BoxLeftRight}{EmoteHandler.BoxLeftDown}\n" +
+                                        $"{EmoteHandler.Blank}{EmoteHandler.BoxUpDown}{EmoteHandler.Slots}{EmoteHandler.BoxUpDown}{EmoteHandler.Slots}{EmoteHandler.BoxUpDown}{EmoteHandler.Slots}{EmoteHandler.BoxUpDown}\n" +
+                                        $"{EmoteHandler.Blank}{EmoteHandler.BoxUpRight}{EmoteHandler.BoxLeftRight1}{EmoteHandler.BoxLeftUpRight}{EmoteHandler.BoxLeftRight2}{EmoteHandler.BoxLeftUpRight}{EmoteHandler.BoxLeftRight3}{EmoteHandler.BoxUpLeft}\n\n" +
+                                        $"Only for **{user.Username}** \n You bet: {EmoteHandler.Coin} {slots}");
                             var slotsMsg = await ReplyAsync(embed: embed);
                             await Task.Delay(3000);
                             Emoji[] resultEmojis = new Emoji[3];
@@ -127,20 +133,21 @@ namespace TharBot.Commands
                                 resultEmojis[2] = emojis[random.Next(0, emojis.Length)];
                             }
 
-                            embed = await EmbedHandler.CreateBasicEmbed("Slot Machine", regex.Replace(embed.Description, resultEmojis[0].Name, 1));
+                            embed = await EmbedHandler.CreateBasicEmbed(embedTitle, regex.Replace(embed.Description, resultEmojis[0].Name, 1));
                             await slotsMsg.ModifyAsync(x => x.Embed = embed);
                             await Task.Delay(1500);
-                            embed = await EmbedHandler.CreateBasicEmbed("Slot Machine", regex.Replace(embed.Description, resultEmojis[1].Name, 1));
+                            embed = await EmbedHandler.CreateBasicEmbed(embedTitle, regex.Replace(embed.Description, resultEmojis[1].Name, 1));
                             await slotsMsg.ModifyAsync(x => x.Embed = embed);
                             await Task.Delay(1500);
-                            embed = await EmbedHandler.CreateBasicEmbed("Slot Machine", regex.Replace(embed.Description, resultEmojis[2].Name, 1));
+                            embed = await EmbedHandler.CreateBasicEmbed(embedTitle, regex.Replace(embed.Description, resultEmojis[2].Name, 1));
                             await slotsMsg.ModifyAsync(x => x.Embed = embed);
 
                             if (resultEmojis[0].Name == resultEmojis[1].Name && resultEmojis[1].Name == resultEmojis[2].Name)
                             {
-                                var winnerEmbed = await EmbedHandler.CreateBasicEmbedBuilder("Slot Machine");
+                                var winnerEmbed = await EmbedHandler.CreateBasicEmbedBuilder(embedTitle);
                                 winnerEmbed.AddField("­", embed.Description)
-                                           .AddField("***JACKPOT!!!***", $"You win {(long)slots * 200} TharCoins!");
+                                           .AddField("***JACKPOT!!!***", $"You win {(long)slots * 200} TharCoins!")
+                                           .WithFooter("Visual design for slot machine shamelessly lifted from the Lawliet discord bot (https://lawlietbot.xyz/)");
                                 userProfile.TharCoins += ((long)slots * 199);
                                 userProfile.GambaInProgress = false;
                                 await slotsMsg.ModifyAsync(x => x.Embed = winnerEmbed.Build());
@@ -149,9 +156,10 @@ namespace TharBot.Commands
                             }
                             else if (resultEmojis[0].Name == resultEmojis[1].Name || resultEmojis[1].Name == resultEmojis[2].Name || resultEmojis[0].Name == resultEmojis[2].Name)
                             {
-                                var winnerEmbed = await EmbedHandler.CreateBasicEmbedBuilder("Slot Machine");
+                                var winnerEmbed = await EmbedHandler.CreateBasicEmbedBuilder(embedTitle);
                                 winnerEmbed.AddField("­", embed.Description)
-                                           .AddField("A WINNER IS YOU!", $"You win {(long)slots * 3} TharCoins!");
+                                           .AddField("A WINNER IS YOU!", $"You win {(long)slots * 3} TharCoins!")
+                                           .WithFooter("Visual design for slot machine shamelessly lifted from the Lawliet discord bot (https://lawlietbot.xyz/)"); ;
                                 userProfile.TharCoins += ((long)slots * 2);
                                 userProfile.GambaInProgress = false;
                                 await slotsMsg.ModifyAsync(x => x.Embed = winnerEmbed.Build());
@@ -160,9 +168,10 @@ namespace TharBot.Commands
                             }
                             else
                             {
-                                var loserEmbed = await EmbedHandler.CreateBasicEmbedBuilder("Slot Machine");
+                                var loserEmbed = await EmbedHandler.CreateBasicEmbedBuilder(embedTitle);
                                 loserEmbed.AddField("­", embed.Description)
-                                           .AddField("You lose!", $"You lost all your {(long)slots} TharCoins :(");
+                                           .AddField("You lose!", $"You lost {(long)slots} TharCoins :(")
+                                           .WithFooter("Visual design for slot machine shamelessly lifted from the Lawliet discord bot (https://lawlietbot.xyz/)"); ;
                                 userProfile.TharCoins -= (long)slots;
                                 userProfile.GambaInProgress = false;
                                 await slotsMsg.ModifyAsync(x => x.Embed = loserEmbed.Build());
@@ -181,7 +190,11 @@ namespace TharBot.Commands
                             {
                                 userProfile.GambaInProgress = true;
                                 db.UpsertRecord("GameProfiles", Context.Guild.Id, serverProfile);
-                                var embed = await EmbedHandler.CreateBasicEmbed("Slot Machine", $"{EmoteHandler.Slots} {EmoteHandler.Slots} {EmoteHandler.Slots}");
+                                var embed = await EmbedHandler.CreateBasicEmbed(embedTitle,
+                                        $"{EmoteHandler.Blank}{EmoteHandler.BoxDownRight}{EmoteHandler.BoxLeftRight}{EmoteHandler.BoxLeftDownRight}{EmoteHandler.BoxLeftRight}{EmoteHandler.BoxLeftDownRight}{EmoteHandler.BoxLeftRight}{EmoteHandler.BoxLeftDown}\n" +
+                                        $"{EmoteHandler.Blank}{EmoteHandler.BoxUpDown}{EmoteHandler.Slots}{EmoteHandler.BoxUpDown}{EmoteHandler.Slots}{EmoteHandler.BoxUpDown}{EmoteHandler.Slots}{EmoteHandler.BoxUpDown}\n" +
+                                        $"{EmoteHandler.Blank}{EmoteHandler.BoxUpRight}{EmoteHandler.BoxLeftRight1}{EmoteHandler.BoxLeftUpRight}{EmoteHandler.BoxLeftRight2}{EmoteHandler.BoxLeftUpRight}{EmoteHandler.BoxLeftRight3}{EmoteHandler.BoxUpLeft}\n\n" +
+                                        $"Only for **{user.Username}** \n You bet: {EmoteHandler.Coin} {slots}");
                                 var slotsMsg = await ReplyAsync(embed: embed);
                                 await Task.Delay(3000);
                                 Emoji[] resultEmojis = new Emoji[3];
@@ -203,20 +216,21 @@ namespace TharBot.Commands
                                     resultEmojis[2] = emojis[random.Next(0, emojis.Length)];
                                 }
 
-                                embed = await EmbedHandler.CreateBasicEmbed("Slot Machine", regex.Replace(embed.Description, resultEmojis[0].Name, 1));
+                                embed = await EmbedHandler.CreateBasicEmbed(embedTitle, regex.Replace(embed.Description, resultEmojis[0].Name, 1));
                                 await slotsMsg.ModifyAsync(x => x.Embed = embed);
                                 await Task.Delay(1500);
-                                embed = await EmbedHandler.CreateBasicEmbed("Slot Machine", regex.Replace(embed.Description, resultEmojis[1].Name, 1));
+                                embed = await EmbedHandler.CreateBasicEmbed(embedTitle, regex.Replace(embed.Description, resultEmojis[1].Name, 1));
                                 await slotsMsg.ModifyAsync(x => x.Embed = embed);
                                 await Task.Delay(1500);
-                                embed = await EmbedHandler.CreateBasicEmbed("Slot Machine", regex.Replace(embed.Description, resultEmojis[2].Name, 1));
+                                embed = await EmbedHandler.CreateBasicEmbed(embedTitle, regex.Replace(embed.Description, resultEmojis[2].Name, 1));
                                 await slotsMsg.ModifyAsync(x => x.Embed = embed);
 
                                 if (resultEmojis[0].Name == resultEmojis[1].Name && resultEmojis[1].Name == resultEmojis[2].Name)
                                 {
-                                    var winnerEmbed = await EmbedHandler.CreateBasicEmbedBuilder("Slot Machine");
+                                    var winnerEmbed = await EmbedHandler.CreateBasicEmbedBuilder(embedTitle);
                                     winnerEmbed.AddField("­", embed.Description)
-                                               .AddField("***JACKPOT!!!***", $"You win {slots * 200} TharCoins!");
+                                               .AddField("***JACKPOT!!!***", $"You win {slots * 200} TharCoins!")
+                                               .WithFooter("Visual design for slot machine shamelessly lifted from the Lawliet discord bot (https://lawlietbot.xyz/)"); ;
                                     userProfile.TharCoins += (slots * 199);
                                     userProfile.GambaInProgress = false;
                                     await slotsMsg.ModifyAsync(x => x.Embed = winnerEmbed.Build());
@@ -225,9 +239,10 @@ namespace TharBot.Commands
                                 }
                                 else if (resultEmojis[0].Name == resultEmojis[1].Name || resultEmojis[1].Name == resultEmojis[2].Name || resultEmojis[0].Name == resultEmojis[2].Name)
                                 {
-                                    var winnerEmbed = await EmbedHandler.CreateBasicEmbedBuilder("Slot Machine");
+                                    var winnerEmbed = await EmbedHandler.CreateBasicEmbedBuilder(embedTitle);
                                     winnerEmbed.AddField("­", embed.Description)
-                                               .AddField("A WINNER IS YOU!", $"You win {slots * 3} TharCoins!");
+                                               .AddField("A WINNER IS YOU!", $"You win {slots * 3} TharCoins!")
+                                               .WithFooter("Visual design for slot machine shamelessly lifted from the Lawliet discord bot (https://lawlietbot.xyz/)"); ;
                                     userProfile.TharCoins += (slots * 2);
                                     userProfile.GambaInProgress = false;
                                     await slotsMsg.ModifyAsync(x => x.Embed = winnerEmbed.Build());
@@ -236,9 +251,10 @@ namespace TharBot.Commands
                                 }
                                 else
                                 {
-                                    var loserEmbed = await EmbedHandler.CreateBasicEmbedBuilder("Slot Machine");
+                                    var loserEmbed = await EmbedHandler.CreateBasicEmbedBuilder(embedTitle);
                                     loserEmbed.AddField("­", embed.Description)
-                                               .AddField("You lose!", $"You lost your {slots} TharCoins :(");
+                                               .AddField("You lose!", $"You lost {slots} TharCoins :(")
+                                               .WithFooter("Visual design for slot machine shamelessly lifted from the Lawliet discord bot (https://lawlietbot.xyz/)"); ;
                                     userProfile.TharCoins -= slots;
                                     userProfile.GambaInProgress = false;
                                     await slotsMsg.ModifyAsync(x => x.Embed = loserEmbed.Build());
