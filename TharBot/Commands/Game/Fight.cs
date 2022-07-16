@@ -20,7 +20,7 @@ namespace TharBot.Commands
             "You can only start fights with up to 10 monsters per hour (individual cooldown, starts when you defeat the first monster of that period)" +
             "**USAGE:** th.fight")]
         [Remarks("Game")]
-        public async Task FightAsync()
+        public async Task FightAsync(string monsterName = "")
         {
             try
             {
@@ -64,7 +64,9 @@ namespace TharBot.Commands
 
                         Random random = new();
                         var monsterList = db.LoadRecords<GameMonster>("MonsterList");
-                        var monster = monsterList[random.Next(monsterList.Count)];
+                        GameMonster? monster = null;
+                        if (monsterName != "") monster = monsterList.Where(x => x.Name.ToLower() == monsterName.ToLower()).FirstOrDefault();
+                        if (monster == null) monster = monsterList[random.Next(monsterList.Count)];
                         while (monster.MinLevel > userProfile.Level)
                         {
                             monster = monsterList[random.Next(monsterList.Count)];

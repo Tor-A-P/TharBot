@@ -116,14 +116,10 @@ namespace TharBot.Commands
         {
             var existingPrefix = db.LoadRecordById<Prefixes>("Prefixes", Context.Guild.Id);
             string embedText;
-            if (existingPrefix == null)
-            {
-                embedText = $"Type {_config["Prefix"]}{cmd} to use it.";
-            }
-            else
-            {
-                embedText = $"Type {existingPrefix.Prefix}{cmd} to use it.";
-            }
+            string prefix;
+            if (existingPrefix != null) prefix = existingPrefix.Prefix;
+            else prefix = _config["Prefix"];
+            embedText = $"Type {prefix}{cmd} to use it.";
             return embedText;
         }
     }
