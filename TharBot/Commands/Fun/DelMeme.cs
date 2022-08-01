@@ -17,8 +17,8 @@ namespace TharBot.Commands
             _config = config;
         }
 
-        [Command("Delmeme")]
-        [Alias("dmeme")]
+        [Command("Deletememe")]
+        [Alias("dmeme", "delmeme")]
         [Summary("Deletes a custom command created with th.meme\n" +
             "**USAGE:** -dmeme [COMMAND_NAME]")]
         [Remarks("Fun")]
