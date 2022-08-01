@@ -26,40 +26,25 @@ namespace TharBot.Commands
         public async Task PrefixAsync([Remainder] string? prefix = null)
         {
             var existingPrefix = db.LoadRecordById<Prefixes>("Prefixes", Context.Guild.Id);
+            string? currentPrefix;
 
-            if (existingPrefix == null)
+            if (existingPrefix != null) currentPrefix = existingPrefix.Prefix;
+            else currentPrefix = _configuration["Prefix"];
+            if (prefix == null)
             {
-                if (prefix == null)
-                {
-                    var embed = await EmbedHandler.CreateBasicEmbed("Prefix", $"Current prefix for this server is \"{_configuration["Prefix"]}\"");
-                    await ReplyAsync(embed: embed);
-                }
-                else
-                {
-                    var newPrefix = new Prefixes
-                    {
-                        ServerId = Context.Guild.Id,
-                        Prefix = prefix,
-                    };
-                    db.InsertRecord("Prefixes", newPrefix);
-                    var embed = await EmbedHandler.CreateBasicEmbed("Prefix", $"Changed prefix for this server to \"{newPrefix.Prefix}\"");
-                    await ReplyAsync(embed: embed);
-                }
+                var embed = await EmbedHandler.CreateBasicEmbed("Prefix", $"Current prefix for this server is \"{currentPrefix}\"");
+                await ReplyAsync(embed: embed);
             }
             else
             {
-                if (prefix == null)
+                var newPrefix = new Prefixes
                 {
-                    var embed = await EmbedHandler.CreateBasicEmbed("Prefix", $"Current prefix for this server is \"{existingPrefix.Prefix}\"");
-                    await ReplyAsync(embed: embed);
-                }
-                else
-                {
-                    existingPrefix.Prefix = prefix;
-                    db.UpsertRecord("Prefixes", Context.Guild.Id, existingPrefix);
-                    var embed = await EmbedHandler.CreateBasicEmbed("Prefix", $"Changed prefix for this server to \"{existingPrefix.Prefix}\"");
-                    await ReplyAsync(embed: embed);
-                }
+                    ServerId = Context.Guild.Id,
+                    Prefix = prefix,
+                };
+                db.InsertRecord("Prefixes", newPrefix);
+                var embed = await EmbedHandler.CreateBasicEmbed("Prefix", $"Changed prefix for this server to \"{newPrefix.Prefix}\"");
+                await ReplyAsync(embed: embed);
             }
         }
     }
