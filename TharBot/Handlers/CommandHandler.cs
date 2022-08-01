@@ -107,7 +107,7 @@ namespace TharBot.Handlers
             }
 
             var argPos = 0;
-            if (!message.HasStringPrefix(prefix, ref argPos) && !message.HasMentionPrefix(_client.CurrentUser, ref argPos)) return;
+            if (!message.HasStringPrefix(prefix, ref argPos)) return;
 
             var context = new SocketCommandContext(_client, message);
             await _service.ExecuteAsync(context, argPos, _provider);
