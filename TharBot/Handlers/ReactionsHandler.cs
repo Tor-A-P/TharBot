@@ -165,15 +165,9 @@ namespace TharBot.Handlers
                         var userCrit = false;
                         var monsterCrit = false;
                         var userDamage = userProfile.BaseAtk;
-                        var userRNGDmg = userProfile.BaseAtk / 20;
-                        if (random.Next(1, 101) % 2 == 0)
-                        {
-                            userDamage += userRNGDmg;
-                        }
-                        else
-                        {
-                            userDamage -= userRNGDmg;
-                        }
+                        var userMinDmg = userDamage - (userDamage / 20);
+                        var userMaxDmg = userDamage + (userDamage / 20);
+                        userDamage = random.Next((int)userMinDmg, (int)userMaxDmg + 1);
                         if (random.Next(1, 101) <= userProfile.CritChance)
                         {
                             userDamage *= 1 + (userProfile.CritDamage / 100);
@@ -182,15 +176,9 @@ namespace TharBot.Handlers
                         userDamage = Math.Floor(userDamage - fight.Enemy.BaseDef);
                         if (userDamage < 0) userDamage = 0;
                         var monsterDamage = fight.Enemy.BaseAtk;
-                        var monsterRNGDmg = fight.Enemy.BaseAtk / 20;
-                        if (random.Next(1, 101) % 2 == 0)
-                        {
-                            monsterDamage += monsterRNGDmg;
-                        }
-                        else
-                        {
-                            monsterDamage -= monsterRNGDmg;
-                        }
+                        var monsterMinDmg = monsterDamage - (monsterDamage / 20);
+                        var monsterMaxDmg = monsterDamage + (monsterDamage / 20);
+                        monsterDamage = random.Next((int)monsterMinDmg, (int)monsterMaxDmg + 1);
                         if (random.Next(1, 101) <= fight.Enemy.CritChance)
                         {
                             monsterDamage *= 1 + (fight.Enemy.CritDamage / 100);
@@ -265,15 +253,9 @@ namespace TharBot.Handlers
                         var monsterCrit = false;
                         var userDamage = 0;
                         var monsterDamage = fight.Enemy.BaseAtk;
-                        var monsterRNGDmg = fight.Enemy.BaseAtk / 20;
-                        if (random.Next(1, 101) % 2 == 0)
-                        {
-                            monsterDamage += monsterRNGDmg;
-                        }
-                        else
-                        {
-                            monsterDamage -= monsterRNGDmg;
-                        }
+                        var monsterMinDmg = monsterDamage - (monsterDamage / 20);
+                        var monsterMaxDmg = monsterDamage + (monsterDamage / 20);
+                        monsterDamage = random.Next((int)monsterMinDmg, (int)monsterMaxDmg + 1);
                         if (random.Next(1, 101) <= fight.Enemy.CritChance)
                         {
                             monsterDamage *= 1 + (fight.Enemy.CritDamage / 100);
