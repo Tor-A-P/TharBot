@@ -17,8 +17,9 @@ namespace TharBot.Commands
         }
 
         [Command("PvP")]
-        [Summary("Starts a fight with another user. The opposing user will only use regular attacks (for now).\n" +
-                 "**USAGE:** th.pvp [USER_MENTION]")]
+        [Summary("Starts a fight with another user. The opposing user will have full health for the fight, but will only use regular attacks (for now).\n" +
+                 "**USAGE:** th.pvp [USER_MENTION]\n" +
+                 "**EXAMPLE:** th.pvp @Tharwatha#5189")]
         [Remarks("Game")]
         public async Task FightAsync(SocketUser? enemy = null)
         {

@@ -50,9 +50,10 @@ namespace TharBot.Handlers
             string? prefix;
             if (existingPrefix != null) prefix = existingPrefix.Prefix;
             else prefix = _configuration["Prefix"];
-
+            
             if (result.Error == CommandError.UnknownCommand)
             {
+                if (commandContext.User.Id == Client.CurrentUser.Id) return;
                 var memeList = db.LoadRecordById<MemeCommands>("Memes", commandContext.Guild.Id);
                 if (memeList != null)
                 {
@@ -78,7 +79,6 @@ namespace TharBot.Handlers
         private async Task OnMessageReceived(SocketMessage socketMessage)
         {
             if (socketMessage is not SocketUserMessage message) return;
-            if (message.Author.Id == Client.CurrentUser.Id) return;
             var existingBan = db.LoadRecordById<BannedUser>("UserBanlist", socketMessage.Author.Id);
             if (existingBan != null) return;
             var forGuildId = socketMessage.Channel as SocketGuildChannel;
