@@ -78,7 +78,7 @@ namespace TharBot.Handlers
         private async Task OnMessageReceived(SocketMessage socketMessage)
         {
             if (socketMessage is not SocketUserMessage message) return;
-            if (message.Source != MessageSource.User) return;
+            if (message.Author.Id == Client.CurrentUser.Id) return;
             var existingBan = db.LoadRecordById<BannedUser>("UserBanlist", socketMessage.Author.Id);
             if (existingBan != null) return;
             var forGuildId = socketMessage.Channel as SocketGuildChannel;

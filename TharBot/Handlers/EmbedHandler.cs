@@ -94,7 +94,7 @@ namespace TharBot.Handlers
                            $"{EmoteHandler.Attack}Atk: {fight.Enemy.BaseAtk}\n" +
                            $"{EmoteHandler.Defense}Def: {fight.Enemy.BaseDef}", true)
                  .WithColor(new Color(76, 164, 210))
-                 .WithFooter("Click the reactions to do actions like attacking, defending, casting spells, or using consumables"));
+                 .WithFooter("Click the reactions to do actions like attacking, casting spells, or using consumables (only attack is implemented so far)"));
             if (fight.Turns != null)
             {
                 var turns = fight.Turns.TakeLast(5);

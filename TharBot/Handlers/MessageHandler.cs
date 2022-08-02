@@ -29,7 +29,6 @@ namespace TharBot.Handlers
         private async Task EXPCoinOnMessage(SocketMessage socketMessage)
         {
             if (socketMessage is not SocketUserMessage message) return;
-            if (message.Source != MessageSource.User) return;
             var existingBan = db.LoadRecordById<BannedUser>("UserBanlist", socketMessage.Author.Id);
             if (existingBan != null) return;
             var forGuildId = socketMessage.Channel as SocketGuildChannel;

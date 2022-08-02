@@ -49,6 +49,7 @@ var builder = new HostBuilder()
             .AddHostedService<ReactionsHandler>()
             .AddHostedService<ScheduledEventsHandler>()
             .AddHostedService<MessageHandler>()
+            .AddHostedService<FightHandler>()
             .AddHttpClient()
             .AddLavaNode(x =>
              {
