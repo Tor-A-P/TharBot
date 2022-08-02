@@ -59,6 +59,7 @@ namespace TharBot.Commands
         [RequireOwner]
         public async Task HealMeAsync()
         {
+            await Task.Delay(2000);
             var serverProfile = db.LoadRecordById<GameServerProfile>("GameProfiles", Context.Guild.Id);
             if (serverProfile == null)
             {
