@@ -26,11 +26,6 @@ namespace TharBot.Handlers
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            _client.Ready += OnClientReady;
-        }
-
-        private async Task OnClientReady()
-        {
             timer25s.Enabled = true;
             timer25s.Elapsed += PollHandling;
             timer25s.Elapsed += ReminderHandling;
@@ -368,6 +363,14 @@ namespace TharBot.Handlers
                                 await msg.ModifyAsync(x => x.Embed = builder.Build());
                                 await msg.RemoveAllReactionsAsync();
                                 userProfile.FightInProgress = false;
+                                userProfile.Debuffs = new GameDebuffs
+                                {
+                                    StunDuration = 0,
+                                    HoTDuration = 0,
+                                    HoTStrength = 0,
+                                    DoTDuration = 0,
+                                    DoTStrength = 0
+                                };
                                 db.DeleteRecord<GameFight>("ActiveFights", fight.MessageId);
                                 db.UpsertRecord("GameProfiles", serverProfile.ServerId, serverProfile);
                             }

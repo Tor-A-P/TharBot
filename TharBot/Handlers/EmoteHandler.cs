@@ -17,10 +17,12 @@ namespace TharBot.Handlers
         public readonly static Emote Luck = Emote.Parse("<:Luck:990989878831484928>");
         public readonly static Emote Crit = Emote.Parse("<:Critical:991290455247556658>");
         public readonly static Emote Slots = Emote.Parse("<a:slots:987302277578633216>");
-        public readonly static Emote Attack = Emote.Parse("<:attack:989151670065852426>");
-        public readonly static Emote Defend = Emote.Parse("<:defend:989151685110812702>");
-        public readonly static Emote Consumable = Emote.Parse("<:consumables:989151712008863774>");
-        public readonly static Emote Spells = Emote.Parse("<:spells:989151699556003850>");
+        public readonly static Emote Attack = Emote.Parse("<:Attack:989151670065852426>");
+        public readonly static Emote Defense = Emote.Parse("<:Defense:989151685110812702>");
+        public readonly static Emote Consumables = Emote.Parse("<:Consumables:989151712008863774>");
+        public readonly static Emote Spells = Emote.Parse("<:Spells:989151699556003850>");
+        public readonly static Emote DoT = Emote.Parse("<:Bleed:1003988953172545706>");
+        public readonly static Emote HoT = Emote.Parse("<:Healing:1003988966409764914>");
         public readonly static Emote Blank = Emote.Parse("<:__:995647072323784775>");
         public readonly static Emote BoxDownRight = Emote.Parse("<:slotdr:995647087427469432>");
         public readonly static Emote BoxLeftRight = Emote.Parse("<:slotlr:995647156499267665>");

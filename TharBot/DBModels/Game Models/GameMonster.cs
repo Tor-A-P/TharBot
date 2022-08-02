@@ -11,6 +11,7 @@ namespace TharBot.DBModels
         public long MinLevel { get; set; }
         public double CurrentHP { get; set; }
         public double CurrentMP { get; set; }
+        public GameDebuffs? Debuffs { get; set; }
         public double BaseHP => 100 + (Level * 30) + (Stats.Constitution * 10);
         public double BaseMP => 50 + (Level * 15) + (Stats.Wisdom * 5);
         public double BaseAtk => 10 + (Level * 3) + Stats.Strength;

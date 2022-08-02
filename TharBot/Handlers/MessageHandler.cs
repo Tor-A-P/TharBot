@@ -85,7 +85,15 @@ namespace TharBot.Handlers
                         Luck = 0
                     },
                     AttributePoints = GameUserProfile.StartingAttributePoints,
-                    NumMessages = 1
+                    NumMessages = 1,
+                    Debuffs = new GameDebuffs
+                    {
+                        StunDuration = 0,
+                        HoTDuration = 0,
+                        HoTStrength = 0,
+                        DoTDuration = 0,
+                        DoTStrength = 0
+                    }
                 };
                 newUserProfile.CurrentHP = newUserProfile.BaseHP;
                 newUserProfile.CurrentMP = newUserProfile.BaseMP;
@@ -114,7 +122,15 @@ namespace TharBot.Handlers
                             Luck = 0
                         },
                         AttributePoints = GameUserProfile.StartingAttributePoints,
-                        NumMessages = 1
+                        NumMessages = 1,
+                        Debuffs = new GameDebuffs
+                        {
+                            StunDuration = 0,
+                            HoTDuration = 0,
+                            HoTStrength = 0,
+                            DoTDuration = 0,
+                            DoTStrength = 0
+                        }
                     };
                     newUserProfile.CurrentHP = newUserProfile.BaseHP;
                     newUserProfile.CurrentMP = newUserProfile.BaseMP;
@@ -123,6 +139,17 @@ namespace TharBot.Handlers
                 else
                 {
                     existingUserProfile.NumMessages++;
+                    if (existingUserProfile.Debuffs == null)
+                    {
+                        existingUserProfile.Debuffs = new GameDebuffs
+                        {
+                            StunDuration = 0,
+                            HoTDuration = 0,
+                            HoTStrength = 0,
+                            DoTDuration = 0,
+                            DoTStrength = 0
+                        };
+                    }
                     if (existingUserProfile.NextRewards < DateTime.UtcNow)
                     {
                         existingUserProfile.NextRewards = DateTime.UtcNow + TimeSpan.FromMinutes(1);

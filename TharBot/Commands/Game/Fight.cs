@@ -75,24 +75,31 @@ namespace TharBot.Commands
                         if (monster.Level < 1) monster.Level = 1;
                         monster.CurrentHP = monster.BaseHP;
                         monster.CurrentMP = monster.BaseMP;
+                        monster.Debuffs = new GameDebuffs
+                        {
+                            StunDuration = 0,
+                            HoTDuration = 0,
+                            HoTStrength = 0,
+                            DoTDuration = 0,
+                            DoTStrength = 0
+                        };
                         var fightEmbed = await EmbedHandler.CreateBasicEmbedBuilder($"{Context.User.Username} vs Level {monster.Level} {monster.Name}");
                         fightEmbed.AddField($"Lv. {userProfile.Level} {Context.User.Username}", $"{EmoteHandler.HP} HP:  {userProfile.CurrentHP} / {userProfile.BaseHP}\n" +
                                                                    $"{EmoteHandler.MP} MP:  {userProfile.CurrentMP} / {userProfile.BaseMP}\n" +
                                                                    $"{EmoteHandler.Attack} Atk: {userProfile.BaseAtk}\n" +
-                                                                   $"{EmoteHandler.Defend} Def: {userProfile.BaseDef}", true)
+                                                                   $"{EmoteHandler.Defense} Def: {userProfile.BaseDef}", true)
                                   .AddField($"Lv. {monster.Level} {monster.Name}", $"{EmoteHandler.HP} HP:  {monster.CurrentHP} / {monster.BaseHP}\n" +
                                                           $"{EmoteHandler.MP} MP:  {monster.CurrentMP} / {monster.BaseMP}\n" +
                                                           $"{EmoteHandler.Attack} Atk: {monster.BaseAtk}\n" +
-                                                          $"{EmoteHandler.Defend} Def: {monster.BaseDef}", true)
+                                                          $"{EmoteHandler.Defense} Def: {monster.BaseDef}", true)
                                   .AddField($"A wild {monster.Name} just appeared!", $"What will {Context.User.Username} do?")
                                   .WithFooter("Click the reactions to do actions like attacking, defending, casting spells, or using consumables");
                         var fight = await ReplyAsync(embed: fightEmbed.Build());
                         var emotes = new Emote[]
                         {
                         EmoteHandler.Attack,
-                        EmoteHandler.Defend,
-                            //EmoteHandler.Consumable,
-                            //EmoteHandler.Spells
+                        //EmoteHandler.Spells,
+                        //EmoteHandler.Cunsumables
                         };
                         var gameFight = new GameFight
                         {
