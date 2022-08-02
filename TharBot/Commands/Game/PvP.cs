@@ -105,14 +105,25 @@ namespace TharBot.Commands
                             enemyProfile.CurrentMP = enemyProfile.BaseMP;
                             serverProfile.Users.Add(enemyProfile);
                         }
+                        if (enemyProfile.Debuffs == null)
+                        {
+                            enemyProfile.Debuffs = new GameDebuffs
+                            {
+                                StunDuration = 0,
+                                HoTDuration = 0,
+                                HoTStrength = 0,
+                                DoTDuration = 0,
+                                DoTStrength = 0
+                            };
+                        }
                         var monster = new GameMonster
                         {
                             Name = enemy.Username,
                             Level = enemyProfile.Level,
                             Stats = enemyProfile.Attributes,
                             MinLevel = 1,
-                            CurrentHP = enemyProfile.CurrentHP,
-                            CurrentMP = enemyProfile.CurrentMP,
+                            CurrentHP = enemyProfile.BaseHP,
+                            CurrentMP = enemyProfile.BaseMP,
                             Debuffs = enemyProfile.Debuffs
                         };
                         var fightEmbed = await EmbedHandler.CreateBasicEmbedBuilder($"{Context.User.Username} vs Level {monster.Level} {monster.Name}");
