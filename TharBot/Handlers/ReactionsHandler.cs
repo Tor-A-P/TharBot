@@ -24,7 +24,8 @@ namespace TharBot.Handlers
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
             _client.ReactionAdded += PollHandling;
-            _client.ReactionAdded += FightHandling;
+            _client.ReactionAdded += FightAttackHandling;
+            _client.ReactionAdded += FightDefendHandling;
             _client.ReactionAdded += AttributesHandling;
         }
 
@@ -121,18 +122,12 @@ namespace TharBot.Handlers
             }
         }
 
-        private async Task FightHandling(Cacheable<IUserMessage, ulong> message, Cacheable<IMessageChannel, ulong> channel, SocketReaction reaction)
+        private async Task FightAttackHandling(Cacheable<IUserMessage, ulong> message, Cacheable<IMessageChannel, ulong> channel, SocketReaction reaction)
         {
             if (reaction.UserId == _client.CurrentUser.Id) return;
 
-            var fightEmojis = new Emote[]
-            {
-                EmoteHandler.Attack,
-                EmoteHandler.Defend,
-                EmoteHandler.Consumable,
-                EmoteHandler.Spells
-            };
-            if (!fightEmojis.Contains(reaction.Emote)) return;
+            var AttackEmoji = EmoteHandler.Attack;
+            if (AttackEmoji.Name != reaction.Emote.Name) return;
 
             try
             {
@@ -160,177 +155,92 @@ namespace TharBot.Handlers
                     var userProfile = serverProfile.Users.Where(x => x.UserId == fight.UserId).FirstOrDefault();
                     var user = Client.GetUser(fight.UserId);
                     fight.TurnNumber++;
-                    if (reaction.Emote.Name == fightEmojis[0].Name)
+
+                    var userCrit = false;
+                    var monsterCrit = false;
+                    var userDamage = userProfile.BaseAtk;
+                    var userMinDmg = userDamage - (userDamage / 20);
+                    var userMaxDmg = userDamage + (userDamage / 20);
+                    userDamage = random.Next((int)userMinDmg, (int)userMaxDmg + 1);
+                    if (random.Next(1, 101) <= userProfile.CritChance)
                     {
-                        var userCrit = false;
-                        var monsterCrit = false;
-                        var userDamage = userProfile.BaseAtk;
-                        var userMinDmg = userDamage - (userDamage / 20);
-                        var userMaxDmg = userDamage + (userDamage / 20);
-                        userDamage = random.Next((int)userMinDmg, (int)userMaxDmg + 1);
-                        if (random.Next(1, 101) <= userProfile.CritChance)
-                        {
-                            userDamage *= 1 + (userProfile.CritDamage / 100);
-                            userCrit = true;
-                        }
-                        userDamage = Math.Floor(userDamage - fight.Enemy.BaseDef);
-                        if (userDamage < 0) userDamage = 0;
-                        var monsterDamage = fight.Enemy.BaseAtk;
-                        var monsterMinDmg = monsterDamage - (monsterDamage / 20);
-                        var monsterMaxDmg = monsterDamage + (monsterDamage / 20);
-                        monsterDamage = random.Next((int)monsterMinDmg, (int)monsterMaxDmg + 1);
-                        if (random.Next(1, 101) <= fight.Enemy.CritChance)
-                        {
-                            monsterDamage *= 1 + (fight.Enemy.CritDamage / 100);
-                            monsterCrit = true;
-                        }
-                        monsterDamage = Math.Floor(monsterDamage - userProfile.BaseDef);
-                        if (monsterDamage < 0) monsterDamage = 0;
+                        userDamage *= 1 + (userProfile.CritDamage / 100);
+                        userCrit = true;
+                    }
+                    userDamage = Math.Floor(userDamage - fight.Enemy.BaseDef);
+                    if (userDamage < 0) userDamage = 0;
+                    var monsterDamage = fight.Enemy.BaseAtk;
+                    var monsterMinDmg = monsterDamage - (monsterDamage / 20);
+                    var monsterMaxDmg = monsterDamage + (monsterDamage / 20);
+                    monsterDamage = random.Next((int)monsterMinDmg, (int)monsterMaxDmg + 1);
+                    if (random.Next(1, 101) <= fight.Enemy.CritChance)
+                    {
+                        monsterDamage *= 1 + (fight.Enemy.CritDamage / 100);
+                        monsterCrit = true;
+                    }
+                    monsterDamage = Math.Floor(monsterDamage - userProfile.BaseDef);
+                    if (monsterDamage < 0) monsterDamage = 0;
 
-                        var turnText = "";
-                        fight.Enemy.CurrentHP -= userDamage;
-                        if (userCrit == true) turnText += $"{EmoteHandler.Crit} Critical hit! {user.Username} deals {userDamage} damage to {fight.Enemy.Name}!{EmoteHandler.Crit}\n";
-                        else turnText += $"{EmoteHandler.Attack}{user.Username} deals {userDamage} damage to {fight.Enemy.Name}!{EmoteHandler.Attack}\n";
-                        if (fight.Enemy.CurrentHP <= 0)
+                    var turnText = "";
+                    fight.Enemy.CurrentHP -= userDamage;
+                    if (userCrit == true) turnText += $"{EmoteHandler.Crit} Critical hit! {user.Username} deals {userDamage} damage to {fight.Enemy.Name}!{EmoteHandler.Crit}\n";
+                    else turnText += $"{EmoteHandler.Attack}{user.Username} deals {userDamage} damage to {fight.Enemy.Name}!{EmoteHandler.Attack}\n";
+                    if (fight.Enemy.CurrentHP <= 0)
+                    {
+                        turnText += $"{fight.Enemy.Name} is dead! {user.Username} wins the fight!\n" +
+                                    $"You receive {EmoteHandler.Coin}{coinReward} TharCoins and {EmoteHandler.Exp}{expReward} EXP!";
+                        fight.Turns.Add(turnText);
+                        fight.Enemy.CurrentHP = 0;
+                        var winnerEmbed = await EmbedHandler.CreateGameEmbed(fight, userProfile, user.Username);
+                        await msg.ModifyAsync(x => x.Embed = winnerEmbed);
+                        userProfile.NumFightsWon++;
+                        userProfile.TharCoins += coinReward;
+                        userProfile.Exp += expReward;
+                        if (userProfile.Exp >= userProfile.ExpToLevel)
                         {
-                            turnText += $"{fight.Enemy.Name} is dead! {user.Username} wins the fight!\n" +
-                                        $"You receive {EmoteHandler.Coin}{coinReward} TharCoins and {EmoteHandler.Exp}{expReward} EXP!";
+                            userProfile.Exp -= userProfile.ExpToLevel;
+                            userProfile.Level += 1;
+                            var levelUpEmbed = await EmbedHandler.CreateBasicEmbedBuilder($"{EmoteHandler.Level}Level up!");
+                            levelUpEmbed = levelUpEmbed.WithDescription($"Congratulations {user.Username}, you've reached level {userProfile.Level}!\n" +
+                                                                        $"Your health and mana has been refilled.\n" +
+                                                                        $"You have gained {GameUserProfile.AttributePointsPerLevel} attribute points, use the {prefix}attributes command to spend them!")
+                                                       .WithThumbnailUrl(user.GetAvatarUrl(ImageFormat.Auto, 2048) ?? user.GetDefaultAvatarUrl());
+                            userProfile.CurrentHP = userProfile.BaseHP;
+                            userProfile.CurrentMP = userProfile.BaseMP;
+                            userProfile.AttributePoints += GameUserProfile.AttributePointsPerLevel;
+
+                            await chan.SendMessageAsync(embed: levelUpEmbed.Build());
+                        }
+                        await msg.RemoveAllReactionsAsync();
+                        userProfile.FightInProgress = false;
+                        db.DeleteRecord<GameFight>("ActiveFights", reaction.MessageId);
+                        db.UpsertRecord("GameProfiles", fight.ServerId, serverProfile);
+                        return;
+                    }
+                    else
+                    {
+                        userProfile.CurrentHP -= monsterDamage;
+                        if (monsterCrit == true) turnText += $"{EmoteHandler.Crit}Critical hit! {fight.Enemy.Name} deals {monsterDamage} damage to {user.Username}!{EmoteHandler.Crit}\n";
+                        else turnText += $"{EmoteHandler.Attack}{fight.Enemy.Name} deals {monsterDamage} damage to {user.Username}!{EmoteHandler.Attack}\n";
+                        if (userProfile.CurrentHP <= 0)
+                        {
+                            turnText += $"{user.Username} has passed out! {fight.Enemy.Name} wins the fight!";
                             fight.Turns.Add(turnText);
-                            fight.Enemy.CurrentHP = 0;
-                            var winnerEmbed = await EmbedHandler.CreateGameEmbed(fight, userProfile, user.Username);
-                            await msg.ModifyAsync(x => x.Embed = winnerEmbed);
-                            userProfile.NumFightsWon++;
-                            userProfile.TharCoins += coinReward;
-                            userProfile.Exp += expReward;
-                            if (userProfile.Exp >= userProfile.ExpToLevel)
-                            {
-                                userProfile.Exp -= userProfile.ExpToLevel;
-                                userProfile.Level += 1;
-                                var levelUpEmbed = await EmbedHandler.CreateBasicEmbedBuilder($"{EmoteHandler.Level}Level up!");
-                                levelUpEmbed = levelUpEmbed.WithDescription($"Congratulations {user.Username}, you've reached level {userProfile.Level}!\n" +
-                                                                            $"Your health and mana has been refilled.\n" +
-                                                                            $"You have gained {GameUserProfile.AttributePointsPerLevel} attribute points, use the {prefix}attributes command to spend them!")
-                                                           .WithThumbnailUrl(user.GetAvatarUrl(ImageFormat.Auto, 2048) ?? user.GetDefaultAvatarUrl());
-                                userProfile.CurrentHP = userProfile.BaseHP;
-                                userProfile.CurrentMP = userProfile.BaseMP;
-                                userProfile.AttributePoints += GameUserProfile.AttributePointsPerLevel;
-
-                                await chan.SendMessageAsync(embed: levelUpEmbed.Build());
-                            }
+                            userProfile.CurrentHP = 0;
+                            var loserEmbed = await EmbedHandler.CreateGameEmbed(fight, userProfile, user.Username);
+                            await msg.ModifyAsync(x => x.Embed = loserEmbed);
                             await msg.RemoveAllReactionsAsync();
                             userProfile.FightInProgress = false;
                             db.DeleteRecord<GameFight>("ActiveFights", reaction.MessageId);
                             db.UpsertRecord("GameProfiles", fight.ServerId, serverProfile);
                             return;
                         }
-                        else
-                        {
-                            userProfile.CurrentHP -= monsterDamage;
-                            if (monsterCrit == true) turnText += $"{EmoteHandler.Crit}Critical hit! {fight.Enemy.Name} deals {monsterDamage} damage to {user.Username}!{EmoteHandler.Crit}\n";
-                            else turnText += $"{EmoteHandler.Attack}{fight.Enemy.Name} deals {monsterDamage} damage to {user.Username}!{EmoteHandler.Attack}\n";
-                            if (userProfile.CurrentHP <= 0)
-                            {
-                                turnText += $"{user.Username} has passed out! {fight.Enemy.Name} wins the fight!";
-                                fight.Turns.Add(turnText);
-                                userProfile.CurrentHP = 0;
-                                var loserEmbed = await EmbedHandler.CreateGameEmbed(fight, userProfile, user.Username);
-                                await msg.ModifyAsync(x => x.Embed = loserEmbed);
-                                await msg.RemoveAllReactionsAsync();
-                                userProfile.FightInProgress = false;
-                                db.DeleteRecord<GameFight>("ActiveFights", reaction.MessageId);
-                                db.UpsertRecord("GameProfiles", fight.ServerId, serverProfile);
-                                return;
-                            }
-                        }
-                        fight.Turns.Add(turnText);
-                        var embed = await EmbedHandler.CreateGameEmbed(fight, userProfile, user.Username);
-                        await msg.ModifyAsync(x => x.Embed = embed);
-                        db.UpsertRecord("ActiveFights", reaction.MessageId, fight);
-                        db.UpsertRecord("GameProfiles", fight.ServerId, serverProfile);
                     }
-                    else if (reaction.Emote.Name == fightEmojis[1].Name)
-                    {
-                        var monsterCrit = false;
-                        var userDamage = 0;
-                        var monsterDamage = fight.Enemy.BaseAtk;
-                        var monsterMinDmg = monsterDamage - (monsterDamage / 20);
-                        var monsterMaxDmg = monsterDamage + (monsterDamage / 20);
-                        monsterDamage = random.Next((int)monsterMinDmg, (int)monsterMaxDmg + 1);
-                        if (random.Next(1, 101) <= fight.Enemy.CritChance)
-                        {
-                            monsterDamage *= 1 + (fight.Enemy.CritDamage / 100);
-                            monsterCrit = true;
-                        }
-                        monsterDamage = Math.Floor(monsterDamage - (userProfile.BaseDef * 3));
-                        if (monsterDamage < 0) monsterDamage = 0;
-
-                        fight.Enemy.CurrentHP -= userDamage;
-                        var turnText = "";
-                        turnText += $"{EmoteHandler.Defend}{user.Username} defends, tripling their defense!{EmoteHandler.Defend}\n";
-                        if (fight.Enemy.CurrentHP <= 0)
-                        {
-                            turnText += $"{fight.Enemy.Name} is dead! {user.Username} wins the fight!\n" +
-                                        $"You receive {coinReward} TharCoins and {expReward} EXP!";
-                            fight.Turns.Add(turnText);
-                            fight.Enemy.CurrentHP = 0;
-                            var winnerEmbed = await EmbedHandler.CreateGameEmbed(fight, userProfile, user.Username);
-                            await msg.ModifyAsync(x => x.Embed = winnerEmbed);
-                            userProfile.TharCoins += coinReward;
-                            userProfile.Exp += expReward;
-                            if (userProfile.Exp >= userProfile.ExpToLevel)
-                            {
-                                userProfile.Exp -= userProfile.ExpToLevel;
-                                userProfile.Level += 1;
-                                var levelUpEmbed = await EmbedHandler.CreateBasicEmbedBuilder($"{EmoteHandler.Level}Level up!");
-                                levelUpEmbed = levelUpEmbed.WithDescription($"Congratulations {user.Username}, you've reached level {userProfile.Level}!\n" +
-                                                                            $"Your health and mana has been refilled.\n" +
-                                                                            $"You have gained {GameUserProfile.AttributePointsPerLevel} attribute points, use the {prefix}attributes command to spend them!")
-                                                           .WithThumbnailUrl(user.GetAvatarUrl(ImageFormat.Auto, 2048) ?? user.GetDefaultAvatarUrl());
-                                userProfile.CurrentHP = userProfile.BaseHP;
-                                userProfile.CurrentMP = userProfile.BaseMP;
-                                userProfile.AttributePoints += GameUserProfile.AttributePointsPerLevel;
-
-                                await chan.SendMessageAsync(embed: levelUpEmbed.Build());
-                            }
-                            await msg.RemoveAllReactionsAsync();
-                            userProfile.FightInProgress = false;
-                            db.DeleteRecord<GameFight>("ActiveFights", reaction.MessageId);
-                            db.UpsertRecord("GameProfiles", fight.ServerId, serverProfile);
-                            return;
-                        }
-                        else
-                        {
-                            userProfile.CurrentHP -= monsterDamage;
-                            if (monsterCrit == true) turnText += $"{EmoteHandler.Crit}Critical hit! {fight.Enemy.Name} deals {monsterDamage} damage to {user.Username}!{EmoteHandler.Crit}\n";
-                            else turnText += $"{EmoteHandler.Attack}{fight.Enemy.Name} deals {monsterDamage} damage to {user.Username}!{EmoteHandler.Attack}\n";
-                            if (userProfile.CurrentHP <= 0)
-                            {
-                                turnText += $"{user.Username} has passed out! {fight.Enemy.Name} wins the fight!";
-                                fight.Turns.Add(turnText);
-                                userProfile.CurrentHP = 0;
-                                var loserEmbed = await EmbedHandler.CreateGameEmbed(fight, userProfile, user.Username);
-                                await msg.ModifyAsync(x => x.Embed = loserEmbed);
-                                await msg.RemoveAllReactionsAsync();
-                                userProfile.FightInProgress = false;
-                                db.DeleteRecord<GameFight>("ActiveFights", reaction.MessageId);
-                                db.UpsertRecord("GameProfiles", fight.ServerId, serverProfile);
-                                return;
-                            }
-                        }
-                        fight.Turns.Add(turnText);
-                        var embed = await EmbedHandler.CreateGameEmbed(fight, userProfile, user.Username);
-                        await msg.ModifyAsync(x => x.Embed = embed);
-                        db.UpsertRecord("ActiveFights", reaction.MessageId, fight);
-                        db.UpsertRecord("GameProfiles", fight.ServerId, serverProfile);
-                    }
-                    else if (reaction.Emote.Name == fightEmojis[2].Name)
-                    {
-                        //Do spell stuff
-                    }
-                    else if (reaction.Emote.Name == fightEmojis[3].Name)
-                    {
-                        //Do consumable stuff
-                    }
+                    fight.Turns.Add(turnText);
+                    var embed = await EmbedHandler.CreateGameEmbed(fight, userProfile, user.Username);
+                    await msg.ModifyAsync(x => x.Embed = embed);
+                    db.UpsertRecord("ActiveFights", reaction.MessageId, fight);
+                    db.UpsertRecord("GameProfiles", fight.ServerId, serverProfile);
                 }
                 else
                 {
@@ -343,6 +253,125 @@ namespace TharBot.Handlers
             }
         }
 
+        private async Task FightDefendHandling(Cacheable<IUserMessage, ulong> message, Cacheable<IMessageChannel, ulong> channel, SocketReaction reaction)
+        {
+            if (reaction.UserId == _client.CurrentUser.Id) return;
+
+            var DefendEmoji = EmoteHandler.Defend;
+            if (DefendEmoji.Name != reaction.Emote.Name) return;
+
+            try
+            {
+                var fight = db.LoadRecordById<GameFight>("ActiveFights", reaction.MessageId);
+                var chan = await Client.GetChannelAsync(channel.Id) as IMessageChannel;
+                IUserMessage? msg = message.HasValue ? message.Value : await chan.GetMessageAsync(message.Id) as IUserMessage;
+
+                if (fight != null)
+                {
+                    if (reaction.UserId != fight.UserId) return;
+                    var prefix = "";
+                    var existingPrefix = db.LoadRecordById<Prefixes>("Prefixes", fight.ServerId);
+                    if (existingPrefix != null)
+                    {
+                        prefix = existingPrefix.Prefix;
+                    }
+                    else
+                    {
+                        prefix = _configuration["Prefix"];
+                    }
+                    var coinReward = fight.Enemy.Level * 50;
+                    var expReward = fight.Enemy.Level * 20;
+                    await msg.RemoveReactionAsync(reaction.Emote, reaction.UserId);
+                    var serverProfile = db.LoadRecordById<GameServerProfile>("GameProfiles", fight.ServerId);
+                    var userProfile = serverProfile.Users.Where(x => x.UserId == fight.UserId).FirstOrDefault();
+                    var user = Client.GetUser(fight.UserId);
+                    fight.TurnNumber++;
+
+                    var monsterCrit = false;
+                    var userDamage = 0;
+                    var monsterDamage = fight.Enemy.BaseAtk;
+                    var monsterMinDmg = monsterDamage - (monsterDamage / 20);
+                    var monsterMaxDmg = monsterDamage + (monsterDamage / 20);
+                    monsterDamage = random.Next((int)monsterMinDmg, (int)monsterMaxDmg + 1);
+                    if (random.Next(1, 101) <= fight.Enemy.CritChance)
+                    {
+                        monsterDamage *= 1 + (fight.Enemy.CritDamage / 100);
+                        monsterCrit = true;
+                    }
+                    monsterDamage = Math.Floor(monsterDamage - (userProfile.BaseDef * 3));
+                    if (monsterDamage < 0) monsterDamage = 0;
+
+                    fight.Enemy.CurrentHP -= userDamage;
+                    var turnText = "";
+                    turnText += $"{EmoteHandler.Defend}{user.Username} defends, tripling their defense!{EmoteHandler.Defend}\n";
+                    if (fight.Enemy.CurrentHP <= 0)
+                    {
+                        turnText += $"{fight.Enemy.Name} is dead! {user.Username} wins the fight!\n" +
+                                    $"You receive {coinReward} TharCoins and {expReward} EXP!";
+                        fight.Turns.Add(turnText);
+                        fight.Enemy.CurrentHP = 0;
+                        var winnerEmbed = await EmbedHandler.CreateGameEmbed(fight, userProfile, user.Username);
+                        await msg.ModifyAsync(x => x.Embed = winnerEmbed);
+                        userProfile.TharCoins += coinReward;
+                        userProfile.Exp += expReward;
+                        if (userProfile.Exp >= userProfile.ExpToLevel)
+                        {
+                            userProfile.Exp -= userProfile.ExpToLevel;
+                            userProfile.Level += 1;
+                            var levelUpEmbed = await EmbedHandler.CreateBasicEmbedBuilder($"{EmoteHandler.Level}Level up!");
+                            levelUpEmbed = levelUpEmbed.WithDescription($"Congratulations {user.Username}, you've reached level {userProfile.Level}!\n" +
+                                                                        $"Your health and mana has been refilled.\n" +
+                                                                        $"You have gained {GameUserProfile.AttributePointsPerLevel} attribute points, use the {prefix}attributes command to spend them!")
+                                                       .WithThumbnailUrl(user.GetAvatarUrl(ImageFormat.Auto, 2048) ?? user.GetDefaultAvatarUrl());
+                            userProfile.CurrentHP = userProfile.BaseHP;
+                            userProfile.CurrentMP = userProfile.BaseMP;
+                            userProfile.AttributePoints += GameUserProfile.AttributePointsPerLevel;
+
+                            await chan.SendMessageAsync(embed: levelUpEmbed.Build());
+                        }
+                        await msg.RemoveAllReactionsAsync();
+                        userProfile.FightInProgress = false;
+                        db.DeleteRecord<GameFight>("ActiveFights", reaction.MessageId);
+                        db.UpsertRecord("GameProfiles", fight.ServerId, serverProfile);
+                        return;
+                    }
+                    else
+                    {
+                        userProfile.CurrentHP -= monsterDamage;
+                        if (monsterCrit == true) turnText += $"{EmoteHandler.Crit}Critical hit! {fight.Enemy.Name} deals {monsterDamage} damage to {user.Username}!{EmoteHandler.Crit}\n";
+                        else turnText += $"{EmoteHandler.Attack}{fight.Enemy.Name} deals {monsterDamage} damage to {user.Username}!{EmoteHandler.Attack}\n";
+                        if (userProfile.CurrentHP <= 0)
+                        {
+                            turnText += $"{user.Username} has passed out! {fight.Enemy.Name} wins the fight!";
+                            fight.Turns.Add(turnText);
+                            userProfile.CurrentHP = 0;
+                            var loserEmbed = await EmbedHandler.CreateGameEmbed(fight, userProfile, user.Username);
+                            await msg.ModifyAsync(x => x.Embed = loserEmbed);
+                            await msg.RemoveAllReactionsAsync();
+                            userProfile.FightInProgress = false;
+                            db.DeleteRecord<GameFight>("ActiveFights", reaction.MessageId);
+                            db.UpsertRecord("GameProfiles", fight.ServerId, serverProfile);
+                            return;
+                        }
+                    }
+                    fight.Turns.Add(turnText);
+                    var embed = await EmbedHandler.CreateGameEmbed(fight, userProfile, user.Username);
+                    await msg.ModifyAsync(x => x.Embed = embed);
+                    db.UpsertRecord("ActiveFights", reaction.MessageId, fight);
+                    db.UpsertRecord("GameProfiles", fight.ServerId, serverProfile);
+                }
+            }
+            catch (Exception ex)
+            {
+                await LoggingHandler.LogCriticalAsync("Bot", null, ex);
+            }
+
+        }
+
+        private async Task FightSpellHandling(Cacheable<IUserMessage, ulong> message, Cacheable<IMessageChannel, ulong> channel, SocketReaction reaction)
+        {
+
+        }
         private async Task AttributesHandling(Cacheable<IUserMessage, ulong> message, Cacheable<IMessageChannel, ulong> channel, SocketReaction reaction)
         {
             if (reaction.UserId == _client.CurrentUser.Id) return;

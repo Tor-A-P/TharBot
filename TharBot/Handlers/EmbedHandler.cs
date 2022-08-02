@@ -130,7 +130,7 @@ namespace TharBot.Handlers
                  .AddField($"{EmoteHandler.Constitution} Constitution: {userProfile.Attributes.Constitution}",
                            $"Increases your health by {GameUserProfile.ConstitutionHPBonus} and your health regen per minute by {GameUserProfile.ConstitutionHPRegenBonus}% of your max health per point.")
                  .AddField($"{EmoteHandler.Wisdom} Wisdom: {userProfile.Attributes.Wisdom}",
-                           $"Increases your mana by {GameUserProfile.WisdomMPBonus} and your mana regen per minute by {GameUserProfile.WisdomMPRegenBonus}% of your max mana per point.")
+                           $"Increases your mana by {GameUserProfile.WisdomMPBonus} and your mana regen per minute by {GameUserProfile.WisdomMPRegenBonus}% of your max mana per point. (Doesn't really do anything until intelligence is implemented)")
                  .AddField($"{EmoteHandler.Luck} Luck: {userProfile.Attributes.Luck}",
                            $"Increases your Critical damage by {GameUserProfile.LuckCritModifier}% per point, and your chance to win the low prize in gambles by 0.33% per point.")
                  .WithThumbnailUrl(user.GetAvatarUrl(ImageFormat.Auto, 2048) ?? user.GetDefaultAvatarUrl())
