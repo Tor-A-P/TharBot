@@ -1,5 +1,6 @@
 ﻿using Discord;
 using Discord.Commands;
+using Discord.WebSocket;
 using Microsoft.Extensions.Configuration;
 using TharBot.DBModels;
 using TharBot.Handlers;
@@ -16,11 +17,12 @@ namespace TharBot.Commands
         }
 
         [Command("Fight")]
-        [Summary("Summons a monster for you to fight. The monster will be close to your level.\n" +
-            "You can only start fights with up to 10 monsters per hour (individual cooldown, starts when you defeat the first monster of that period)" +
-            "**USAGE:** th.fight")]
+        [Summary("Summons a monster for you to fight, or fights another player. The monster will be close to your level.\n" +
+            "You can only start fights with up to 10 enemies per hour (individual cooldown, starts when you defeat the first monster of that period)\n" +
+            "**USAGE:** th.fight, th.fight [USER_MENTION]\n" +
+            "**EXAMPLES:** th.fight, th.fight @Tharwatha#5189, th.fight tharwatha")]
         [Remarks("Game")]
-        public async Task FightAsync(string monsterName = "")
+        public async Task FightAsync(SocketUser? enemy = null)
         {
             try
             {
@@ -83,14 +85,76 @@ namespace TharBot.Commands
                         Random random = new();
                         var monsterList = db.LoadRecords<GameMonster>("MonsterList");
                         GameMonster? monster = null;
-                        if (monsterName != "") monster = monsterList.Where(x => x.Name.ToLower() == monsterName.ToLower()).FirstOrDefault();
-                        if (monster == null) monster = monsterList[random.Next(monsterList.Count)];
-                        while (monster.MinLevel > userProfile.Level)
+                        if (enemy != null)
+                        {
+                            var enemyProfile = serverProfile.Users.Where(x => x.UserId == enemy.Id).FirstOrDefault();
+                            if (enemyProfile == null)
+                            {
+                                enemyProfile = new GameUserProfile
+                                {
+                                    UserId = enemy.Id,
+                                    NextRewards = DateTime.UtcNow + TimeSpan.FromMinutes(1),
+                                    TharCoins = 10,
+                                    Exp = random.Next(8, 13),
+                                    Level = 1,
+                                    Attributes = new GameStats
+                                    {
+                                        Strength = 0,
+                                        Dexterity = 0,
+                                        Intelligence = 0,
+                                        Constitution = 0,
+                                        Wisdom = 0,
+                                        Luck = 0
+                                    },
+                                    AttributePoints = GameUserProfile.StartingAttributePoints,
+                                    NumMessages = 1,
+                                    Debuffs = new GameDebuffs
+                                    {
+                                        StunDuration = 0,
+                                        HoTDuration = 0,
+                                        HoTStrength = 0,
+                                        DoTDuration = 0,
+                                        DoTStrength = 0
+                                    }
+                                };
+                                enemyProfile.CurrentHP = enemyProfile.BaseHP;
+                                enemyProfile.CurrentMP = enemyProfile.BaseMP;
+                                serverProfile.Users.Add(enemyProfile);
+                            }
+                            if (enemyProfile.Debuffs == null)
+                            {
+                                enemyProfile.Debuffs = new GameDebuffs
+                                {
+                                    StunDuration = 0,
+                                    HoTDuration = 0,
+                                    HoTStrength = 0,
+                                    DoTDuration = 0,
+                                    DoTStrength = 0
+                                };
+                            }
+                            
+                            monster = new GameMonster
+                            {
+                                Name = enemy.Username,
+                                Level = enemyProfile.Level,
+                                Stats = enemyProfile.Attributes,
+                                MinLevel = 1,
+                                CurrentHP = enemyProfile.BaseHP,
+                                CurrentMP = enemyProfile.BaseMP,
+                                Debuffs = enemyProfile.Debuffs
+                            };
+                        }
+
+                        if (monster == null)
                         {
                             monster = monsterList[random.Next(monsterList.Count)];
+                            while (monster.MinLevel > userProfile.Level)
+                            {
+                                monster = monsterList[random.Next(monsterList.Count)];
+                            }
+                            monster.Level = random.NextInt64(userProfile.Level - 2, userProfile.Level + 2);
+                            if (monster.Level < 1) monster.Level = 1;
                         }
-                        monster.Level = random.NextInt64(userProfile.Level - 2, userProfile.Level + 2);
-                        if (monster.Level < 1) monster.Level = 1;
                         monster.CurrentHP = monster.BaseHP;
                         monster.CurrentMP = monster.BaseMP;
                         monster.Debuffs = new GameDebuffs
