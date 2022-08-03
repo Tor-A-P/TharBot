@@ -27,11 +27,14 @@ namespace TharBot.Commands
         {
             try
             {
-                
-                if (subreddit.ToLower().Substring(0, 3) == "/r/")
+                if (subreddit.Length >= 3)
                 {
-                    subreddit = subreddit.Remove(0, 3);
+                    if (subreddit.ToLower().Substring(0, 3) == "/r/")
+                    {
+                        subreddit = subreddit.Remove(0, 3);
+                    }
                 }
+                
                 var reddit = new RedditClient(appId: _configuration["RedditAppId"], appSecret: _configuration["RedditAppSecret"], refreshToken: _configuration["RedditRefreshToken"]);
 
                 var subR = reddit.Subreddit(subreddit).About();
