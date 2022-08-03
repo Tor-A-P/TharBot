@@ -24,6 +24,24 @@ namespace TharBot.Commands
         {
             try
             {
+                var existingWL = db.LoadRecordById<Whitelist>("WhitelistedGameChannels", Context.Guild.Id);
+                if (existingWL != null)
+                {
+                    if (existingWL.WLChannelId.Any())
+                    {
+                        if (!existingWL.WLChannelId.Contains(Context.Channel.Id)) return;
+                    }
+                }
+
+                var existingBL = db.LoadRecordById<Blacklist>("BlacklistedGameChannels", Context.Guild.Id);
+                if (existingBL != null)
+                {
+                    if (existingBL.BLChannelId.Any())
+                    {
+                        if (existingBL.BLChannelId.Contains(Context.Channel.Id)) return;
+                    }
+                }
+
                 var serverProfile = db.LoadRecordById<GameServerProfile>("GameProfiles", Context.Guild.Id);
                 if (serverProfile == null)
                 {

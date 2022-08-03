@@ -25,6 +25,24 @@ namespace TharBot.Commands
         {
             try
             {
+                var existingWL = db.LoadRecordById<Whitelist>("WhitelistedGameChannels", Context.Guild.Id);
+                if (existingWL != null)
+                {
+                    if (existingWL.WLChannelId.Any())
+                    {
+                        if (!existingWL.WLChannelId.Contains(Context.Channel.Id)) return;
+                    }
+                }
+
+                var existingBL = db.LoadRecordById<Blacklist>("BlacklistedGameChannels", Context.Guild.Id);
+                if (existingBL != null)
+                {
+                    if (existingBL.BLChannelId.Any())
+                    {
+                        if (existingBL.BLChannelId.Contains(Context.Channel.Id)) return;
+                    }
+                }
+
                 if (enemy == null)
                 {
                     var noMentionEmbed = await EmbedHandler.CreateUserErrorEmbed("No user mentioned", "Please mention a user to fight in this command");
