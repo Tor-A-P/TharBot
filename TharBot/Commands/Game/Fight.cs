@@ -175,7 +175,7 @@ namespace TharBot.Commands
                                                           $"{EmoteHandler.MP} MP:  {monster.CurrentMP} / {monster.BaseMP}\n" +
                                                           $"{EmoteHandler.Attack} Atk: {monster.BaseAtk}\n" +
                                                           $"{EmoteHandler.Defense} Def: {monster.BaseDef}\n" +
-                                                          $"{EmoteHandler.Spells}SpellPower: {monster.SpellPower}", true)
+                                                          $"{EmoteHandler.Spells}Spellpower: {monster.SpellPower}", true)
                                   .AddField($"A wild {monster.Name} just appeared!", $"What will {Context.User.Username} do?")
                                   .WithFooter("Click the reactions to do actions like attacking, casting spells, or using consumables (only attack is implemented so far)");
                         var fight = await ReplyAsync(embed: fightEmbed.Build());

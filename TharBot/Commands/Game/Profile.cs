@@ -66,7 +66,8 @@ namespace TharBot.Commands
                                    $"{EmoteHandler.Strength} Strength: {userProfile.Attributes.Strength}\n" +
                                    $"{EmoteHandler.Intelligence} Intelligence: {userProfile.Attributes.Intelligence}\n" +
                                    $"{EmoteHandler.Dexterity} Dexterity: {userProfile.Attributes.Dexterity}\n" +
-                                   $"{EmoteHandler.Crit} Crit Chance: {userProfile.CritChance}%", true)
+                                   $"{EmoteHandler.Crit} Crit Chance: {userProfile.CritChance}%\n" +
+                                   $"{EmoteHandler.Spells} Spellpower: {userProfile.SpellPower}", true)
                      .AddField($"{EmoteHandler.Exp} Exp: {userProfile.Exp:N0} / {userProfile.ExpToLevel:N0}\n",
                                    $"{EmoteHandler.MP} MP: {userProfile.CurrentMP:N0} / {userProfile.BaseMP:N0}\n" +
                                    $"{EmoteHandler.Defense} Def: {userProfile.BaseDef}\n" +

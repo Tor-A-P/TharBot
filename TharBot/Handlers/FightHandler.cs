@@ -31,8 +31,7 @@ namespace TharBot.Handlers
         {
             if (reaction.UserId == _client.CurrentUser.Id) return;
 
-            var AttackEmoji = EmoteHandler.Attack;
-            if (AttackEmoji.Name != reaction.Emote.Name) return;
+            if (EmoteHandler.Attack.Name != reaction.Emote.Name) return;
 
             try
             {
@@ -188,8 +187,7 @@ namespace TharBot.Handlers
         {
             if (reaction.UserId == _client.CurrentUser.Id) return;
 
-            var SpellEmoji = EmoteHandler.Spells;
-            if (SpellEmoji.Name != reaction.Emote.Name) return;
+            if (EmoteHandler.Spells.Name != reaction.Emote.Name) return;
 
 
         }

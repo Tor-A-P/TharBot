@@ -89,12 +89,12 @@ namespace TharBot.Handlers
                            $"{EmoteHandler.MP}MP:  {user.CurrentMP} / {user.BaseMP}\n" +
                            $"{EmoteHandler.Attack}Atk: {user.BaseAtk}\n" +
                            $"{EmoteHandler.Defense}Def: {user.BaseDef}\n" +
-                           $"{EmoteHandler.Spells}SpellPower: {user.SpellPower}", true)
+                           $"{EmoteHandler.Spells}Spellpower: {user.SpellPower}", true)
                  .AddField($"Lv. {fight.Enemy.Level} {fight.Enemy.Name}", $"{EmoteHandler.HP}HP:  {fight.Enemy.CurrentHP} / {fight.Enemy.BaseHP}\n" +
                            $"{EmoteHandler.MP}MP:  {fight.Enemy.CurrentMP} / {fight.Enemy.BaseMP}\n" +
                            $"{EmoteHandler.Attack}Atk: {fight.Enemy.BaseAtk}\n" +
                            $"{EmoteHandler.Defense}Def: {fight.Enemy.BaseDef}\n" +
-                           $"{EmoteHandler.Spells}SpellPower: {fight.Enemy.SpellPower}", true)
+                           $"{EmoteHandler.Spells}Spellpower: {fight.Enemy.SpellPower}", true)
                  .WithColor(new Color(76, 164, 210))
                  .WithFooter("Click the reactions to do actions like attacking, casting spells, or using consumables (only attack is implemented so far)"));
             if (fight.Turns != null)
