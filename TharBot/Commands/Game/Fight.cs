@@ -197,7 +197,7 @@ namespace TharBot.Commands
                             Turns = new List<string>()
                         };
                         db.InsertRecord("ActiveFights", gameFight);
-                        userProfile.FightInProgress = true;
+                        //userProfile.FightInProgress = true;
                         userProfile.FightsThisHour++;
                         db.UpsertRecord("GameProfiles", Context.Guild.Id, serverProfile);
                         await fight.AddReactionsAsync(emotes);
