@@ -88,11 +88,13 @@ namespace TharBot.Handlers
                  .AddField($"Lv. {user.Level} {userName}", $"{EmoteHandler.HP}HP:  {user.CurrentHP} / {user.BaseHP}\n" +
                            $"{EmoteHandler.MP}MP:  {user.CurrentMP} / {user.BaseMP}\n" +
                            $"{EmoteHandler.Attack}Atk: {user.BaseAtk}\n" +
-                           $"{EmoteHandler.Defense}Def: {user.BaseDef}", true)
+                           $"{EmoteHandler.Defense}Def: {user.BaseDef}\n" +
+                           $"{EmoteHandler.Spells}SpellPower: {user.SpellPower}", true)
                  .AddField($"Lv. {fight.Enemy.Level} {fight.Enemy.Name}", $"{EmoteHandler.HP}HP:  {fight.Enemy.CurrentHP} / {fight.Enemy.BaseHP}\n" +
                            $"{EmoteHandler.MP}MP:  {fight.Enemy.CurrentMP} / {fight.Enemy.BaseMP}\n" +
                            $"{EmoteHandler.Attack}Atk: {fight.Enemy.BaseAtk}\n" +
-                           $"{EmoteHandler.Defense}Def: {fight.Enemy.BaseDef}", true)
+                           $"{EmoteHandler.Defense}Def: {fight.Enemy.BaseDef}\n" +
+                           $"{EmoteHandler.Spells}SpellPower: {fight.Enemy.SpellPower}", true)
                  .WithColor(new Color(76, 164, 210))
                  .WithFooter("Click the reactions to do actions like attacking, casting spells, or using consumables (only attack is implemented so far)"));
             if (fight.Turns != null)
@@ -124,7 +126,7 @@ namespace TharBot.Handlers
                  .AddField($"{EmoteHandler.Strength} Strength: {userProfile.Attributes.Strength}",
                            $"Increases your attack damage by {GameUserProfile.AttackPerStrength} per point.")
                  .AddField($"{EmoteHandler.Intelligence} Intelligence: {userProfile.Attributes.Intelligence}",
-                           $"Increases your spell damage by {GameUserProfile.IntSpellModifier}% per point (Not implemented yet).")
+                           $"Increases your spellpower by {GameUserProfile.IntSpellPower} per point. (Not implemented yet)")
                  .AddField($"{EmoteHandler.Dexterity} Dexterity: {userProfile.Attributes.Dexterity}",
                            $"Increases your crit chance by {GameUserProfile.DexCritModifier} and your defense by {GameUserProfile.DexDefModifier} per point.")
                  .AddField($"{EmoteHandler.Constitution} Constitution: {userProfile.Attributes.Constitution}",

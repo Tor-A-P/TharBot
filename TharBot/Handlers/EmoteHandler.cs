@@ -21,7 +21,7 @@ namespace TharBot.Handlers
         public readonly static Emote Attack = Emote.Parse("<:Attack:989151670065852426>");
         public readonly static Emote Defense = Emote.Parse("<:Defense:989151685110812702>");
         public readonly static Emote Consumables = Emote.Parse("<:Consumables:989151712008863774>");
-        public readonly static Emote Spells = Emote.Parse("<:Spells:989151699556003850>");
+        public readonly static Emote Spells = Emote.Parse("<:spells:1004378179781263420>");
         public readonly static Emote DoT = Emote.Parse("<:Bleed:1003988953172545706>");
         public readonly static Emote HoT = Emote.Parse("<:Healing:1003988966409764914>");
         public readonly static Emote Blank = Emote.Parse("<:__:995647072323784775>");
