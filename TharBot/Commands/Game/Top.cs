@@ -88,20 +88,27 @@ namespace TharBot.Commands
                 var nameFieldString = "";
                 var valueFieldString = "";
                 var leaderBoardPos = 1;
+                var footerString = "";
                 if (flag == "msg")
                 {
                     var sortedUserProfiles = profile.Users.OrderByDescending(x => x.NumMessages);
                     foreach (var userProfile in sortedUserProfiles)
                     {
                         var user = await _client.GetUserAsync(userProfile.UserId);
-                        if (user.Id == Context.User.Id) nameFieldString += $"{leaderBoardPos}. {EmoteHandler.You}{user.Mention}\n";
-                        else nameFieldString += $"{leaderBoardPos}. {user.Mention}\n";
-                        valueFieldString += $"{userProfile.NumMessages}\n";
+                        if (leaderBoardPos <= 15)
+                        {
+                            if (user.Id == Context.User.Id) nameFieldString += $"{leaderBoardPos}. {EmoteHandler.You}{user.Mention}\n";
+                            else nameFieldString += $"{leaderBoardPos}. {user.Mention}\n";
+                            valueFieldString += $"{userProfile.NumMessages}\n";
+                        }
+
+                        if (user.Id == Context.User.Id) footerString = $"You are at position {leaderBoardPos} with {userProfile.NumMessages} messages sent.";
+                        if (footerString != "" && leaderBoardPos > 15) break;
                         leaderBoardPos++;
-                        if (leaderBoardPos > 15) break;
                     }
                     embed.AddField("Username", nameFieldString, true)
-                         .AddField("Total Messages", valueFieldString, true);
+                         .AddField("Total Messages", valueFieldString, true)
+                         .WithFooter(footerString);
                 }
                 else if (flag == "coins")
                 {
@@ -109,14 +116,20 @@ namespace TharBot.Commands
                     foreach (var userProfile in sortedUserProfiles)
                     {
                         var user = await _client.GetUserAsync(userProfile.UserId);
-                        if (user.Id == Context.User.Id) nameFieldString += $"{leaderBoardPos}. {EmoteHandler.You}{user.Mention}\n";
-                        else nameFieldString += $"{leaderBoardPos}. {user.Mention}\n";
-                        valueFieldString += $"{userProfile.TharCoins}\n";
+                        if (leaderBoardPos <= 15)
+                        {
+                            if (user.Id == Context.User.Id) nameFieldString += $"{leaderBoardPos}. {EmoteHandler.You}{user.Mention}\n";
+                            else nameFieldString += $"{leaderBoardPos}. {user.Mention}\n";
+                            valueFieldString += $"{userProfile.TharCoins}\n";
+                        }
+
+                        if (user.Id == Context.User.Id) footerString = $"You are at position {leaderBoardPos} with {userProfile.TharCoins} TharCoins.";
+                        if (footerString != "" && leaderBoardPos > 15) break;
                         leaderBoardPos++;
-                        if (leaderBoardPos > 15) break;
                     }
                     embed.AddField("Username", nameFieldString, true)
-                         .AddField("Total TharCoins", valueFieldString, true);
+                         .AddField("Total TharCoins", valueFieldString, true)
+                         .WithFooter(footerString);
                 }
                 else if (flag == "fights")
                 {
@@ -124,14 +137,20 @@ namespace TharBot.Commands
                     foreach (var userProfile in sortedUserProfiles)
                     {
                         var user = await _client.GetUserAsync(userProfile.UserId);
-                        if (user.Id == Context.User.Id) nameFieldString += $"{leaderBoardPos}. {EmoteHandler.You}{user.Mention}\n";
-                        else nameFieldString += $"{leaderBoardPos}. {user.Mention}\n";
-                        valueFieldString += $"{userProfile.NumFightsWon}\n";
+                        if (leaderBoardPos <= 15)
+                        {
+                            if (user.Id == Context.User.Id) nameFieldString += $"{leaderBoardPos}. {EmoteHandler.You}{user.Mention}\n";
+                            else nameFieldString += $"{leaderBoardPos}. {user.Mention}\n";
+                            valueFieldString += $"{userProfile.NumFightsWon}\n";
+                        }
+
+                        if (user.Id == Context.User.Id) footerString = $"You are at position {leaderBoardPos} with {userProfile.NumFightsWon} fights won.";
+                        if (footerString != "" && leaderBoardPos > 15) break;
                         leaderBoardPos++;
-                        if (leaderBoardPos > 15) break;
                     }
                     embed.AddField("Username", nameFieldString, true)
-                         .AddField("Total Fights Won", valueFieldString, true);
+                         .AddField("Total Fights Won", valueFieldString, true)
+                         .WithFooter(footerString);
                 }
                 else
                 {
@@ -139,14 +158,20 @@ namespace TharBot.Commands
                     foreach (var userProfile in sortedUserProfiles)
                     {
                         var user = await _client.GetUserAsync(userProfile.UserId);
-                        if (user.Id == Context.User.Id) nameFieldString += $"{leaderBoardPos}. {EmoteHandler.You}{user.Mention}\n";
-                        else nameFieldString += $"{leaderBoardPos}. {user.Mention}\n";
-                        valueFieldString += $"{userProfile.TotalExp()}\n";
+                        if (leaderBoardPos <= 15)
+                        {
+                            if (user.Id == Context.User.Id) nameFieldString += $"{leaderBoardPos}. {EmoteHandler.You}{user.Mention}\n";
+                            else nameFieldString += $"{leaderBoardPos}. {user.Mention}\n";
+                            valueFieldString += $"{userProfile.TotalExp()}\n";
+                        }
+
+                        if (user.Id == Context.User.Id) footerString = $"You are at position {leaderBoardPos} with {userProfile.TotalExp()} total EXP.";
+                        if (footerString != "" && leaderBoardPos > 15) break;
                         leaderBoardPos++;
-                        if (leaderBoardPos > 15) break;
                     }
                     embed.AddField("Username", nameFieldString, true)
-                         .AddField("Total EXP", valueFieldString, true);
+                         .AddField("Total EXP", valueFieldString, true)
+                         .WithFooter(footerString);
                 }
 
                 return embed.Build();

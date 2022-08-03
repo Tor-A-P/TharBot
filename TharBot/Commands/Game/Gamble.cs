@@ -23,7 +23,7 @@ namespace TharBot.Commands
             "**EXAMPLES:** th.gamble 42, th.gamble all, th.gamble 50%\n" +
             "**PAYOUTS:**\n" +
             "2 of the same symbol: 3x bet.\n" +
-            "3 of the same symbol: 200x bet.")]
+            "3 of the same symbol: 40x bet.")]
         [Remarks("Game")]
         public async Task GambleAsync(string amount = "50")
         {
