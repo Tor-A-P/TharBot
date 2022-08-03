@@ -31,12 +31,14 @@ namespace TharBot.Commands
                 await ReplyAsync(embed: notVCEmbed);
                 return;
             }
-            else if (!_lavaNode.HasPlayer(Context.Guild))
+            
+            if (!_lavaNode.HasPlayer(Context.Guild))
             {
                 try
                 {
                     await _lavaNode.JoinAsync(commandUser.VoiceChannel, Context.Channel as ITextChannel);
                     await ReplyAsync($"Joined {commandUser.VoiceChannel.Name}!");
+                    await Task.Delay(500);
                 }
                 catch (Exception ex)
                 {
@@ -45,12 +47,14 @@ namespace TharBot.Commands
                     await LoggingHandler.LogCriticalAsync("COMND: Play", null, ex);
                 }
             }
-
-            if (commandUser.VoiceChannel != bot.VoiceChannel)
+            else
             {
-                var wrongVCEmbed = await EmbedHandler.CreateUserErrorEmbed("Play", "You must be connected to the same voice channel as the bot!");
-                await ReplyAsync(embed: wrongVCEmbed);
-                return;
+                if (commandUser.VoiceChannel != bot.VoiceChannel)
+                {
+                    var wrongVCEmbed = await EmbedHandler.CreateUserErrorEmbed("Play", "You must be connected to the same voice channel as the bot!");
+                    await ReplyAsync(embed: wrongVCEmbed);
+                    return;
+                }
             }
 
             try
