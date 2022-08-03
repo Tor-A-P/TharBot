@@ -325,6 +325,8 @@ namespace TharBot.Handlers
         {
             var serverProfiles = db.LoadRecords<GameServerProfile>("GameProfiles");
 
+            if (serverProfiles == null) return;
+
             foreach (var serverProfile in serverProfiles)
             {
                 foreach (var userProfile in serverProfile.Users)
