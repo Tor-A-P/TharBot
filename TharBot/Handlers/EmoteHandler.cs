@@ -5,6 +5,7 @@ namespace TharBot.Handlers
     public static class EmoteHandler
     {
         public readonly static Emote Coin = Emote.Parse("<a:Coin:991285952976797786>");
+        public readonly static Emote You = Emote.Parse("<:You:1004291459974971442>");
         public readonly static Emote HP = Emote.Parse("<:Life_Bar:991289464091578408>");
         public readonly static Emote MP = Emote.Parse("<:Mana_Bar:991289480248041542>");
         public readonly static Emote Level = Emote.Parse("<:LevelUp:991288753622626334>");

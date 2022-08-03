@@ -76,9 +76,11 @@ namespace TharBot.Commands
                     foreach (var userProfile in sortedUserProfiles)
                     {
                         var user = await _client.GetUserAsync(userProfile.UserId);
-                        nameFieldString += $"{leaderBoardPos}. {user.Mention}\n";
+                        if (user.Id == Context.User.Id) nameFieldString += $"{leaderBoardPos}. {EmoteHandler.You}{user.Mention}\n";
+                        else nameFieldString += $"{leaderBoardPos}. {user.Mention}\n";
                         valueFieldString += $"{userProfile.NumMessages}\n";
                         leaderBoardPos++;
+                        if (leaderBoardPos > 15) break;
                     }
                     embed.AddField("Username", nameFieldString, true)
                          .AddField("Total Messages", valueFieldString, true);
@@ -89,9 +91,11 @@ namespace TharBot.Commands
                     foreach (var userProfile in sortedUserProfiles)
                     {
                         var user = await _client.GetUserAsync(userProfile.UserId);
-                        nameFieldString += $"{leaderBoardPos}. {user.Mention}\n";
+                        if (user.Id == Context.User.Id) nameFieldString += $"{leaderBoardPos}. {EmoteHandler.You}{user.Mention}\n";
+                        else nameFieldString += $"{leaderBoardPos}. {user.Mention}\n";
                         valueFieldString += $"{userProfile.TharCoins}\n";
                         leaderBoardPos++;
+                        if (leaderBoardPos > 15) break;
                     }
                     embed.AddField("Username", nameFieldString, true)
                          .AddField("Total TharCoins", valueFieldString, true);
@@ -102,9 +106,11 @@ namespace TharBot.Commands
                     foreach (var userProfile in sortedUserProfiles)
                     {
                         var user = await _client.GetUserAsync(userProfile.UserId);
-                        nameFieldString += $"{leaderBoardPos}. {user.Mention}\n";
+                        if (user.Id == Context.User.Id) nameFieldString += $"{leaderBoardPos}. {EmoteHandler.You}{user.Mention}\n";
+                        else nameFieldString += $"{leaderBoardPos}. {user.Mention}\n";
                         valueFieldString += $"{userProfile.NumFightsWon}\n";
                         leaderBoardPos++;
+                        if (leaderBoardPos > 15) break;
                     }
                     embed.AddField("Username", nameFieldString, true)
                          .AddField("Total Fights Won", valueFieldString, true);
@@ -115,9 +121,11 @@ namespace TharBot.Commands
                     foreach (var userProfile in sortedUserProfiles)
                     {
                         var user = await _client.GetUserAsync(userProfile.UserId);
-                        nameFieldString += $"{leaderBoardPos}. {user.Mention}\n";
+                        if (user.Id == Context.User.Id) nameFieldString += $"{leaderBoardPos}. {EmoteHandler.You}{user.Mention}\n";
+                        else nameFieldString += $"{leaderBoardPos}. {user.Mention}\n";
                         valueFieldString += $"{userProfile.TotalExp()}\n";
                         leaderBoardPos++;
+                        if (leaderBoardPos > 15) break;
                     }
                     embed.AddField("Username", nameFieldString, true)
                          .AddField("Total EXP", valueFieldString, true);
