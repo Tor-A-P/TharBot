@@ -33,6 +33,7 @@ namespace TharBot.Handlers
             if (existingBan != null) return;
             var forGuildId = socketMessage.Channel as SocketGuildChannel;
 
+            await Task.Delay(500);
             var existingServerProfile = db.LoadRecordById<GameServerProfile>("GameProfiles", forGuildId.Guild.Id);
             var showLevelUpMessage = true;
             if (existingServerProfile != null)

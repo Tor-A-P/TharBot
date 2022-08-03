@@ -20,7 +20,7 @@ namespace TharBot.Commands
         }
 
         [Command("Help")]
-        [Alias("H")]
+        [Alias("H", "commands")]
         [Summary("Displays every command and their descriptions\n" +
                 "**USAGE:** th.help")]
         [Remarks("Reference")]
