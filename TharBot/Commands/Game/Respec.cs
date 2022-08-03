@@ -61,14 +61,14 @@ namespace TharBot.Commands.Game
                     }
                     else
                     {
-                        //if (userProfile.LastRespec + TimeSpan.FromHours(24) > DateTime.UtcNow)
-                        //{
-                        //    var cooldownTime = userProfile.LastRespec.Subtract(DateTime.UtcNow) + TimeSpan.FromHours(24);
-                        //    var respecOnCDEmbed = await EmbedHandler.CreateUserErrorEmbed("Respec command on cooldown", 
-                        //        $"You used the respec command too recently, please wait {cooldownTime.Hours} hours, {cooldownTime.Minutes} minutes and {cooldownTime.Seconds} seconds before doing a respec!");
-                        //    await ReplyAsync(embed: respecOnCDEmbed);
-                        //    return;
-                        //}
+                        if (userProfile.LastRespec + TimeSpan.FromHours(24) > DateTime.UtcNow)
+                        {
+                            var cooldownTime = userProfile.LastRespec.Subtract(DateTime.UtcNow) + TimeSpan.FromHours(24);
+                            var respecOnCDEmbed = await EmbedHandler.CreateUserErrorEmbed("Respec command on cooldown",
+                                $"You used the respec command too recently, please wait {cooldownTime.Hours} hours, {cooldownTime.Minutes} minutes and {cooldownTime.Seconds} seconds before doing a respec!");
+                            await ReplyAsync(embed: respecOnCDEmbed);
+                            return;
+                        }
 
                         var totalRespecPoints = strength + dexterity + intelligence + constitution + wisdom + luck;
                         if (totalRespecPoints > userProfile.AttributePoints)
