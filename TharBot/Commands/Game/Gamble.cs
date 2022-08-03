@@ -122,7 +122,7 @@ namespace TharBot.Commands
                                     return;
                                 }
                             }
-                            userProfile.GambaInProgress = true;
+                            //userProfile.GambaInProgress = true;
                             userProfile.TharCoins -= (long)slots;
 
                             db.UpsertRecord("GameProfiles", Context.Guild.Id, serverProfile);
@@ -233,7 +233,7 @@ namespace TharBot.Commands
                             }
                             else
                             {
-                                userProfile.GambaInProgress = true;
+                                //userProfile.GambaInProgress = true;
                                 userProfile.TharCoins -= slots;
                                 db.UpsertRecord("GameProfiles", Context.Guild.Id, serverProfile);
 
