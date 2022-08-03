@@ -11,6 +11,7 @@
         public long Level { get; set; }
         public long AttributePoints { get; set; }
         public GameStats? Attributes { get; set; }
+        public DateTime LastRespec { get; set; }
         public double CurrentHP { get; set; }
         public double CurrentMP { get; set; }
         public long NumMessages { get; set; }

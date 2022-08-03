@@ -173,11 +173,13 @@ namespace TharBot.Handlers
                         {
                             userProfile.Attributes.Constitution++;
                             attributeAddedText = $"{EmoteHandler.Constitution}You increased your Constitution by 1!{EmoteHandler.Constitution}";
+                            userProfile.CurrentHP += GameUserProfile.ConstitutionHPBonus;
                         }
                         else if (reaction.Emote.Name == EmoteHandler.Wisdom.Name)
                         {
                             userProfile.Attributes.Wisdom++;
                             attributeAddedText = $"{EmoteHandler.Wisdom}You increased your Wisdom by 1!{EmoteHandler.Wisdom}";
+                            userProfile.CurrentMP += GameUserProfile.WisdomMPBonus;
                         }
                         else if (reaction.Emote.Name == EmoteHandler.Luck.Name)
                         {
