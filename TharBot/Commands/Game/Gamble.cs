@@ -123,6 +123,8 @@ namespace TharBot.Commands
                                 }
                             }
                             userProfile.GambaInProgress = true;
+                            userProfile.TharCoins -= (long)slots;
+
                             db.UpsertRecord("GameProfiles", Context.Guild.Id, serverProfile);
 
                             var embed = await EmbedHandler.CreateBasicEmbed(embedTitle,
@@ -169,13 +171,16 @@ namespace TharBot.Commands
                             embed = await EmbedHandler.CreateBasicEmbed(embedTitle, regex.Replace(embed.Description, resultEmojis[2].Name, 1));
                             await slotsMsg.ModifyAsync(x => x.Embed = embed);
 
+                            serverProfile = db.LoadRecordById<GameServerProfile>("GameProfiles", Context.Guild.Id);
+                            userProfile = serverProfile.Users.Where(x => x.UserId == Context.User.Id).FirstOrDefault();
+
                             if (userProfile.UserId == 966367996408905768 || userProfile.UserId == 985805083423952936)
                             {
                                 var winnerEmbed = await EmbedHandler.CreateBasicEmbedBuilder(embedTitle);
                                 winnerEmbed.AddField("­", embed.Description)
                                            .AddField("Bot always wins, baybee :sunglasses:", $"TharBot wins {(long)slots * 40} TharCoins!")
                                            .WithFooter("Visual design for slot machine shamelessly lifted from the Lawliet discord bot (https://lawlietbot.xyz/)");
-                                userProfile.TharCoins += ((long)slots * 39);
+                                userProfile.TharCoins += ((long)slots * 40);
                                 userProfile.GambaInProgress = false;
                                 await slotsMsg.ModifyAsync(x => x.Embed = winnerEmbed.Build());
 
@@ -189,7 +194,7 @@ namespace TharBot.Commands
                                 winnerEmbed.AddField("­", embed.Description)
                                            .AddField("***JACKPOT!!!***", $"You win {(long)slots * 40} TharCoins!")
                                            .WithFooter("Visual design for slot machine shamelessly lifted from the Lawliet discord bot (https://lawlietbot.xyz/)");
-                                userProfile.TharCoins += ((long)slots * 39);
+                                userProfile.TharCoins += ((long)slots * 40);
                                 userProfile.GambaInProgress = false;
                                 await slotsMsg.ModifyAsync(x => x.Embed = winnerEmbed.Build());
 
@@ -201,7 +206,7 @@ namespace TharBot.Commands
                                 winnerEmbed.AddField("­", embed.Description)
                                            .AddField("A WINNER IS YOU!", $"You win {(long)slots * 3} TharCoins!")
                                            .WithFooter("Visual design for slot machine shamelessly lifted from the Lawliet discord bot (https://lawlietbot.xyz/)"); ;
-                                userProfile.TharCoins += ((long)slots * 2);
+                                userProfile.TharCoins += ((long)slots * 3);
                                 userProfile.GambaInProgress = false;
                                 await slotsMsg.ModifyAsync(x => x.Embed = winnerEmbed.Build());
 
@@ -213,7 +218,6 @@ namespace TharBot.Commands
                                 loserEmbed.AddField("­", embed.Description)
                                            .AddField("You lose!", $"You lost {(long)slots} TharCoins :(")
                                            .WithFooter("Visual design for slot machine shamelessly lifted from the Lawliet discord bot (https://lawlietbot.xyz/)"); ;
-                                userProfile.TharCoins -= (long)slots;
                                 userProfile.GambaInProgress = false;
                                 await slotsMsg.ModifyAsync(x => x.Embed = loserEmbed.Build());
 
@@ -230,7 +234,9 @@ namespace TharBot.Commands
                             else
                             {
                                 userProfile.GambaInProgress = true;
+                                userProfile.TharCoins -= slots;
                                 db.UpsertRecord("GameProfiles", Context.Guild.Id, serverProfile);
+
                                 var embed = await EmbedHandler.CreateBasicEmbed(embedTitle,
                                         $"{EmoteHandler.Blank}{EmoteHandler.BoxDownRight}{EmoteHandler.BoxLeftRight}{EmoteHandler.BoxLeftDownRight}{EmoteHandler.BoxLeftRight}{EmoteHandler.BoxLeftDownRight}{EmoteHandler.BoxLeftRight}{EmoteHandler.BoxLeftDown}\n" +
                                         $"{EmoteHandler.Blank}{EmoteHandler.BoxUpDown}{EmoteHandler.Slots}{EmoteHandler.BoxUpDown}{EmoteHandler.Slots}{EmoteHandler.BoxUpDown}{EmoteHandler.Slots}{EmoteHandler.BoxUpDown}\n" +
@@ -274,13 +280,16 @@ namespace TharBot.Commands
                                 embed = await EmbedHandler.CreateBasicEmbed(embedTitle, regex.Replace(embed.Description, resultEmojis[2].Name, 1));
                                 await slotsMsg.ModifyAsync(x => x.Embed = embed);
 
+                                serverProfile = db.LoadRecordById<GameServerProfile>("GameProfiles", Context.Guild.Id);
+                                userProfile = serverProfile.Users.Where(x => x.UserId == Context.User.Id).FirstOrDefault();
+
                                 if (userProfile.UserId == 966367996408905768 || userProfile.UserId == 985805083423952936)
                                 {
                                     var winnerEmbed = await EmbedHandler.CreateBasicEmbedBuilder(embedTitle);
                                     winnerEmbed.AddField("­", embed.Description)
                                                .AddField("Bot always wins, baybee :sunglasses:", $"TharBot wins {(long)slots * 40} TharCoins!")
                                                .WithFooter("Visual design for slot machine shamelessly lifted from the Lawliet discord bot (https://lawlietbot.xyz/)");
-                                    userProfile.TharCoins += ((long)slots * 39);
+                                    userProfile.TharCoins += ((long)slots * 40);
                                     userProfile.GambaInProgress = false;
                                     await slotsMsg.ModifyAsync(x => x.Embed = winnerEmbed.Build());
 
@@ -294,7 +303,7 @@ namespace TharBot.Commands
                                     winnerEmbed.AddField("­", embed.Description)
                                                .AddField("***JACKPOT!!!***", $"You win {slots * 40} TharCoins!")
                                                .WithFooter("Visual design for slot machine shamelessly lifted from the Lawliet discord bot (https://lawlietbot.xyz/)"); ;
-                                    userProfile.TharCoins += (slots * 39);
+                                    userProfile.TharCoins += (slots * 40);
                                     userProfile.GambaInProgress = false;
                                     await slotsMsg.ModifyAsync(x => x.Embed = winnerEmbed.Build());
 
@@ -306,7 +315,7 @@ namespace TharBot.Commands
                                     winnerEmbed.AddField("­", embed.Description)
                                                .AddField("A WINNER IS YOU!", $"You win {slots * 3} TharCoins!")
                                                .WithFooter("Visual design for slot machine shamelessly lifted from the Lawliet discord bot (https://lawlietbot.xyz/)"); ;
-                                    userProfile.TharCoins += (slots * 2);
+                                    userProfile.TharCoins += (slots * 3);
                                     userProfile.GambaInProgress = false;
                                     await slotsMsg.ModifyAsync(x => x.Embed = winnerEmbed.Build());
 
@@ -318,7 +327,6 @@ namespace TharBot.Commands
                                     loserEmbed.AddField("­", embed.Description)
                                                .AddField("You lose!", $"You lost {slots} TharCoins :(")
                                                .WithFooter("Visual design for slot machine shamelessly lifted from the Lawliet discord bot (https://lawlietbot.xyz/)"); ;
-                                    userProfile.TharCoins -= slots;
                                     userProfile.GambaInProgress = false;
                                     await slotsMsg.ModifyAsync(x => x.Embed = loserEmbed.Build());
 
