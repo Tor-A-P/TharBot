@@ -37,13 +37,22 @@ namespace TharBot.Commands
             }
             else
             {
-                var newPrefix = new Prefixes
+                if (existingPrefix != null)
                 {
-                    ServerId = Context.Guild.Id,
-                    Prefix = prefix,
-                };
-                db.InsertRecord("Prefixes", newPrefix);
-                var embed = await EmbedHandler.CreateBasicEmbed("Prefix", $"Changed prefix for this server to \"{newPrefix.Prefix}\"");
+                    existingPrefix.Prefix = prefix;
+                    db.UpsertRecord("Prefixes", Context.Guild.Id, existingPrefix);
+                }
+                else
+                {
+                    existingPrefix = new Prefixes
+                    {
+                        ServerId = Context.Guild.Id,
+                        Prefix = prefix,
+                    };
+                    db.InsertRecord("Prefixes", existingPrefix);
+                }
+               
+                var embed = await EmbedHandler.CreateBasicEmbed("Prefix", $"Changed prefix for this server to \"{existingPrefix.Prefix}\"");
                 await ReplyAsync(embed: embed);
             }
         }

@@ -62,12 +62,14 @@ namespace TharBot.Commands
                 var embed = await EmbedHandler.CreateBasicEmbedBuilder($"Profile for {user}");
                 embed.AddField($"{EmoteHandler.Level} Level: {userProfile.Level}",
                                    $"{EmoteHandler.HP} HP: {userProfile.CurrentHP:N0} / {userProfile.BaseHP:N0}\n" +
+                                   $"{EmoteHandler.Attack} Atk: {userProfile.BaseAtk}\n" +
                                    $"{EmoteHandler.Strength} Strength: {userProfile.Attributes.Strength}\n" +
                                    $"{EmoteHandler.Intelligence} Intelligence: {userProfile.Attributes.Intelligence}\n" +
                                    $"{EmoteHandler.Dexterity} Dexterity: {userProfile.Attributes.Dexterity}\n" +
                                    $"{EmoteHandler.Crit} Crit Chance: {userProfile.CritChance}%", true)
                      .AddField($"{EmoteHandler.Exp} Exp: {userProfile.Exp:N0} / {userProfile.ExpToLevel:N0}\n",
                                    $"{EmoteHandler.MP} MP: {userProfile.CurrentMP:N0} / {userProfile.BaseMP:N0}\n" +
+                                   $"{EmoteHandler.Defense} Def: {userProfile.BaseDef}\n" +
                                    $"{EmoteHandler.Constitution} Constitution: {userProfile.Attributes.Constitution}\n" +
                                    $"{EmoteHandler.Wisdom} Wisdom: {userProfile.Attributes.Wisdom}\n" +
                                    $"{EmoteHandler.Luck} Luck: {userProfile.Attributes.Luck}\n" +
