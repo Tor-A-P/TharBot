@@ -52,13 +52,13 @@ namespace TharBot.Commands
                         if (timeSpan > TimeSpan.Zero && timeSpan < player.Track.Duration)
                         {
                             await player.SeekAsync(timeSpan);
-                            var embed = await EmbedHandler.CreateMusicEmbedBuilder("Seek", $"Jumped to position {timeSpan} of the current song!", player, false);
+                            var embed = await EmbedHandler.CreateMusicEmbedBuilder("Seek", $"Jumped to position {timeSpan:%h\\:mm\\:ss} of the current song!", player, false);
                             await ReplyAsync(embed: embed.Build());
                         }
                         else
                         {
                             var timeSpanOutOfRangeEmbed = await EmbedHandler.CreateUserErrorEmbed("Seek",
-                                $"The timespan {timeSpan} is out of range for this track, as it is only {player.Track.Duration} long!");
+                                $"The timespan {timeSpan:%h\\:mm\\:ss} is out of range for this track, as it is only {player.Track.Duration:%h\\:mm\\:ss} long!");
                             await ReplyAsync(embed: timeSpanOutOfRangeEmbed);
                         } 
                     }
@@ -67,13 +67,13 @@ namespace TharBot.Commands
                         if (timeSpanShort > TimeSpan.Zero && timeSpanShort < player.Track.Duration)
                         {
                             await player.SeekAsync(timeSpanShort);
-                            var embed = await EmbedHandler.CreateMusicEmbedBuilder("Seek", $"Jumped to position {timeSpanShort} of the current song!", player, false);
+                            var embed = await EmbedHandler.CreateMusicEmbedBuilder("Seek", $"Jumped to position {timeSpanShort:mm\\:ss} of the current song!", player, false);
                             await ReplyAsync(embed: embed.Build());
                         }
                         else
                         {
                             var timeSpanOutOfRangeEmbed = await EmbedHandler.CreateUserErrorEmbed("Seek",
-                                $"The timespan {timeSpanShort} is out of range for this track, as it is only {player.Track.Duration} long!");
+                                $"The timespan {timeSpanShort:mm\\:ss} is out of range for this track, as it is only {player.Track.Duration:mm\\:ss} long!");
                             await ReplyAsync(embed: timeSpanOutOfRangeEmbed);
                         }
                     }

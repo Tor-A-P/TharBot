@@ -54,7 +54,7 @@ namespace TharBot.Commands
 
                             await ReplyAsync(embed: skippedEmbed.Build());
 
-                            var nextEmbed = await EmbedHandler.CreateMusicEmbedBuilder("Now Playing:", $"{player.Track.Title} / {player.Track.Duration}\n{player.Track.Url}", player, true, false);
+                            var nextEmbed = await EmbedHandler.CreateMusicEmbedBuilder("Now Playing:", $"{player.Track.Title} / {player.Track.Duration:%h\\:mm\\:ss}\n{player.Track.Url}", player, true, false);
                             await ReplyAsync(embed: nextEmbed.Build());
                         }
                         else if (player.Queue.Count >= position)

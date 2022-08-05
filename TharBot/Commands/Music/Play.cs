@@ -90,7 +90,7 @@ namespace TharBot.Commands
                     {
                         player.Queue.Enqueue(track);
 
-                        var embedBuilder = await EmbedHandler.CreateMusicEmbedBuilder("Added to queue:", $"{track.Title} / { track.Duration}\n{ track.Url}", player);
+                        var embedBuilder = await EmbedHandler.CreateMusicEmbedBuilder("Added to queue:", $"{track.Title} / {track.Duration:%h\\:mm\\:ss}\n{ track.Url}", player);
 
                         embedBuilder = embedBuilder
                             .WithThumbnailUrl(await track.FetchArtworkAsync());
@@ -102,7 +102,7 @@ namespace TharBot.Commands
                     {
                         await player.PlayAsync(track);
 
-                        var embed = await EmbedHandler.CreateMusicEmbedBuilder("Now Playing:", $"{track.Title} / {track.Duration}\n{track.Url}", player);
+                        var embed = await EmbedHandler.CreateMusicEmbedBuilder("Now Playing:", $"{track.Title} / {track.Duration:%h\\:mm\\:ss}\n{track.Url}", player);
 
                         await ReplyAsync(embed: embed.Build());
                     }

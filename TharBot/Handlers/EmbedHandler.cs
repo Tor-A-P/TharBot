@@ -63,7 +63,7 @@ namespace TharBot.Handlers
                 if (current)
                 {
                     string currentShortTitle = player.Track.Title.Length > 40 ? player.Track.Title.Substring(0, 40) + "..." : player.Track.Title;
-                    queue += $"Current: {currentShortTitle} / {player.Track.Duration}\n\t{player.Track.Url}\n";
+                    queue += $"Current: {currentShortTitle} / {player.Track.Duration:%h\\:mm\\:ss}\n\t{player.Track.Url}\n";
                 }
 
                 var trackNum = 1;
@@ -72,7 +72,7 @@ namespace TharBot.Handlers
                 {
                     if (trackNum > 4) break;
                     string shortTitle = queuedTrack.Title.Length > 40 ? queuedTrack.Title.Substring(0, 40) + "..." : queuedTrack.Title;
-                    queue += $"{trackNum}:\t{shortTitle} / {queuedTrack.Duration}\n\t{queuedTrack.Url}\n";
+                    queue += $"{trackNum}:\t{shortTitle} / {queuedTrack.Duration:%h\\:mm\\:ss}\n\t{queuedTrack.Url}\n";
                     trackNum++;
                 }
 

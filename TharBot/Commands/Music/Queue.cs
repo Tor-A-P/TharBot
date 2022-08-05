@@ -29,7 +29,7 @@ namespace TharBot.Commands
                 {
                     var player = _lavaNode.GetPlayer(Context.Guild);
                     var track = player.Track;
-                    var embed = await EmbedHandler.CreateMusicEmbedBuilder("Now Playing:", $"{track.Title} / {track.Duration}\n{track.Url}", player, true, false);
+                    var embed = await EmbedHandler.CreateMusicEmbedBuilder("Now Playing:", $"{track.Title} / {track.Duration:%h\\:mm\\:ss}\n{track.Url}", player, true, false);
 
                     await ReplyAsync(embed: embed.Build());
                 }

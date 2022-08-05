@@ -62,7 +62,7 @@ namespace TharBot.Handlers
 
                 await args.Player.PlayAsync(track);
 
-                var embed = await EmbedHandler.CreateMusicEmbedBuilder("Now Playing:", $"{track.Title} / {track.Duration}\n{track.Url}", args.Player, false);
+                var embed = await EmbedHandler.CreateMusicEmbedBuilder("Now Playing:", $"{track.Title} / {track.Duration:%h\\:mm\\:ss}\n{track.Url}", args.Player, false);
 
                 await args.Player.TextChannel.SendMessageAsync(embed: embed.Build());
             }
