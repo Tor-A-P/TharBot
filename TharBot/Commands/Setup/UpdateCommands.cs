@@ -90,6 +90,8 @@ namespace TharBot.Commands.Setup
 
             var existingDailyPC = db.LoadRecordById<DailyPulseCheck>("DailyPulseCheck", Context.Guild.Id);
 
+            var existingLvlUpMsg = db.LoadRecordById<GameServerProfile>("GameProfiles", Context.Guild.Id).ShowLevelUpMessage;
+
             var serverSettings = new ServerSpecifics
             {
                 ServerId = Context.Guild.Id,
@@ -102,7 +104,8 @@ namespace TharBot.Commands.Setup
                 Polls = new List<Poll>(),
                 Prefix = existingPrefix.Prefix,
                 PCResultsChannel = existingPCRC.ResultsChannel,
-                Reminders = new List<Reminders>()
+                Reminders = new List<Reminders>(),
+                ShowLevelUpMessage = existingLvlUpMsg
             };
             db.UpsertRecord("ServerSpecifics", Context.Guild.Id, serverSettings);
             var embed = await EmbedHandler.CreateBasicEmbed("Server settings updated to new format!", "Reminder that this wipes the poll and reminder lists, re-add anything important manually.");

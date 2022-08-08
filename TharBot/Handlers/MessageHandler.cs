@@ -47,7 +47,8 @@ namespace TharBot.Handlers
                     Polls = new List<Poll>(),
                     Prefix = "th.",
                     PCResultsChannel = null,
-                    Reminders = new List<Reminders>()
+                    Reminders = new List<Reminders>(),
+                    ShowLevelUpMessage = true
                 };
                 db.InsertRecord("ServerSpecifics", serverSettings);
             }
