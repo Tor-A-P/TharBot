@@ -23,10 +23,9 @@ namespace TharBot.Commands
             "and whether you want the bot to do pulsechecks during weekends as well as weekdays (default is false).\n" +
             "**USAGE:** th.dailypulsecheck [TIME] [OPTIONAL_DURATION_MINUTES] [FLAG_FOR_@HERE] [FLAG_FOR_WEEKEND]\n" +
             "**EXAMPLES:**\n" +
-            "th.dailypc 8am 300 true false // Bot will create a pulsecheck at 8am every day except weekends, it will last 300 minutes, and it will ping @here when posting\n" +
-            "th.dailypulsecheck midnight 600 false true // Bot will create a pulsecheck at midnight every day, including weekends, which will last 600 minutes and not ping when posting\n" +
+            "th.dailypc midnight 600 false true // Bot will create a pulsecheck at midnight every day, including weekends, which will last 600 minutes and not ping when posting\n" +
             "th.dailypc 12pm // Bot will create a pulsecheck at 12pm every day except weekends, it will last 6 hours/360 minutes, and it will not ping when posting.\n" +
-            "th.dailypulsecheck // No arguments will check if this server has a pulsecheck scheduled daily, and cancel it if that is the case.")]
+            "th.dailypc // No arguments will check if this server has a pulsecheck scheduled daily, and cancel it if that is the case.")]
         [Remarks("Setup")]
         [RequireUserPermission(Discord.ChannelPermission.ManageChannels, Group = "Permission")]
         [RequireOwner(Group = "Permission")]
@@ -34,12 +33,13 @@ namespace TharBot.Commands
         {
             try
             {
-                var existingDailyPC = db.LoadRecordById<DailyPulseCheck>("DailyPulseCheck", Context.Guild.Id);
+                var serverSpecifics = db.LoadRecordById<ServerSpecifics>("ServerSpecifics", Context.Guild.Id);
                 if (time == "")
                 {
-                    if (existingDailyPC != null)
+                    if (serverSpecifics.DailyPC != null)
                     {
-                        db.DeleteRecord<DailyPulseCheck>("DailyPulseCheck", Context.Guild.Id);
+                        serverSpecifics.DailyPC = null;
+                        db.UpsertRecord("ServerSpecifics", Context.Guild.Id, serverSpecifics);
                         var deletedEmbed = await EmbedHandler.CreateBasicEmbed("Daily pulsecheck cancelled!", "Removed the currently scheduled task for a daily pulsecheck for this server!");
                         await ReplyAsync(embed: deletedEmbed);
                     }
@@ -77,15 +77,16 @@ namespace TharBot.Commands
                             ServerId = Context.Guild.Id,
                             ChannelId = Context.Channel.Id,
                             WhenToRun = dateTime,
-                            LastTimeRun = DateTime.UtcNow,
+                            LastTimeRun = DateTime.MinValue,
                             Duration = duration,
                             ShouldPing = ping,
                             OnWeekends = weekends
                         };
-
-                        if (existingDailyPC != null)
+                        
+                        if (serverSpecifics.DailyPC != null)
                         {
-                            db.UpsertRecord("DailyPulseCheck", Context.Guild.Id, newDailyPC);
+                            serverSpecifics.DailyPC = newDailyPC;
+                            db.UpsertRecord("ServerSpecifics", Context.Guild.Id, serverSpecifics);
                             var updatedEmbed = await EmbedHandler.CreateBasicEmbed("Daily pulsecheck task updated!",
                                 $"The daily pulsecheck time has been changed to {newDailyPC.WhenToRun.ToShortTimeString()} in this channel, and will last {duration} minutes.\n" +
                                 $"Should it ping @here? {ping}\n" +
@@ -94,7 +95,8 @@ namespace TharBot.Commands
                         }
                         else
                         {
-                            db.InsertRecord("DailyPulseCheck", newDailyPC);
+                            serverSpecifics.DailyPC = newDailyPC;
+                            db.UpsertRecord("ServerSpecifics", Context.Guild.Id, serverSpecifics);
                             var createdEmbed = await EmbedHandler.CreateBasicEmbed("Daily pulsecheck task created!",
                                 $"From now on I will post a pulsecheck daily in this channel at {newDailyPC.WhenToRun.ToShortTimeString()} and it will last {duration} minutes.\n" +
                                 $"Should it ping @here? {ping}\n" +

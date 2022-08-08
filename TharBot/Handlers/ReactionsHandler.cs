@@ -53,9 +53,12 @@ namespace TharBot.Handlers
                 };
                 if (!pollEmojis.Contains(reaction.Emote)) return;
 
-                var recs = db.LoadRecords<Poll>("ActivePolls");
+                var forGuildId = await Client.GetChannelAsync(reaction.Channel.Id) as SocketGuildChannel;
+                var serverSpecifics = db.LoadRecordById<ServerSpecifics>("ServerSpecifics", forGuildId.Guild.Id);
 
-                var activePoll = db.LoadRecordById<Poll>("ActivePolls", message.Id);
+                if (serverSpecifics.Polls == null) return;
+
+                var activePoll = serverSpecifics.Polls.Where(x => x.MessageId == reaction.MessageId).FirstOrDefault();
 
                 if (activePoll == null) return;
                 else
@@ -82,7 +85,6 @@ namespace TharBot.Handlers
 
                         if (emoji.Name == "😢" || emoji.Name == "😡")
                         {
-                            var forGuildId = await Client.GetChannelAsync(channel.Id) as SocketGuildChannel;
                             var resultsChannelSettings = db.LoadRecordById<ServerSpecifics>("ServerSpecifics", forGuildId.Guild.Id).PCResultsChannel;
                             if (resultsChannelSettings != null)
                             {
@@ -110,7 +112,6 @@ namespace TharBot.Handlers
 
                             if (emoji.Name == "😢" || emoji.Name == "😡")
                             {
-                                var forGuildId = await Client.GetChannelAsync(channel.Id) as SocketGuildChannel;
                                 var resultsChannelSettings = db.LoadRecordById<ServerSpecifics>("ServerSpecifics", forGuildId.Guild.Id).PCResultsChannel;
                                 if (resultsChannelSettings != null)
                                 {
@@ -126,7 +127,7 @@ namespace TharBot.Handlers
                         }
                     }
 
-                    db.UpsertRecord("ActivePolls", activePoll.MessageId, activePoll);
+                    db.UpsertRecord("ServerSpecifics", serverSpecifics.ServerId, serverSpecifics);
                 }
             }
             catch (Exception ex)

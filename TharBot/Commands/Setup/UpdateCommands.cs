@@ -88,6 +88,8 @@ namespace TharBot.Commands.Setup
                 };
             }
 
+            var existingDailyPC = db.LoadRecordById<DailyPulseCheck>("DailyPulseCheck", Context.Guild.Id);
+
             var serverSettings = new ServerSpecifics
             {
                 ServerId = Context.Guild.Id,
@@ -95,6 +97,7 @@ namespace TharBot.Commands.Setup
                 WLChannelId = existingWL.WLChannelId,
                 GameBLChannelId = existingGameBL.BLChannelId,
                 GameWLChannelId = existingGameWL.WLChannelId,
+                DailyPC = existingDailyPC,
                 Memes = existingMeme.Memes,
                 Polls = new List<Poll>(),
                 Prefix = existingPrefix.Prefix,

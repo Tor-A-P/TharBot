@@ -59,7 +59,10 @@ namespace TharBot.Commands
                         UserId = Context.User.Id,
                         RemindingTime = dateTime
                     };
-                    db.InsertRecord("Reminders", newReminder);
+                    var serverSpecifics = db.LoadRecordById<ServerSpecifics>("ServerSpecifics", Context.Guild.Id);
+                    serverSpecifics.Reminders.Add(newReminder);
+                    db.UpsertRecord("ServerSpecifics", Context.Guild.Id, serverSpecifics);
+
                     var embed = await EmbedHandler.CreateBasicEmbed("Reminder created!", $"I will remind you to {reminderText} at {dateTime:f}");
                     await ReplyAsync(embed: embed);
                 }

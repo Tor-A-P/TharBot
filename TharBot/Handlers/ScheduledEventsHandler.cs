@@ -39,196 +39,214 @@ namespace TharBot.Handlers
 
         public async void PollHandling(object? source, ElapsedEventArgs e)
         {
-            var pollRecs = db.LoadRecords<Poll>("ActivePolls");
+            var serverSpecifics = db.LoadRecords<ServerSpecifics>("ServerSpecifics");
 
-            foreach (var poll in pollRecs)
+            foreach (var server in serverSpecifics)
             {
-                if (poll.CompletionTime < DateTime.UtcNow)
+                if (server.Polls == null) break;
+                var pollRecs = server.Polls;
+
+                foreach (var poll in pollRecs)
                 {
-                    if (poll.Emojis.Contains("😀"))
+                    if (poll.CompletionTime < DateTime.UtcNow)
                     {
-                        try
+                        if (poll.Emojis.Contains("😀"))
                         {
-                            int[] resultsCount =
+                            try
                             {
+                                int[] resultsCount =
+                                {
                                 0, 0, 0, 0, 0, 0
                             };
 
-                            foreach (var vote in poll.Responses)
-                            {
-                                switch (vote.Vote)
+                                foreach (var vote in poll.Responses)
                                 {
-                                    case "😀":
-                                        resultsCount[0]++;
-                                        break;
-                                    case "🙂":
-                                        resultsCount[1]++;
-                                        break;
-                                    case "😐":
-                                        resultsCount[2]++;
-                                        break;
-                                    case "☹":
-                                        resultsCount[3]++;
-                                        break;
-                                    case "😢":
-                                        resultsCount[4]++;
-                                        break;
-                                    case "😡":
-                                        resultsCount[5]++;
-                                        break;
-                                    default:
-                                        break;
+                                    switch (vote.Vote)
+                                    {
+                                        case "😀":
+                                            resultsCount[0]++;
+                                            break;
+                                        case "🙂":
+                                            resultsCount[1]++;
+                                            break;
+                                        case "😐":
+                                            resultsCount[2]++;
+                                            break;
+                                        case "☹":
+                                            resultsCount[3]++;
+                                            break;
+                                        case "😢":
+                                            resultsCount[4]++;
+                                            break;
+                                        case "😡":
+                                            resultsCount[5]++;
+                                            break;
+                                        default:
+                                            break;
+                                    }
+                                }
+
+                                var resultsEmbed = await EmbedHandler.CreateBasicEmbedBuilder("Results from pulsecheck command:");
+                                resultsEmbed = resultsEmbed
+                                               .AddField("😀 answers:", resultsCount[0])
+                                               .AddField("🙂 answers:", resultsCount[1])
+                                               .AddField("😐 answers:", resultsCount[2])
+                                               .AddField("☹ answers:", resultsCount[3])
+                                               .AddField("😢 answers:", resultsCount[4])
+                                               .AddField("😡 answers:", resultsCount[5]);
+
+                                var forGuildId = await Client.GetChannelAsync(poll.ChannelId) as SocketGuildChannel;
+                                var resultsChannelSettings = db.LoadRecordById<ServerSpecifics>("ServerSpecifics", forGuildId.Guild.Id).PCResultsChannel;
+                                if (resultsChannelSettings != null)
+                                {
+                                    var chan = await Client.GetChannelAsync((ulong)resultsChannelSettings) as IMessageChannel;
+                                    await chan.SendMessageAsync(embed: resultsEmbed.Build());
+                                }
+                                else
+                                {
+                                    var chan = await Client.GetChannelAsync(poll.ChannelId) as IMessageChannel;
+                                    await chan.SendMessageAsync(embed: resultsEmbed.Build());
+                                }
+
+                                RemovePoll(server, poll);
+
+                                var getChannel = await Client.GetChannelAsync(poll.ChannelId) as IMessageChannel;
+                                var msg = await getChannel.GetMessageAsync(poll.MessageId);
+                                if (msg != null)
+                                {
+                                    if (msg.Channel.GetMessageAsync(msg.Id) != null)
+                                    {
+                                        await msg.DeleteAsync();
+                                    }
                                 }
                             }
-
-                            var resultsEmbed = await EmbedHandler.CreateBasicEmbedBuilder("Results from pulsecheck command:");
-                            resultsEmbed = resultsEmbed
-                                           .AddField("😀 answers:", resultsCount[0])
-                                           .AddField("🙂 answers:", resultsCount[1])
-                                           .AddField("😐 answers:", resultsCount[2])
-                                           .AddField("☹ answers:", resultsCount[3])
-                                           .AddField("😢 answers:", resultsCount[4])
-                                           .AddField("😡 answers:", resultsCount[5]);
-
-                            var forGuildId = await Client.GetChannelAsync(poll.ChannelId) as SocketGuildChannel;
-                            var resultsChannelSettings = db.LoadRecordById<ServerSpecifics>("ServerSpecifics", forGuildId.Guild.Id).PCResultsChannel;
-                            if (resultsChannelSettings != null)
+                            catch (Exception ex)
                             {
-                                var chan = await Client.GetChannelAsync((ulong)resultsChannelSettings) as IMessageChannel;
-                                await chan.SendMessageAsync(embed: resultsEmbed.Build());
-                            }
-                            else
-                            {
-                                var chan = await Client.GetChannelAsync(poll.ChannelId) as IMessageChannel;
-                                await chan.SendMessageAsync(embed: resultsEmbed.Build());
-                            }
-
-
-                            db.DeleteRecord<Poll>("ActivePolls", poll.MessageId);
-                            db.InsertRecord("InactivePolls", poll);
-
-                            var getChannel = await Client.GetChannelAsync(poll.ChannelId) as IMessageChannel;
-                            var msg = await getChannel.GetMessageAsync(poll.MessageId);
-                            if (msg.Channel.GetMessageAsync(msg.Id) != null)
-                            {
-                                await msg.DeleteAsync();
+                                await LoggingHandler.LogCriticalAsync("Bot", null, ex);
                             }
                         }
-                        catch (Exception ex)
+                        else if (poll.Emojis.Contains("1️⃣"))
                         {
-                            await LoggingHandler.LogCriticalAsync("Bot", null, ex);
-                        }
-                    }
-                    else if (poll.Emojis.Contains("1️⃣"))
-                    {
-                        try
-                        {
-                            int[] resultsCount =
+                            try
                             {
+                                int[] resultsCount =
+                                {
                                 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
                             };
 
-                            foreach (var vote in poll.Responses)
-                            {
-                                switch (vote.Vote)
+                                foreach (var vote in poll.Responses)
                                 {
-                                    case "1️⃣":
-                                        resultsCount[0]++;
-                                        break;
-                                    case "2️⃣":
-                                        resultsCount[1]++;
-                                        break;
-                                    case "3️⃣":
-                                        resultsCount[2]++;
-                                        break;
-                                    case "4️⃣":
-                                        resultsCount[3]++;
-                                        break;
-                                    case "5️⃣":
-                                        resultsCount[4]++;
-                                        break;
-                                    case "6️⃣":
-                                        resultsCount[5]++;
-                                        break;
-                                    case "7️⃣":
-                                        resultsCount[6]++;
-                                        break;
-                                    case "8️⃣":
-                                        resultsCount[7]++;
-                                        break;
-                                    case "9️⃣":
-                                        resultsCount[8]++;
-                                        break;
-                                    case "🔟":
-                                        resultsCount[9]++;
-                                        break;
-                                    default:
-                                        break;
+                                    switch (vote.Vote)
+                                    {
+                                        case "1️⃣":
+                                            resultsCount[0]++;
+                                            break;
+                                        case "2️⃣":
+                                            resultsCount[1]++;
+                                            break;
+                                        case "3️⃣":
+                                            resultsCount[2]++;
+                                            break;
+                                        case "4️⃣":
+                                            resultsCount[3]++;
+                                            break;
+                                        case "5️⃣":
+                                            resultsCount[4]++;
+                                            break;
+                                        case "6️⃣":
+                                            resultsCount[5]++;
+                                            break;
+                                        case "7️⃣":
+                                            resultsCount[6]++;
+                                            break;
+                                        case "8️⃣":
+                                            resultsCount[7]++;
+                                            break;
+                                        case "9️⃣":
+                                            resultsCount[8]++;
+                                            break;
+                                        case "🔟":
+                                            resultsCount[9]++;
+                                            break;
+                                        default:
+                                            break;
+                                    }
                                 }
+
+                                var forGuildId = await Client.GetChannelAsync(poll.ChannelId) as SocketGuildChannel;
+                                var resultsEmbed = await EmbedHandler.CreateBasicEmbedBuilder("Results from poll:");
+
+                                for (int i = 0; i < poll.NumOptions; i++)
+                                {
+                                    resultsEmbed = resultsEmbed
+                                                   .AddField($"{poll.Emojis[i]} votes:", resultsCount[i]);
+                                }
+
+                                var pollChn = await Client.GetChannelAsync(poll.ChannelId) as IMessageChannel;
+                                var pollMsg = await pollChn.GetMessageAsync(poll.MessageId);
+                                if (pollMsg != null)
+                                {
+                                    var pollEmbed = pollMsg.Embeds.FirstOrDefault();
+                                    var winner = pollEmbed.Description.Split('\n', StringSplitOptions.RemoveEmptyEntries);
+                                    int highestCount = resultsCount.Max();
+                                    int winnerNum = Array.IndexOf(resultsCount, highestCount) + 1;
+
+                                    resultsEmbed = resultsEmbed.AddField("AND THE WINNER IS", $"With {highestCount} votes,\n" +
+                                        $"{winner[winnerNum]}! 🎉")
+                                                   .WithUrl($"https://discord.com/channels/{forGuildId.Guild.Id}/{forGuildId.Id}/{poll.MessageId}");
+                                    await pollMsg.RemoveAllReactionsAsync();
+                                    await pollChn.SendMessageAsync(embed: resultsEmbed.Build());
+                                }
+                                else
+                                {
+                                    int highestCount = resultsCount.Max();
+                                    int winnerNum = Array.IndexOf(resultsCount, highestCount);
+                                    resultsEmbed = resultsEmbed.AddField("AND THE WINNER IS", $"With {highestCount} votes,\n" +
+                                        $"{poll.Emojis[winnerNum]}! 🎉");
+
+                                    await pollChn.SendMessageAsync(embed: resultsEmbed.Build());
+                                }
+
+                                RemovePoll(server, poll);
                             }
-
-                            var forGuildId = await Client.GetChannelAsync(poll.ChannelId) as SocketGuildChannel;
-                            var resultsEmbed = await EmbedHandler.CreateBasicEmbedBuilder("Results from poll:");
-
-                            for (int i = 0; i < poll.NumOptions; i++)
+                            catch (Exception ex)
                             {
-                                resultsEmbed = resultsEmbed
-                                               .AddField($"{poll.Emojis[i]} votes:", resultsCount[i]);
+                                await LoggingHandler.LogCriticalAsync("bot", null, ex);
                             }
-
-                            var pollChn = await Client.GetChannelAsync(poll.ChannelId) as IMessageChannel;
-                            var pollMsg = await pollChn.GetMessageAsync(poll.MessageId);
-                            if (pollMsg != null)
-                            {
-                                var pollEmbed = pollMsg.Embeds.FirstOrDefault();
-                                var winner = pollEmbed.Description.Split('\n', StringSplitOptions.RemoveEmptyEntries);
-                                int highestCount = resultsCount.Max();
-                                int winnerNum = Array.IndexOf(resultsCount, highestCount) + 1;
-
-                                resultsEmbed = resultsEmbed.AddField("AND THE WINNER IS", $"With {highestCount} votes,\n" +
-                                    $"{winner[winnerNum]}! 🎉")
-                                               .WithUrl($"https://discord.com/channels/{forGuildId.Guild.Id}/{forGuildId.Id}/{poll.MessageId}");
-
-                                await pollChn.SendMessageAsync(embed: resultsEmbed.Build());
-                            }
-                            else
-                            {
-                                int highestCount = resultsCount.Max();
-                                int winnerNum = Array.IndexOf(resultsCount, highestCount);
-                                resultsEmbed = resultsEmbed.AddField("AND THE WINNER IS", $"With {highestCount} votes,\n" +
-                                    $"{poll.Emojis[winnerNum]}! 🎉");
-
-                                await pollChn.SendMessageAsync(embed: resultsEmbed.Build());
-                            }
-
-
-                            db.DeleteRecord<Poll>("ActivePolls", poll.MessageId);
-                            db.InsertRecord("InactivePolls", poll);
-                        }
-                        catch (Exception ex)
-                        {
-                            await LoggingHandler.LogCriticalAsync("bot", null, ex);
                         }
                     }
                 }
             }
+
+        }
+
+        public void RemovePoll(ServerSpecifics? server, Poll? poll)
+        {
+            server = db.LoadRecordById<ServerSpecifics>("ServerSpecifics", server.ServerId);
+            poll = server.Polls.Where(x => x.MessageId == poll.MessageId).FirstOrDefault();
+            server.Polls.Remove(poll);
+            db.UpsertRecord("ServerSpecifics", server.ServerId, server);
         }
 
         public async void ReminderHandling(object? source, ElapsedEventArgs e)
         {
             try
             {
-                var reminderRecs = db.LoadRecords<Reminders>("Reminders");
+                var serverSpecifics = db.LoadRecords<ServerSpecifics>("ServerSpecifics");
 
-                foreach (Reminders reminder in reminderRecs)
+                foreach (var server in serverSpecifics)
                 {
-                    if (reminder.RemindingTime < DateTime.UtcNow)
+                    foreach (var reminder in server.Reminders)
                     {
-                        var channel = await Client.GetChannelAsync(reminder.ChannelId) as IMessageChannel;
-                        var user = await Client.GetUserAsync(reminder.UserId);
+                        if (reminder.RemindingTime < DateTime.UtcNow)
+                        {
+                            var channel = await Client.GetChannelAsync(reminder.ChannelId) as IMessageChannel;
+                            var user = await Client.GetUserAsync(reminder.UserId);
 
-                        db.DeleteRecord<Reminders>("Reminders", reminder.Id);
-                        await channel.SendMessageAsync($"Reminder, {user.Mention}: {reminder.ReminderText}");
+                            server.Reminders.Remove(reminder);
+                            db.UpsertRecord("ServerSpecifics", server.ServerId, server);
+                            await channel.SendMessageAsync($"Reminder, {user.Mention}: {reminder.ReminderText}");
+                        }
                     }
                 }
             }
@@ -238,24 +256,29 @@ namespace TharBot.Handlers
             }
         }
 
+        public void RemoveReminder(ServerSpecifics? server, Reminders reminder)
+        {
+
+        }
+
         public async void DailyPCHandling(object? source, ElapsedEventArgs e)
         {
-            var dailyPCRecs = db.LoadRecords<DailyPulseCheck>("DailyPulseCheck");
-            foreach (var dailyPC in dailyPCRecs)
+            var serverSpecifics = db.LoadRecords<ServerSpecifics>("ServerSpecifics");
+            foreach (var server in serverSpecifics)
             {
-                
-                if (!dailyPC.OnWeekends)
+                if (server.DailyPC == null) return;
+                if (!server.DailyPC.OnWeekends)
                 {
                     var day = DateTime.UtcNow.DayOfWeek;
                     if (day == DayOfWeek.Saturday || day == DayOfWeek.Sunday) return;
                 }
-                if (dailyPC.LastTimeRun.Date < DateTime.UtcNow.Date)
+                if (server.DailyPC.LastTimeRun.Date < DateTime.UtcNow.Date)
                 {
-                    if (TimeOnly.FromDateTime(dailyPC.WhenToRun) < TimeOnly.FromDateTime(DateTime.UtcNow))
+                    if (TimeOnly.FromDateTime(server.DailyPC.WhenToRun) < TimeOnly.FromDateTime(DateTime.UtcNow))
                     {
                         try
                         {
-                            var channel = await Client.GetChannelAsync(dailyPC.ChannelId) as IMessageChannel;
+                            var channel = await Client.GetChannelAsync(server.DailyPC.ChannelId) as IMessageChannel;
                             Emoji[] emojis =
                             {
                             new Emoji("😀"),
@@ -280,43 +303,29 @@ namespace TharBot.Handlers
                                 .WithCurrentTimestamp()
                                 .Build();
 
-                            if (dailyPC.ShouldPing)
+                            if (server.DailyPC.ShouldPing)
                             {
                                 await channel.SendMessageAsync("@here, please answer today's pulsecheck!");
                             }
                             var pulsecheck = await channel.SendMessageAsync(embed: embed);
 
-                            var recs = db.LoadRecords<Poll>("ActivePolls");
-
-                            var activePoll = recs.Where(x => x.MessageId == pulsecheck.Id).FirstOrDefault();
-
-                            if (activePoll != null)
+                            var newPoll = new Poll
                             {
-                                var alreadyExistsEmbed = await EmbedHandler.CreateErrorEmbed("PulseCheck", "Something went horribly wrong, deleting PulseCheck!");
-                                await channel.SendMessageAsync(embed: alreadyExistsEmbed);
-                                await pulsecheck.DeleteAsync();
-                            }
-                            else
+                                MessageId = pulsecheck.Id,
+                                ChannelId = pulsecheck.Channel.Id,
+                                Emojis = emojinames,
+                                Responses = new List<ActivePollResponse>(),
+                                CreationTime = DateTime.UtcNow,
+                                LifeSpan = TimeSpan.FromMinutes(server.DailyPC.Duration),
+                                CompletionTime = DateTime.UtcNow + TimeSpan.FromMinutes(server.DailyPC.Duration)
+                            };
+                            server.Polls.Add(newPoll);
+                            server.DailyPC.LastTimeRun = DateTime.UtcNow;
+                            db.UpsertRecord("ServerSpecifics", server.ServerId, server);
+
+                            foreach (var emoji in emojis)
                             {
-                                var newPoll = new Poll
-                                {
-                                    MessageId = pulsecheck.Id,
-                                    ChannelId = pulsecheck.Channel.Id,
-                                    Emojis = emojinames,
-                                    Responses = new List<ActivePollResponse>(),
-                                    CreationTime = DateTime.UtcNow,
-                                    LifeSpan = TimeSpan.FromMinutes(dailyPC.Duration),
-                                    CompletionTime = DateTime.UtcNow + TimeSpan.FromMinutes(dailyPC.Duration)
-                                };
-                                db.InsertRecord("ActivePolls", newPoll);
-
-                                dailyPC.LastTimeRun = DateTime.UtcNow;
-                                db.UpsertRecord("DailyPulseCheck", dailyPC.ServerId, dailyPC);
-
-                                foreach (var emoji in emojis)
-                                {
-                                    await pulsecheck.AddReactionAsync(emoji);
-                                }
+                                await pulsecheck.AddReactionAsync(emoji);
                             }
                         }
                         catch (Exception ex)
@@ -324,7 +333,6 @@ namespace TharBot.Handlers
                             await LoggingHandler.LogCriticalAsync("Bot", null, ex);
                             return;
                         }
-                        
                     }
                 }
             }
