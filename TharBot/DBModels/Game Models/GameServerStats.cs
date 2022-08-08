@@ -1,8 +1,8 @@
 ﻿namespace TharBot.DBModels
 {
-    public class GameUserProfile
+    public class GameServerStats
     {
-        public ulong UserId { get; set; }
+        public ulong ServerId { get; set; }
         public long TharCoins { get; set; }
         public DateTime NextRewards { get; set; }
         public bool GambaInProgress { get; set; }

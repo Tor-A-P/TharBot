@@ -16,5 +16,6 @@ namespace TharBot.DBModels
         public string? Prefix { get; set; }
         public ulong? PCResultsChannel { get; set; }
         public List<Reminders>? Reminders { get; set; }
+        public bool ShowLevelUpMessage { get; set; }
     }
 }
