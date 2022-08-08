@@ -29,52 +29,48 @@ namespace TharBot.Commands
             {
                 if (channelId == 0) channelId = Context.Channel.Id;
 
-                var existingWL = db.LoadRecordById<Whitelist>("WhitelistedChannels", Context.Guild.Id);
+                var serverSettings = db.LoadRecordById<ServerSpecifics>("ServerSpecifics", Context.Guild.Id);
+                var existingWL = serverSettings.WLChannelId;
 
                 if (existingWL != null)
                 {
-                    if (existingWL.WLChannelId.Contains(channelId))
+                    if (existingWL.Contains(channelId))
                     {
-                        var alreadyWLEmbed = await EmbedHandler.CreateUserErrorEmbed("Blacklist", "This channel is already whitelisted, you can't blacklist a previously whitelisted channel!");
+                        var alreadyWLEmbed = await EmbedHandler.CreateUserErrorEmbed("Blacklist", "This channel is already whitelisted, you can't blacklist a currently whitelisted channel!");
                         await ReplyAsync(embed: alreadyWLEmbed);
                         return;
                     }
                 }
 
-                var existingRec = db.LoadRecordById<Blacklist>("BlacklistedChannels", Context.Guild.Id);
 
-                if (existingRec == null)
+                if (serverSettings.BLChannelId == null)
                 {
                     var channelIdList = new List<ulong> { channelId };
-                    var newBlacklist = new Blacklist
-                    {
-                        ServerId = Context.Guild.Id,
-                        BLChannelId = channelIdList
-                    };
-                    db.InsertRecord("BlacklistedChannels", newBlacklist);
-                    var embed = await EmbedHandler.CreateBasicEmbed("Channel blacklisted", $"Blacklisted channel #{Context.Client.GetChannel(channelId)}");
+                    serverSettings.BLChannelId = channelIdList;
+                    db.UpsertRecord("ServerSpecifics", Context.Guild.Id, serverSettings);
+                    var embed = await EmbedHandler.CreateBasicEmbed("Channel blacklisted", $"Blacklisted channel #{Context.Client.GetChannel(channelId)}.");
                     await ReplyAsync(embed: embed);
                 }
-                else if (existingRec.BLChannelId.Contains(channelId))
+                else if (serverSettings.BLChannelId.Contains(channelId))
                 {
-                    existingRec.BLChannelId.Remove(channelId);
-                    db.UpsertRecord("BlacklistedChannels", Context.Guild.Id, existingRec);
-                    var embed = await EmbedHandler.CreateBasicEmbed("Channel removed from blacklist", $"Removed channel #{Context.Client.GetChannel(channelId)} from the blacklist");
+                    serverSettings.BLChannelId.Remove(channelId);
+                    db.UpsertRecord("ServerSpecifics", Context.Guild.Id, serverSettings);
+                    var embed = await EmbedHandler.CreateBasicEmbed("Channel removed from blacklist", $"Removed channel #{Context.Client.GetChannel(channelId)} from the blacklist.");
                     await ReplyAsync(embed: embed);
                 }
                 else
                 {
-                    existingRec.BLChannelId.Add(channelId);
-                    db.UpsertRecord("BlacklistedChannels", Context.Guild.Id, existingRec);
-                    var embed = await EmbedHandler.CreateBasicEmbed("Channel blacklisted", $"Blacklisted channel #{Context.Client.GetChannel(channelId)}");
+                    serverSettings.BLChannelId.Add(channelId);
+                    db.UpsertRecord("ServerSpecifics", Context.Guild.Id, serverSettings);
+                    var embed = await EmbedHandler.CreateBasicEmbed("Channel blacklisted", $"Blacklisted channel #{Context.Client.GetChannel(channelId)}.");
                     await ReplyAsync(embed: embed);
                 }
             }
             catch (Exception ex)
             {
-                var exEmbed = await EmbedHandler.CreateErrorEmbed("BlacklistChannel", ex.Message);
+                var exEmbed = await EmbedHandler.CreateErrorEmbed("Blacklist", ex.Message);
                 await ReplyAsync(embed: exEmbed);
-                await LoggingHandler.LogCriticalAsync("COMND: BlacklistChannel", null, ex);
+                await LoggingHandler.LogCriticalAsync("COMND: Blacklist", null, ex);
             }
         }
     }

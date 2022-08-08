@@ -24,15 +24,15 @@ namespace TharBot.Commands
         [Remarks("Fun")]
         public async Task DelMemeAsync(string cmdName)
         {
-            var existingMemeList = db.LoadRecordById<MemeCommands>("Memes", Context.Guild.Id);
+            var serverSettings = db.LoadRecordById<ServerSpecifics>("ServerSpecifics", Context.Guild.Id);
 
-            if (existingMemeList == null)
+            if (serverSettings.Memes == null)
             {
                 var embed = await EmbedHandler.CreateUserErrorEmbed($"Meme {cmdName} could not be deleted",
                     $"Couldn't find a custom command for this server with the name {cmdName}, are you sure it exists?");
                 await ReplyAsync(embed: embed);
             }
-            else if (!existingMemeList.Memes.ContainsKey(cmdName))
+            else if (!serverSettings.Memes.ContainsKey(cmdName))
             {
                 var embed = await EmbedHandler.CreateUserErrorEmbed($"Meme {cmdName} could not be deleted",
                     $"Couldn't find a custom command for this server with the name {cmdName}, are you sure it exists?");
@@ -40,8 +40,8 @@ namespace TharBot.Commands
             }
             else
             {
-                existingMemeList.Memes.Remove(cmdName);
-                db.UpsertRecord("Memes", Context.Guild.Id, existingMemeList);
+                serverSettings.Memes.Remove(cmdName);
+                db.UpsertRecord("ServerSpecifics", Context.Guild.Id, serverSettings);
 
                 var embed = await EmbedHandler.CreateBasicEmbed($"{cmdName} removed!", $"Removed custom command named {cmdName}");
                 await ReplyAsync(embed: embed);

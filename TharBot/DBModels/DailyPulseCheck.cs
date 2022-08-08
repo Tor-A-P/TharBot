@@ -1,10 +1,7 @@
-﻿using MongoDB.Bson.Serialization.Attributes;
-
-namespace TharBot.DBModels
+﻿namespace TharBot.DBModels
 {
     public class DailyPulseCheck
     {
-        [BsonId]
         public ulong ServerId { get; set; }
         public ulong ChannelId { get; set; }
         public DateTime LastTimeRun { get; set; }

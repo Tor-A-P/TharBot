@@ -29,19 +29,22 @@ namespace TharBot.Commands
         {
             try
             {
-                var existingMemeList = db.LoadRecordById<MemeCommands>("Memes", Context.Guild.Id);
+                var serverSettings = db.LoadRecordById<ServerSpecifics>("ServerSpecifics", Context.Guild.Id);
+                string? prefix;
+                if (serverSettings.Prefix != null) prefix = serverSettings.Prefix;
+                else prefix = _config["Prefix"];
 
                 if (cmdName == "-list")
                 {
                     var memeList = "";
-                    if (existingMemeList == null)
+                    if (serverSettings.Memes == null)
                     {
                         var embed = await EmbedHandler.CreateUserErrorEmbed("No memes found", "This server doesn't seem to have any custom memes yet - try making one!");
                         await ReplyAsync(embed: embed);
                     }
                     else
                     {
-                        foreach (var meme in existingMemeList.Memes)
+                        foreach (var meme in serverSettings.Memes)
                         {
                             memeList += $"\"{meme.Key}\": \"{meme.Value}\"\n";
                         }
@@ -71,36 +74,28 @@ namespace TharBot.Commands
                     }
                 }
 
-                if (existingMemeList == null)
+                if (serverSettings.Memes == null)
                 {
-                    var newMemeDict = new Dictionary<string, string>
+                    serverSettings.Memes = new Dictionary<string, string>
                     {
                         { cmdName, output }
                     };
-                    var newMemeList = new MemeCommands
-                    {
-                        ServerId = Context.Guild.Id,
-                        Memes = newMemeDict
-                    };
-                    db.InsertRecord("Memes", newMemeList);
+                    db.UpsertRecord("ServerSpecifics", Context.Guild.Id, serverSettings);
 
-                    var embedText = MemeEmbedText(cmdName);
-                    var embed = await EmbedHandler.CreateBasicEmbed($"Command {cmdName} created!", embedText);
+                    var embed = await EmbedHandler.CreateBasicEmbed($"Command {cmdName} created!", $"Type {prefix}{cmdName} to use it.");
                     await ReplyAsync(embed: embed);
                 }
-                else if (existingMemeList.Memes.ContainsKey(cmdName))
+                else if (serverSettings.Memes.ContainsKey(cmdName))
                 {
-                    var embedText = MemeEmbedText(cmdName);
-                    var embed = await EmbedHandler.CreateBasicEmbed($"Command {cmdName} already exists!", embedText);
+                    var embed = await EmbedHandler.CreateBasicEmbed($"Command {cmdName} already exists!", $"Type {prefix}{cmdName} to use it.");
                     await ReplyAsync(embed: embed);
                 }
                 else
                 {
-                    existingMemeList.Memes.Add(cmdName, output);
-                    db.UpsertRecord("Memes", Context.Guild.Id, existingMemeList);
+                    serverSettings.Memes.Add(cmdName, output);
+                    db.UpsertRecord("ServerSpecifics", Context.Guild.Id, serverSettings);
 
-                    var embedText = MemeEmbedText(cmdName);
-                    var embed = await EmbedHandler.CreateBasicEmbed($"Command {cmdName} created!", embedText);
+                    var embed = await EmbedHandler.CreateBasicEmbed($"Command {cmdName} created!", $"Type {prefix}{cmdName} to use it.");
                     await ReplyAsync(embed: embed);
                 }
             }
@@ -110,17 +105,6 @@ namespace TharBot.Commands
                 await ReplyAsync(embed: exEmbed);
                 await LoggingHandler.LogCriticalAsync("COMND: Meme", null, ex);
             }
-        }
-
-        public string MemeEmbedText(string cmd)
-        {
-            var existingPrefix = db.LoadRecordById<Prefixes>("Prefixes", Context.Guild.Id);
-            string embedText;
-            string prefix;
-            if (existingPrefix != null) prefix = existingPrefix.Prefix;
-            else prefix = _config["Prefix"];
-            embedText = $"Type {prefix}{cmd} to use it.";
-            return embedText;
         }
     }
 }

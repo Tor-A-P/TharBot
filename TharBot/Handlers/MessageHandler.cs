@@ -32,6 +32,25 @@ namespace TharBot.Handlers
             var existingBan = db.LoadRecordById<BannedUser>("UserBanlist", socketMessage.Author.Id);
             if (existingBan != null) return;
             var forGuildId = socketMessage.Channel as SocketGuildChannel;
+            var serverSettings = db.LoadRecordById<ServerSpecifics>("ServerSpecifics", forGuildId.Guild.Id);
+
+            if (serverSettings == null)
+            {
+                serverSettings = new ServerSpecifics
+                {
+                    ServerId = forGuildId.Guild.Id,
+                    BLChannelId = new List<ulong>(),
+                    WLChannelId = new List<ulong>(),
+                    GameBLChannelId = new List<ulong>(),
+                    GameWLChannelId = new List<ulong>(),
+                    Memes = new Dictionary<string, string>(),
+                    Polls = new List<Poll>(),
+                    Prefix = "th.",
+                    PCResultsChannel = null,
+                    Reminders = new List<Reminders>()
+                };
+                db.InsertRecord("ServerSpecifics", serverSettings);
+            }
 
             await Task.Delay(1000);
             var existingServerProfile = db.LoadRecordById<GameServerProfile>("GameProfiles", forGuildId.Guild.Id);
@@ -41,21 +60,19 @@ namespace TharBot.Handlers
                 showLevelUpMessage = existingServerProfile.ShowLevelUpMessage;
             }
 
-            var existingWLRec = db.LoadRecordById<Whitelist>("WhitelistedChannels", forGuildId.Guild.Id);
-            if (existingWLRec != null)
+            if (serverSettings.WLChannelId != null)
             {
-                if (existingWLRec.WLChannelId.Any())
+                if (serverSettings.WLChannelId.Any())
                 {
-                    if (!existingWLRec.WLChannelId.Contains(socketMessage.Channel.Id)) showLevelUpMessage = false;
+                    if (!serverSettings.WLChannelId.Contains(socketMessage.Channel.Id)) return;
                 }
             }
 
-            var existingBLRec = db.LoadRecordById<Blacklist>("BlacklistedChannels", forGuildId.Guild.Id);
-            if (existingBLRec != null)
+            if (serverSettings.BLChannelId != null)
             {
-                if (existingBLRec.BLChannelId.Any())
+                if (serverSettings.BLChannelId.Any())
                 {
-                    if (existingBLRec.BLChannelId.Contains(socketMessage.Channel.Id)) showLevelUpMessage = false;
+                    if (serverSettings.BLChannelId.Contains(socketMessage.Channel.Id)) return;
                 }
             }
 
@@ -158,16 +175,10 @@ namespace TharBot.Handlers
                     }
                     if (existingUserProfile.Exp >= existingUserProfile.ExpToLevel)
                     {
-                        var prefix = "";
-                        var existingPrefix = db.LoadRecordById<Prefixes>("Prefixes", forGuildId.Guild.Id);
-                        if (existingPrefix != null)
-                        {
-                            prefix = existingPrefix.Prefix;
-                        }
-                        else
-                        {
-                            prefix = _configuration["Prefix"];
-                        }
+                        string? prefix;
+                        if (serverSettings.Prefix != null) prefix = serverSettings.Prefix;
+                        else prefix = _configuration["Prefix"];
+
                         existingUserProfile.Exp -= existingUserProfile.ExpToLevel;
                         existingUserProfile.Level++;
                         existingUserProfile.CurrentHP = existingUserProfile.BaseHP;

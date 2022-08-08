@@ -41,7 +41,8 @@ namespace TharBot.Commands
             {
                 if (type == "")
                 {
-                    var existingRec = db.LoadRecordById<Whitelist>("WhitelistedChannels", Context.Guild.Id);
+                    var serverSettings = db.LoadRecordById<ServerSpecifics>("ServerSpecifics", Context.Guild.Id);
+                    var existingRec = serverSettings.WLChannelId;
 
                     if (existingRec == null)
                     {
@@ -58,16 +59,16 @@ namespace TharBot.Commands
                     }
                     else
                     {
-                        if (!existingRec.WLChannelId.Any())
+                        if (!existingRec.Any())
                         {
                             var noWLShowEmbed = await EmbedHandler.CreateBasicEmbed("Whitelist can't be shown", "This server has no currently whitelisted channels!");
                             await ReplyAsync(embed: noWLShowEmbed);
                         }
                         else if (flag.ToLower() == "show")
                         {
-                            var WLShowEmbed = await EmbedHandler.CreateBasicEmbedBuilder($"Current whitelist for {Context.Guild.Name}");
+                            var WLShowEmbed = await EmbedHandler.CreateBasicEmbedBuilder($"Current Whitelist for {Context.Guild.Name}");
 
-                            foreach (var channel in existingRec.WLChannelId)
+                            foreach (var channel in existingRec)
                             {
                                 var channelName = Context.Guild.GetChannel(channel).Name;
                                 WLShowEmbed = WLShowEmbed.AddField($"#{channelName}", channel, true);
@@ -77,8 +78,8 @@ namespace TharBot.Commands
                         }
                         else if (flag.ToLower() == "clear")
                         {
-                            existingRec.WLChannelId.Clear();
-                            db.UpsertRecord("WhitelistedChannels", Context.Guild.Id, existingRec);
+                            existingRec.Clear();
+                            db.UpsertRecord("ServerSpecifics", Context.Guild.Id, serverSettings);
 
                             var WLClearEmbed = await EmbedHandler.CreateBasicEmbed("Whitelist cleared!", $"Cleared whitelist for {Context.Guild.Name}");
                             await ReplyAsync(embed: WLClearEmbed);
@@ -87,51 +88,51 @@ namespace TharBot.Commands
                 }
                 else
                 {
-                    var existingRec = db.LoadRecordById<Whitelist>("WhitelistedGameChannels", Context.Guild.Id);
+                    var serverSettings = db.LoadRecordById<ServerSpecifics>("ServerSpecifics", Context.Guild.Id);
+                    var existingRec = serverSettings.GameWLChannelId;
 
                     if (existingRec == null)
                     {
                         if (flag.ToLower() == "show")
                         {
-                            var noWLShowEmbed = await EmbedHandler.CreateBasicEmbed("Whitelist for games can't be shown", "This server has no currently whitelisted channels for games!");
-                            await ReplyAsync(embed: noWLShowEmbed);
+                            var noGameWLShowEmbed = await EmbedHandler.CreateBasicEmbed("Whitelist for games can't be shown", "This server has no currently whitelisted channels for games!");
+                            await ReplyAsync(embed: noGameWLShowEmbed);
                         }
                         else if (flag.ToLower() == "clear")
                         {
-                            var noWLClearEmbed = await EmbedHandler.CreateBasicEmbed("Whitelist for games can't be cleared", "This server has no currently whitelisted channels for games!");
-                            await ReplyAsync(embed: noWLClearEmbed);
+                            var noGameWLClearEmbed = await EmbedHandler.CreateBasicEmbed("Whitelist for games can't be cleared", "This server has no currently whitelisted channels for games!");
+                            await ReplyAsync(embed: noGameWLClearEmbed);
                         }
                     }
                     else
                     {
-                        if (!existingRec.WLChannelId.Any())
+                        if (!existingRec.Any())
                         {
-                            var noWLShowEmbed = await EmbedHandler.CreateBasicEmbed("Whitelist for games can't be shown", "This server has no currently whitelisted channels for games!");
-                            await ReplyAsync(embed: noWLShowEmbed);
+                            var noGameWLShowEmbed = await EmbedHandler.CreateBasicEmbed("Whitelist for games can't be shown", "This server has no currently whitelisted channels for games!");
+                            await ReplyAsync(embed: noGameWLShowEmbed);
                         }
                         else if (flag.ToLower() == "show")
                         {
-                            var WLShowEmbed = await EmbedHandler.CreateBasicEmbedBuilder($"Current game command whitelist for {Context.Guild.Name}");
+                            var GameWLShowEmbed = await EmbedHandler.CreateBasicEmbedBuilder($"Current game command whitelist for {Context.Guild.Name}");
 
-                            foreach (var channel in existingRec.WLChannelId)
+                            foreach (var channel in existingRec)
                             {
                                 var channelName = Context.Guild.GetChannel(channel).Name;
-                                WLShowEmbed = WLShowEmbed.AddField($"#{channelName}", channel, true);
+                                GameWLShowEmbed = GameWLShowEmbed.AddField($"#{channelName}", channel, true);
                             }
 
-                            await ReplyAsync(embed: WLShowEmbed.Build());
+                            await ReplyAsync(embed: GameWLShowEmbed.Build());
                         }
                         else if (flag.ToLower() == "clear")
                         {
-                            existingRec.WLChannelId.Clear();
-                            db.UpsertRecord("WhitelistedGameChannels", Context.Guild.Id, existingRec);
+                            existingRec.Clear();
+                            db.UpsertRecord("ServerSpecifics", Context.Guild.Id, serverSettings);
 
-                            var WLClearEmbed = await EmbedHandler.CreateBasicEmbed("Whitelist for games cleared!", $"Cleared game command whitelist for {Context.Guild.Name}");
-                            await ReplyAsync(embed: WLClearEmbed);
+                            var GameWLClearEmbed = await EmbedHandler.CreateBasicEmbed("Whitelist for games cleared!", $"Cleared game command whitelist for {Context.Guild.Name}");
+                            await ReplyAsync(embed: GameWLClearEmbed);
                         }
                     }
                 }
-                
             }
             catch (Exception ex)
             {

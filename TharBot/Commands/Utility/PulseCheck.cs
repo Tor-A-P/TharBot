@@ -133,10 +133,18 @@ namespace TharBot.Commands
                                    .AddField("😢 answers:", resultsCount[4])
                                    .AddField("😡 answers:", resultsCount[5]);
 
-                    var resultsChannelSettings = db.LoadRecordById<PulseCheckResultsChannel>("PulsecheckResultsChannel", Context.Guild.Id);
-                    var chan = await _client.GetChannelAsync(resultsChannelSettings.ResultsChannel) as IMessageChannel;
-                    await chan.SendMessageAsync(embed: resultsEmbed.Build());
-
+                    var serverSettings = db.LoadRecordById<ServerSpecifics>("ServerSpecifics", Context.Guild.Id);
+                    if (serverSettings.PCResultsChannel != null)
+                    {
+                        var chan = await _client.GetChannelAsync((ulong)serverSettings.PCResultsChannel) as IMessageChannel;
+                        await chan.SendMessageAsync(embed: resultsEmbed.Build());
+                    }
+                    else
+                    {
+                        var chan = await _client.GetChannelAsync(newPoll.ChannelId) as IMessageChannel;
+                        await chan.SendMessageAsync(embed: resultsEmbed.Build());
+                    }
+                    
                     db.DeleteRecord<Poll>("ActivePolls", newPoll.MessageId);
 
                     var getChannel = await _client.GetChannelAsync(newPoll.ChannelId) as IMessageChannel;

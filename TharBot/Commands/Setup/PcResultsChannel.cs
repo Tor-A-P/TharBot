@@ -16,30 +16,23 @@ namespace TharBot.Commands
 
         [Command("ResultsChannel")]
         [Alias("PcResultsChannel", "pcrc")]
-        [Summary("Sets the channel that the pulsecheck command should report its results in.\n" +
-            "**USAGE:** th.ResultsChannel [CHANNEL_ID], th.pcrc [CHANNEL_ID]\n" +
+        [Summary("Sets the channel that the pulsecheck command should report its results in. If no channel specified, will set it to the channel the command is used in.\n" +
+            "**USAGE:** th.ResultsChannel [CHANNEL_ID], th.ResultsChannel\n" +
             "**EXAMPLE:** th.ResultsChannel 981100690195759134")]
         [Remarks("Setup")]
         [RequireUserPermission(Discord.ChannelPermission.ManageChannels, Group = "Permission")]
         [RequireOwner(Group = "Permission")]
-        public async Task PcResultsChannelAsync(ulong channelId)
+        public async Task PcResultsChannelAsync(ulong channelId = 0)
         {
-            var currentServer = db.LoadRecordById<PulseCheckResultsChannel>("PulsecheckResultsChannel", Context.Guild.Id);
+            var serverSettings = db.LoadRecordById<ServerSpecifics>("ServerSpecifics", Context.Guild.Id);
 
-            if (currentServer == null)
+            if (channelId == 0)
             {
-                var newServer = new PulseCheckResultsChannel
-                {
-                    ServerId = Context.Guild.Id,
-                    ResultsChannel = channelId
-                };
-                db.InsertRecord("PulsecheckResultsChannel", newServer);
+                channelId = Context.Channel.Id;
             }
-            else
-            {
-                currentServer.ResultsChannel = channelId;
-                db.UpsertRecord("PulsecheckResultsChannel", Context.Guild.Id, currentServer);
-            }
+
+            serverSettings.PCResultsChannel = channelId;
+            db.UpsertRecord("ServerSpecifics", Context.Guild.Id, serverSettings);
 
             var embed = await EmbedHandler.CreateBasicEmbed("Pulsecheck Channel set!", 
                 $"The pulsecheck command will now report its results in #{Context.Client.GetChannel(channelId)}!");

@@ -83,9 +83,17 @@ namespace TharBot.Handlers
                         if (emoji.Name == "😢" || emoji.Name == "😡")
                         {
                             var forGuildId = await Client.GetChannelAsync(channel.Id) as SocketGuildChannel;
-                            var resultsChannelSettings = db.LoadRecordById<PulseCheckResultsChannel>("PulsecheckResultsChannel", forGuildId.Guild.Id);
-                            var responseChan = await Client.GetChannelAsync(resultsChannelSettings.ResultsChannel) as IMessageChannel;
-                            await responseChan.SendMessageAsync($"{reaction.User.Value.Mention} just answered {emoji.Name} to the pulsecheck, maybe someone should check up on them?");
+                            var resultsChannelSettings = db.LoadRecordById<ServerSpecifics>("ServerSpecifics", forGuildId.Guild.Id).PCResultsChannel;
+                            if (resultsChannelSettings != null)
+                            {
+                                var responseChan = await Client.GetChannelAsync((ulong)resultsChannelSettings) as IMessageChannel;
+                                await responseChan.SendMessageAsync($"{reaction.User.Value.Mention} just answered {emoji.Name} to the pulsecheck, maybe someone should check up on them?");
+                            }
+                            else
+                            {
+                                var responseChan = await Client.GetChannelAsync(activePoll.ChannelId) as IMessageChannel;
+                                await responseChan.SendMessageAsync($"{reaction.User.Value.Mention} just answered {emoji.Name} to the pulsecheck, maybe someone should check up on them?");
+                            }
                         }
                     }
                     else
@@ -103,9 +111,17 @@ namespace TharBot.Handlers
                             if (emoji.Name == "😢" || emoji.Name == "😡")
                             {
                                 var forGuildId = await Client.GetChannelAsync(channel.Id) as SocketGuildChannel;
-                                var resultsChannelSettings = db.LoadRecordById<PulseCheckResultsChannel>("PulsecheckResultsChannel", forGuildId.Guild.Id);
-                                var responseChan = await Client.GetChannelAsync(resultsChannelSettings.ResultsChannel) as IMessageChannel;
-                                await responseChan.SendMessageAsync($"@Here {reaction.User.Value.Mention} just answered {emoji.Name} to the pulsecheck, maybe someone should check up on them?");
+                                var resultsChannelSettings = db.LoadRecordById<ServerSpecifics>("ServerSpecifics", forGuildId.Guild.Id).PCResultsChannel;
+                                if (resultsChannelSettings != null)
+                                {
+                                    var responseChan = await Client.GetChannelAsync((ulong)resultsChannelSettings) as IMessageChannel;
+                                    await responseChan.SendMessageAsync($"{reaction.User.Value.Mention} just answered {emoji.Name} to the pulsecheck, maybe someone should check up on them?");
+                                }
+                                else
+                                {
+                                    var responseChan = await Client.GetChannelAsync(activePoll.ChannelId) as IMessageChannel;
+                                    await responseChan.SendMessageAsync($"{reaction.User.Value.Mention} just answered {emoji.Name} to the pulsecheck, maybe someone should check up on them?");
+                                }
                             }
                         }
                     }

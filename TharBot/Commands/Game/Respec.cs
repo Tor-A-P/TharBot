@@ -27,21 +27,20 @@ namespace TharBot.Commands.Game
         {
             try
             {
-                var existingWL = db.LoadRecordById<Whitelist>("WhitelistedGameChannels", Context.Guild.Id);
-                if (existingWL != null)
+                var serverSettings = db.LoadRecordById<ServerSpecifics>("ServerSpecifics", Context.Guild.Id);
+                if (serverSettings.GameWLChannelId != null)
                 {
-                    if (existingWL.WLChannelId.Any())
+                    if (serverSettings.GameWLChannelId.Any())
                     {
-                        if (!existingWL.WLChannelId.Contains(Context.Channel.Id)) return;
+                        if (!serverSettings.GameWLChannelId.Contains(Context.Channel.Id)) return;
                     }
                 }
 
-                var existingBL = db.LoadRecordById<Blacklist>("BlacklistedGameChannels", Context.Guild.Id);
-                if (existingBL != null)
+                if (serverSettings.GameBLChannelId != null)
                 {
-                    if (existingBL.BLChannelId.Any())
+                    if (serverSettings.GameBLChannelId.Any())
                     {
-                        if (existingBL.BLChannelId.Contains(Context.Channel.Id)) return;
+                        if (serverSettings.GameBLChannelId.Contains(Context.Channel.Id)) return;
                     }
                 }
 
@@ -96,10 +95,9 @@ namespace TharBot.Commands.Game
 
                         db.UpsertRecord("GameProfiles", serverProfile.ServerId, serverProfile);
 
-                        var existingPrefix = db.LoadRecordById<Prefixes>("Prefixes", Context.Guild.Id);
                         string? currentPrefix;
 
-                        if (existingPrefix != null) currentPrefix = existingPrefix.Prefix;
+                        if (serverSettings.Prefix != null) currentPrefix = serverSettings.Prefix;
                         else currentPrefix = _configuration["Prefix"];
 
                         if (totalRespecPoints == 0)

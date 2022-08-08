@@ -91,9 +91,18 @@ namespace TharBot.Handlers
                                            .AddField("😡 answers:", resultsCount[5]);
 
                             var forGuildId = await Client.GetChannelAsync(poll.ChannelId) as SocketGuildChannel;
-                            var resultsChannelSettings = db.LoadRecordById<PulseCheckResultsChannel>("PulsecheckResultsChannel", forGuildId.Guild.Id);
-                            var chan = await Client.GetChannelAsync(resultsChannelSettings.ResultsChannel) as IMessageChannel;
-                            await chan.SendMessageAsync(embed: resultsEmbed.Build());
+                            var resultsChannelSettings = db.LoadRecordById<ServerSpecifics>("ServerSpecifics", forGuildId.Guild.Id).PCResultsChannel;
+                            if (resultsChannelSettings != null)
+                            {
+                                var chan = await Client.GetChannelAsync((ulong)resultsChannelSettings) as IMessageChannel;
+                                await chan.SendMessageAsync(embed: resultsEmbed.Build());
+                            }
+                            else
+                            {
+                                var chan = await Client.GetChannelAsync(poll.ChannelId) as IMessageChannel;
+                                await chan.SendMessageAsync(embed: resultsEmbed.Build());
+                            }
+
 
                             db.DeleteRecord<Poll>("ActivePolls", poll.MessageId);
                             db.InsertRecord("InactivePolls", poll);

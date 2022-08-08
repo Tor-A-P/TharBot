@@ -1,10 +1,7 @@
-﻿using MongoDB.Bson.Serialization.Attributes;
-
-namespace TharBot.DBModels
+﻿namespace TharBot.DBModels
 {
     public class Poll
     {
-        [BsonId]
         public ulong MessageId { get; set; }
         public ulong ChannelId { get; set; }
         public List<ActivePollResponse>? Responses { get; set; }

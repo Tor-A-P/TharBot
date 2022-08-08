@@ -22,49 +22,45 @@ namespace TharBot.Commands
         [Remarks("Setup")]
         [RequireUserPermission(Discord.ChannelPermission.ManageChannels, Group = "Permission")]
         [RequireOwner(Group = "Permission")]
-        public async Task BlacklistChannelAsync(ulong channelId = 0)
+        public async Task BlacklistGameChannelAsync(ulong channelId = 0)
         {
             try
             {
                 if (channelId == 0) channelId = Context.Channel.Id;
 
-                var existingWL = db.LoadRecordById<Whitelist>("WhitelistedGameChannels", Context.Guild.Id);
+                var serverSettings = db.LoadRecordById<ServerSpecifics>("ServerSpecifics", Context.Guild.Id);
+                var existingWL = serverSettings.GameWLChannelId;
 
                 if (existingWL != null)
                 {
-                    if (existingWL.WLChannelId.Contains(channelId))
+                    if (existingWL.Contains(channelId))
                     {
-                        var alreadyWLEmbed = await EmbedHandler.CreateUserErrorEmbed("Blacklist", "This channel is already whitelisted for games, you can't blacklist a previously whitelisted channel!");
+                        var alreadyWLEmbed = await EmbedHandler.CreateUserErrorEmbed("Blacklist", "This channel is already whitelisted for games, you can't blacklist a currently whitelisted channel!");
                         await ReplyAsync(embed: alreadyWLEmbed);
                         return;
                     }
                 }
 
-                var existingRec = db.LoadRecordById<Blacklist>("BlacklistedGameChannels", Context.Guild.Id);
 
-                if (existingRec == null)
+                if (serverSettings.GameBLChannelId == null)
                 {
                     var channelIdList = new List<ulong> { channelId };
-                    var newBlacklist = new Blacklist
-                    {
-                        ServerId = Context.Guild.Id,
-                        BLChannelId = channelIdList
-                    };
-                    db.InsertRecord("BlacklistedGameChannels", newBlacklist);
+                    serverSettings.GameBLChannelId = channelIdList;
+                    db.UpsertRecord("ServerSpecifics", Context.Guild.Id, serverSettings);
                     var embed = await EmbedHandler.CreateBasicEmbed("Channel blacklisted for games", $"Blacklisted channel #{Context.Client.GetChannel(channelId)} for games.");
                     await ReplyAsync(embed: embed);
                 }
-                else if (existingRec.BLChannelId.Contains(channelId))
+                else if (serverSettings.GameBLChannelId.Contains(channelId))
                 {
-                    existingRec.BLChannelId.Remove(channelId);
-                    db.UpsertRecord("BlacklistedGameChannels", Context.Guild.Id, existingRec);
+                    serverSettings.GameBLChannelId.Remove(channelId);
+                    db.UpsertRecord("ServerSpecifics", Context.Guild.Id, serverSettings);
                     var embed = await EmbedHandler.CreateBasicEmbed("Channel removed from blacklist for games.", $"Removed channel #{Context.Client.GetChannel(channelId)} from the blacklist for games.");
                     await ReplyAsync(embed: embed);
                 }
                 else
                 {
-                    existingRec.BLChannelId.Add(channelId);
-                    db.UpsertRecord("BlacklistedGameChannels", Context.Guild.Id, existingRec);
+                    serverSettings.GameBLChannelId.Add(channelId);
+                    db.UpsertRecord("ServerSpecifics", Context.Guild.Id, serverSettings);
                     var embed = await EmbedHandler.CreateBasicEmbed("Channel blacklisted for games", $"Blacklisted channel #{Context.Client.GetChannel(channelId)} for games.");
                     await ReplyAsync(embed: embed);
                 }

@@ -43,15 +43,10 @@ namespace TharBot.Handlers
                 {
                     if (reaction.UserId != fight.UserId) return;
                     var prefix = "";
-                    var existingPrefix = db.LoadRecordById<Prefixes>("Prefixes", fight.ServerId);
-                    if (existingPrefix != null)
-                    {
-                        prefix = existingPrefix.Prefix;
-                    }
-                    else
-                    {
-                        prefix = _configuration["Prefix"];
-                    }
+                    var serverSettings = db.LoadRecordById<ServerSpecifics>("ServerSpecifics", fight.ServerId);
+                    if (serverSettings.Prefix != null) prefix = serverSettings.Prefix;
+                    else prefix = _configuration["Prefix"];
+
                     var coinReward = fight.Enemy.Level * 50;
                     var expReward = fight.Enemy.Level * 20;
                     await msg.RemoveReactionAsync(reaction.Emote, reaction.UserId);
