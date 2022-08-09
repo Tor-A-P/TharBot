@@ -153,9 +153,14 @@ namespace TharBot.Handlers
 
             try
             {
-                var attributeDialog = db.LoadRecordById<GameAttributeDialog>("ActiveAttributeDialogs", reaction.MessageId);
+                var forGuildId = await Client.GetChannelAsync(channel.Id) as SocketGuildChannel;
                 var chan = await Client.GetChannelAsync(channel.Id) as IMessageChannel;
                 IUserMessage? msg = message.HasValue ? message.Value : await chan.GetMessageAsync(message.Id) as IUserMessage;
+
+                var serverSpecifics = db.LoadRecordById<ServerSpecifics>("ServerSpecifics", forGuildId.Guild.Id);
+                if (serverSpecifics.AttributeDialogs == null) return;
+                var attributeDialog = serverSpecifics.AttributeDialogs.Where(x => x.MessageId == message.Id).FirstOrDefault();
+                
 
                 if (attributeDialog != null)
                 {

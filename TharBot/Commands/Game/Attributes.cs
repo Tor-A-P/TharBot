@@ -70,7 +70,12 @@ namespace TharBot.Commands.Game
                         UserId = Context.User.Id,
                         CreationTime = DateTime.UtcNow
                     };
-                    db.InsertRecord("ActiveAttributeDialogs", attributeDialog);
+                    if (serverSettings.AttributeDialogs == null)
+                    {
+                        serverSettings.AttributeDialogs = new List<GameAttributeDialog>();
+                    }
+                    serverSettings.AttributeDialogs.Add(attributeDialog);
+                    db.UpsertRecord("ServerSpecifics", Context.Guild.Id, serverSettings);
                     var emotes = new Emote[]
                     {
                     EmoteHandler.Strength,

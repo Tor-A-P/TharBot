@@ -398,31 +398,37 @@ namespace TharBot.Handlers
         {
             try
             {
-                var AttributeDialogs = db.LoadRecords<GameAttributeDialog>("ActiveAttributeDialogs");
+                var serverSpecifics = db.LoadRecords<ServerSpecifics>("ServerSpecifics");
 
-                foreach (var dialog in AttributeDialogs)
+                foreach (var server in serverSpecifics)
                 {
-                    try
+                    var attributeDialogs = server.AttributeDialogs;
+                    foreach (var dialog in attributeDialogs)
                     {
-                        if (dialog.CreationTime + GameAttributeDialog.LifeTime < DateTime.UtcNow)
+                        try
                         {
-                            if (await Client.GetChannelAsync(dialog.ChannelId) is IMessageChannel chn)
+                            if (dialog.CreationTime + GameAttributeDialog.LifeTime < DateTime.UtcNow)
                             {
-                                var msg = await chn.GetMessageAsync(dialog.MessageId);
-                                if (msg != null)
+                                if (await Client.GetChannelAsync(dialog.ChannelId) is IMessageChannel chn)
                                 {
-                                    await msg.RemoveAllReactionsAsync();
+                                    var msg = await chn.GetMessageAsync(dialog.MessageId);
+                                    if (msg != null)
+                                    {
+                                        await msg.RemoveAllReactionsAsync();
+                                    }
                                 }
+                                server.AttributeDialogs.Remove(dialog);
+                                db.UpsertRecord("ServerSpecifics", server.ServerId, server);
                             }
-                            db.DeleteRecord<GameAttributeDialog>("ActiveAttributeDialogs", dialog.MessageId);
+                        }
+                        catch (Exception ex)
+                        {
+                            await LoggingHandler.LogCriticalAsync("Bot", null, ex);
+                            continue;
                         }
                     }
-                    catch (Exception ex)
-                    {
-                        await LoggingHandler.LogCriticalAsync("Bot", null, ex);
-                        continue;
-                    }
                 }
+                
             }
             catch (Exception ex)
             {

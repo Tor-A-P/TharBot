@@ -1,10 +1,7 @@
-﻿using MongoDB.Bson.Serialization.Attributes;
-
-namespace TharBot.DBModels
+﻿namespace TharBot.DBModels
 {
     public class GameAttributeDialog
     {
-        [BsonId]
         public ulong MessageId { get; set; }
         public ulong UserId { get; set; }
         public ulong ChannelId { get; set; }

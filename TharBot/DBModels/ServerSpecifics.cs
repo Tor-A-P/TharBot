@@ -6,10 +6,12 @@ namespace TharBot.DBModels
     {
         [BsonId]
         public ulong ServerId { get; set; }
+        public DateTime TimeStamp { get; set; }
         public List<ulong>? BLChannelId { get; set; }
         public List<ulong>? WLChannelId { get; set; }
         public List<ulong>? GameBLChannelId { get; set; }
         public List<ulong>? GameWLChannelId { get; set; }
+        public List<GameAttributeDialog>? AttributeDialogs { get; set; }
         public DailyPulseCheck? DailyPC { get; set; }
         public Dictionary<string, string>? Memes { get; set; }
         public List<Poll>? Polls { get; set; }

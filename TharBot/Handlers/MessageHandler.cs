@@ -43,6 +43,7 @@ namespace TharBot.Handlers
                     WLChannelId = new List<ulong>(),
                     GameBLChannelId = new List<ulong>(),
                     GameWLChannelId = new List<ulong>(),
+                    AttributeDialogs = new List<GameAttributeDialog>(),
                     Memes = new Dictionary<string, string>(),
                     Polls = new List<Poll>(),
                     Prefix = "th.",
