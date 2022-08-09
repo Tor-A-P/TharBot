@@ -1,5 +1,6 @@
 ﻿using Discord.Commands;
 using Microsoft.Extensions.Configuration;
+using MongoDB.Driver;
 using TharBot.DBModels;
 using TharBot.Handlers;
 
@@ -41,7 +42,8 @@ namespace TharBot.Commands
             else
             {
                 serverSettings.Memes.Remove(cmdName);
-                await db.UpsertRecordAsync("ServerSpecifics", Context.Guild.Id, serverSettings);
+                var update = Builders<ServerSpecifics>.Update.Set(x => x.Memes, serverSettings.Memes);
+                await db.UpsertServerAsync<ServerSpecifics>("ServerSpecifics", Context.Guild.Id, update);
 
                 var embed = await EmbedHandler.CreateBasicEmbed($"{cmdName} removed!", $"Removed custom command named {cmdName}");
                 await ReplyAsync(embed: embed);

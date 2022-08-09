@@ -1,6 +1,7 @@
 ﻿using Discord.Commands;
 using Microsoft.Recognizers.Text;
 using Microsoft.Recognizers.Text.DateTime;
+using MongoDB.Driver;
 using System.Text.RegularExpressions;
 using TharBot.DBModels;
 using TharBot.Handlers;
@@ -39,7 +40,8 @@ namespace TharBot.Commands
                     if (serverSpecifics.DailyPC != null)
                     {
                         serverSpecifics.DailyPC = null;
-                        await db.UpsertRecordAsync("ServerSpecifics", Context.Guild.Id, serverSpecifics);
+                        var update = Builders<ServerSpecifics>.Update.Set(x => x.DailyPC, serverSpecifics.DailyPC);
+                        await db.UpsertServerAsync<ServerSpecifics>("ServerSpecifics", Context.Guild.Id, update);
                         var deletedEmbed = await EmbedHandler.CreateBasicEmbed("Daily pulsecheck cancelled!", "Removed the currently scheduled task for a daily pulsecheck for this server!");
                         await ReplyAsync(embed: deletedEmbed);
                     }
@@ -86,7 +88,8 @@ namespace TharBot.Commands
                         if (serverSpecifics.DailyPC != null)
                         {
                             serverSpecifics.DailyPC = newDailyPC;
-                            await db.UpsertRecordAsync("ServerSpecifics", Context.Guild.Id, serverSpecifics);
+                            var update = Builders<ServerSpecifics>.Update.Set(x => x.DailyPC, serverSpecifics.DailyPC);
+                            await db.UpsertServerAsync<ServerSpecifics>("ServerSpecifics", Context.Guild.Id, update);
                             var updatedEmbed = await EmbedHandler.CreateBasicEmbed("Daily pulsecheck task updated!",
                                 $"The daily pulsecheck time has been changed to {newDailyPC.WhenToRun.ToShortTimeString()} in this channel, and will last {duration} minutes.\n" +
                                 $"Should it ping @here? {ping}\n" +
@@ -96,7 +99,8 @@ namespace TharBot.Commands
                         else
                         {
                             serverSpecifics.DailyPC = newDailyPC;
-                            await db.UpsertRecordAsync("ServerSpecifics", Context.Guild.Id, serverSpecifics);
+                            var update = Builders<ServerSpecifics>.Update.Set(x => x.DailyPC, serverSpecifics.DailyPC);
+                            await db.UpsertServerAsync<ServerSpecifics>("ServerSpecifics", Context.Guild.Id, update);
                             var createdEmbed = await EmbedHandler.CreateBasicEmbed("Daily pulsecheck task created!",
                                 $"From now on I will post a pulsecheck daily in this channel at {newDailyPC.WhenToRun.ToShortTimeString()} and it will last {duration} minutes.\n" +
                                 $"Should it ping @here? {ping}\n" +

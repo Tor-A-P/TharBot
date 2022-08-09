@@ -1,5 +1,6 @@
 ﻿using Discord.Commands;
 using Microsoft.Extensions.Configuration;
+using MongoDB.Driver;
 using TharBot.DBModels;
 using TharBot.Handlers;
 
@@ -79,7 +80,8 @@ namespace TharBot.Commands
                         else if (flag.ToLower() == "clear")
                         {
                             existingRec.Clear();
-                            await db.UpsertRecordAsync("ServerSpecifics", Context.Guild.Id, serverSettings);
+                            var update = Builders<ServerSpecifics>.Update.Set(x => x.WLChannelId, serverSettings.WLChannelId);
+                            await db.UpsertServerAsync<ServerSpecifics>("ServerSpecifics", Context.Guild.Id, update);
 
                             var WLClearEmbed = await EmbedHandler.CreateBasicEmbed("Whitelist cleared!", $"Cleared whitelist for {Context.Guild.Name}");
                             await ReplyAsync(embed: WLClearEmbed);
@@ -126,7 +128,8 @@ namespace TharBot.Commands
                         else if (flag.ToLower() == "clear")
                         {
                             existingRec.Clear();
-                            await db.UpsertRecordAsync("ServerSpecifics", Context.Guild.Id, serverSettings);
+                            var update = Builders<ServerSpecifics>.Update.Set(x => x.GameWLChannelId, serverSettings.GameWLChannelId);
+                            await db.UpsertServerAsync<ServerSpecifics>("ServerSpecifics", Context.Guild.Id, update);
 
                             var GameWLClearEmbed = await EmbedHandler.CreateBasicEmbed("Whitelist for games cleared!", $"Cleared game command whitelist for {Context.Guild.Name}");
                             await ReplyAsync(embed: GameWLClearEmbed);

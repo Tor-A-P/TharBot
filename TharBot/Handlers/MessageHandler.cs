@@ -40,6 +40,7 @@ namespace TharBot.Handlers
                 serverSettings = new ServerSpecifics
                 {
                     ServerId = forGuildId.Guild.Id,
+                    Revision = 0,
                     BLChannelId = new List<ulong>(),
                     WLChannelId = new List<ulong>(),
                     GameBLChannelId = new List<ulong>(),
@@ -55,6 +56,7 @@ namespace TharBot.Handlers
                 await db.InsertRecordAsync("ServerSpecifics", serverSettings);
             }
 
+            await Task.Delay(100);
             var existingUserProfile = await db.LoadRecordByIdAsync<GameUser>("UserProfiles", message.Author.Id);
             var showLevelUpMessage = serverSettings.ShowLevelUpMessage;
             

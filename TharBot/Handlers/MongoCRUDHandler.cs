@@ -76,6 +76,24 @@ namespace TharBot.Handlers
             }
         }
 
+        public async Task UpsertServerAsync<T>(string table, ulong id, UpdateDefinition<ServerSpecifics> update, UpdateOptions? options = null)
+        {
+            var collection = _db.GetCollection<ServerSpecifics>(table);
+            UpdateResult updateResult;
+
+            var revisionUpdate = Builders<ServerSpecifics>.Update
+                .Inc(x => x.Revision, 1);
+            var combinedUpdate = Builders<ServerSpecifics>.Update
+                .Combine(update, revisionUpdate);
+
+            do
+            {
+                var document = await collection.Find(x => x.ServerId == id).SingleAsync();
+
+                updateResult = await collection.UpdateOneAsync(x => x.ServerId == id && x.Revision == document.Revision, combinedUpdate, options);
+            } while (updateResult.ModifiedCount == 0);
+        }
+
         public async Task UpsertUserAsync<T>(string table, ulong id, UpdateDefinition<GameUser> update, UpdateOptions? options = null)
         {
             var collection = _db.GetCollection<GameUser>(table);
@@ -90,7 +108,7 @@ namespace TharBot.Handlers
             {
                 var document = await collection.Find(x => x.UserId == id).SingleAsync();
 
-                updateResult = await collection.UpdateOneAsync(x => x.UserId == id && x.Revision == document.Revision, combinedUpdate, options); // Updates the document only if the timestamp is the same
+                updateResult = await collection.UpdateOneAsync(x => x.UserId == id && x.Revision == document.Revision, combinedUpdate, options);
             } while (updateResult.ModifiedCount == 0);
         }
 

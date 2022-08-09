@@ -1,5 +1,6 @@
 ﻿using Discord.Commands;
 using Microsoft.Extensions.Configuration;
+using MongoDB.Driver;
 using TharBot.DBModels;
 using TharBot.Handlers;
 
@@ -46,21 +47,24 @@ namespace TharBot.Commands
                 {
                     var channelIdList = new List<ulong> { channelId };
                     serverSettings.GameWLChannelId = channelIdList;
-                    await db.UpsertRecordAsync("ServerSpecifics", Context.Guild.Id, serverSettings);
+                    var update = Builders<ServerSpecifics>.Update.Set(x => x.GameWLChannelId, serverSettings.GameWLChannelId);
+                    await db.UpsertServerAsync<ServerSpecifics>("ServerSpecifics", Context.Guild.Id, update);
                     var embed = await EmbedHandler.CreateBasicEmbed("Channel whitelisted for games", $"Whitelisted channel #{Context.Client.GetChannel(channelId)} for games.");
                     await ReplyAsync(embed: embed);
                 }
                 else if (serverSettings.GameWLChannelId.Contains(channelId))
                 {
                     serverSettings.GameWLChannelId.Remove(channelId);
-                    await db.UpsertRecordAsync("ServerSpecifics", Context.Guild.Id, serverSettings);
+                    var update = Builders<ServerSpecifics>.Update.Set(x => x.GameWLChannelId, serverSettings.GameWLChannelId);
+                    await db.UpsertServerAsync<ServerSpecifics>("ServerSpecifics", Context.Guild.Id, update);
                     var embed = await EmbedHandler.CreateBasicEmbed("Channel removed from whitelist for games.", $"Removed channel #{Context.Client.GetChannel(channelId)} from the whitelist for games.");
                     await ReplyAsync(embed: embed);
                 }
                 else
                 {
                     serverSettings.GameWLChannelId.Add(channelId);
-                    await db.UpsertRecordAsync("ServerSpecifics", Context.Guild.Id, serverSettings);
+                    var update = Builders<ServerSpecifics>.Update.Set(x => x.GameWLChannelId, serverSettings.GameWLChannelId);
+                    await db.UpsertServerAsync<ServerSpecifics>("ServerSpecifics", Context.Guild.Id, update);
                     var embed = await EmbedHandler.CreateBasicEmbed("Channel whitelisted for games", $"Whitelisted channel #{Context.Client.GetChannel(channelId)} for games.");
                     await ReplyAsync(embed: embed);
                 }

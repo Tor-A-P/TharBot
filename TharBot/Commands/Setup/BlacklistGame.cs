@@ -1,5 +1,6 @@
 ﻿using Discord.Commands;
 using Microsoft.Extensions.Configuration;
+using MongoDB.Driver;
 using TharBot.DBModels;
 using TharBot.Handlers;
 
@@ -46,21 +47,24 @@ namespace TharBot.Commands
                 {
                     var channelIdList = new List<ulong> { channelId };
                     serverSettings.GameBLChannelId = channelIdList;
-                    await db.UpsertRecordAsync("ServerSpecifics", Context.Guild.Id, serverSettings);
+                    var update = Builders<ServerSpecifics>.Update.Set(x => x.GameBLChannelId, serverSettings.GameBLChannelId);
+                    await db.UpsertServerAsync<ServerSpecifics>("ServerSpecifics", Context.Guild.Id, update);
                     var embed = await EmbedHandler.CreateBasicEmbed("Channel blacklisted for games", $"Blacklisted channel #{Context.Client.GetChannel(channelId)} for games.");
                     await ReplyAsync(embed: embed);
                 }
                 else if (serverSettings.GameBLChannelId.Contains(channelId))
                 {
                     serverSettings.GameBLChannelId.Remove(channelId);
-                    await db.UpsertRecordAsync("ServerSpecifics", Context.Guild.Id, serverSettings);
+                    var update = Builders<ServerSpecifics>.Update.Set(x => x.GameBLChannelId, serverSettings.GameBLChannelId);
+                    await db.UpsertServerAsync<ServerSpecifics>("ServerSpecifics", Context.Guild.Id, update);
                     var embed = await EmbedHandler.CreateBasicEmbed("Channel removed from blacklist for games.", $"Removed channel #{Context.Client.GetChannel(channelId)} from the blacklist for games.");
                     await ReplyAsync(embed: embed);
                 }
                 else
                 {
                     serverSettings.GameBLChannelId.Add(channelId);
-                    await db.UpsertRecordAsync("ServerSpecifics", Context.Guild.Id, serverSettings);
+                    var update = Builders<ServerSpecifics>.Update.Set(x => x.GameBLChannelId, serverSettings.GameBLChannelId);
+                    await db.UpsertServerAsync<ServerSpecifics>("ServerSpecifics", Context.Guild.Id, update);
                     var embed = await EmbedHandler.CreateBasicEmbed("Channel blacklisted for games", $"Blacklisted channel #{Context.Client.GetChannel(channelId)} for games.");
                     await ReplyAsync(embed: embed);
                 }

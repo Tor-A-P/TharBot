@@ -96,6 +96,7 @@ namespace TharBot.Commands.Setup
             var serverSettings = new ServerSpecifics
             {
                 ServerId = Context.Guild.Id,
+                Revision = 0,
                 BLChannelId = existingBL.BLChannelId,
                 WLChannelId = existingWL.WLChannelId,
                 GameBLChannelId = existingGameBL.BLChannelId,
@@ -108,7 +109,12 @@ namespace TharBot.Commands.Setup
                 Reminders = new List<Reminders>(),
                 ShowLevelUpMessage = existingLvlUpMsg
             };
-            await db.UpsertRecordAsync("ServerSpecifics", Context.Guild.Id, serverSettings);
+            var update = Builders<ServerSpecifics>.Update.Set(x => x.PCResultsChannel, serverSettings.PCResultsChannel);
+            var updateOptions = new UpdateOptions
+            {
+                IsUpsert = true
+            };
+            await db.UpsertServerAsync<ServerSpecifics>("ServerSpecifics", Context.Guild.Id, update, updateOptions);
             var embed = await EmbedHandler.CreateBasicEmbed("Server settings updated to new format!", "Reminder that this wipes the poll and reminder lists, re-add anything important manually.");
             await ReplyAsync(embed: embed);
         }
@@ -128,7 +134,8 @@ namespace TharBot.Commands.Setup
                     newUserProfile = new GameUser
                     {
                         UserId = oldUserProfile.UserId,
-                        Servers = new List<GameServerStats>()
+                        Servers = new List<GameServerStats>(),
+                        Revision = 0
                     };
                 }
 

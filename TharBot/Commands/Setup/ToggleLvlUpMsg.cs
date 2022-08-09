@@ -1,5 +1,6 @@
 ﻿using Discord.Commands;
 using Microsoft.Extensions.Configuration;
+using MongoDB.Driver;
 using TharBot.DBModels;
 using TharBot.Handlers;
 
@@ -31,7 +32,8 @@ namespace TharBot.Commands.Setup
             }
 
             serverSpecifics.ShowLevelUpMessage = !serverSpecifics.ShowLevelUpMessage;
-            await db.UpsertRecordAsync("ServerSpecifics", serverSpecifics.ServerId, serverSpecifics);
+            var update = Builders<ServerSpecifics>.Update.Set(x => x.ShowLevelUpMessage, serverSpecifics.ShowLevelUpMessage);
+            await db.UpsertServerAsync<ServerSpecifics>("ServerSpecifics", Context.Guild.Id, update);
             string? embedMsg;
             if (serverSpecifics.ShowLevelUpMessage) embedMsg = "I will now show a message every time someone levels up in this server!";
             else embedMsg = "I will no longer show a message every time someone levels up in this server!";
