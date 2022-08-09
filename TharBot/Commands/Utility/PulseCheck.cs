@@ -51,107 +51,115 @@ namespace TharBot.Commands
                 .WithCurrentTimestamp()
                 .Build();
 
-
-            await Context.Message.DeleteAsync();
             var pulsecheck = await ReplyAsync(embed: embed);
 
-            var recs = db.LoadRecords<Poll>("ActivePolls");
-
-            var activePoll = recs.Where(x => x.MessageId == pulsecheck.Id).FirstOrDefault();
-
-            if (activePoll != null)
+            var serverSpecifics = db.LoadRecordById<ServerSpecifics>("ServerSpecifics", Context.Guild.Id);
+            if (serverSpecifics.Polls != null)
             {
-                var alreadyExistsEmbed = await EmbedHandler.CreateErrorEmbed("PulseCheck", "Something went horribly wrong, deleting PulseCheck!");
-                await ReplyAsync(embed: alreadyExistsEmbed);
-                await pulsecheck.DeleteAsync();
+                var activePoll = serverSpecifics.Polls.Where(x => x.MessageId == pulsecheck.Id).FirstOrDefault();
+                if (activePoll != null)
+                {
+                    var alreadyExistsEmbed = await EmbedHandler.CreateErrorEmbed("PulseCheck", $"Something went horribly wrong, deleting Poll!\n" +
+                        $"Please send a DM to Tharwatha#5189 with the message \"PulseCheck with ID {pulsecheck.Id} failed because it was a duplicate\" so I can investigate");
+                    await ReplyAsync(embed: alreadyExistsEmbed);
+                    await pulsecheck.DeleteAsync();
+                    return;
+                }
             }
-            else
+
+            try
             {
-                try
+                if (duration == null) duration = 360;
+                var newPoll = new Poll
                 {
-                    if (duration == null) duration = 360;
-                    var newPoll = new Poll
-                    {
-                        MessageId = pulsecheck.Id,
-                        ChannelId = pulsecheck.Channel.Id,
-                        Emojis = emojinames,
-                        Responses = new List<ActivePollResponse>(),
-                        CreationTime = DateTime.UtcNow,
-                        LifeSpan = TimeSpan.FromMinutes((double)duration),
-                        CompletionTime = DateTime.UtcNow + TimeSpan.FromMinutes((double)duration)
-                    };
-                    db.InsertRecord("ActivePolls", newPoll);
+                    MessageId = pulsecheck.Id,
+                    ChannelId = pulsecheck.Channel.Id,
+                    Emojis = emojinames,
+                    Responses = new List<ActivePollResponse>(),
+                    CreationTime = DateTime.UtcNow,
+                    LifeSpan = TimeSpan.FromMinutes((double)duration),
+                    CompletionTime = DateTime.UtcNow + TimeSpan.FromMinutes((double)duration)
+                };
+                serverSpecifics.Polls.Add(newPoll);
+                db.UpsertRecord("ServerSpecifics", Context.Guild.Id, serverSpecifics);
 
-                    foreach (var emoji in emojis)
-                    {
-                        await pulsecheck.AddReactionAsync(emoji);
-                    }
-
-                    await Task.Delay(duration.Value * 60000);
-
-                    var movePoll = db.LoadRecordById<Poll>("ActivePolls", newPoll.MessageId);
-                    db.InsertRecord("InactivePolls", movePoll);
-
-                    int[] resultsCount =
-                    {
-                        0, 0, 0, 0, 0, 0
-                    };
-
-                    foreach (var vote in movePoll.Responses)
-                    {
-                        switch (vote.Vote)
-                        {
-                            case "😀":
-                                resultsCount[0]++;
-                                break;
-                            case "🙂":
-                                resultsCount[1]++;
-                                break;
-                            case "😐":
-                                resultsCount[2]++;
-                                break;
-                            case "☹":
-                                resultsCount[3]++;
-                                break;
-                            case "😢":
-                                resultsCount[4]++;
-                                break;
-                            case "😡":
-                                resultsCount[5]++;
-                                break;
-                            default:
-                                break;
-                        }
-                    }
-
-                    var resultsEmbed = await EmbedHandler.CreateBasicEmbedBuilder("Results from pulsecheck command:");
-                    resultsEmbed = resultsEmbed
-                                   .AddField("😀 answers:", resultsCount[0])
-                                   .AddField("🙂 answers:", resultsCount[1])
-                                   .AddField("😐 answers:", resultsCount[2])
-                                   .AddField("☹ answers:", resultsCount[3])
-                                   .AddField("😢 answers:", resultsCount[4])
-                                   .AddField("😡 answers:", resultsCount[5]);
-
-                    var resultsChannelSettings = db.LoadRecordById<PulseCheckResultsChannel>("PulsecheckResultsChannel", Context.Guild.Id);
-                    var chan = await _client.GetChannelAsync(resultsChannelSettings.ResultsChannel) as IMessageChannel;
-                    await chan.SendMessageAsync(embed: resultsEmbed.Build());
-
-                    db.DeleteRecord<Poll>("ActivePolls", newPoll.MessageId);
-
-                    var getChannel = await _client.GetChannelAsync(newPoll.ChannelId) as IMessageChannel;
-                    var msg = await getChannel.GetMessageAsync(newPoll.MessageId);
-                    if (msg.Channel.GetMessageAsync(msg.Id) != null)
-                    {
-                        await msg.DeleteAsync();
-                    }
-                }
-                catch (Exception ex)
+                foreach (var emoji in emojis)
                 {
-                    var exEmbed = await EmbedHandler.CreateErrorEmbed("PulseCheck", ex.Message);
-                    await ReplyAsync(embed: exEmbed);
-                    await LoggingHandler.LogCriticalAsync("COMND: PulseCheck", null, ex);
+                    await pulsecheck.AddReactionAsync(emoji);
                 }
+
+                //await Task.Delay(duration.Value * 60000);
+
+                //var movePoll = db.LoadRecordById<Poll>("ActivePolls", newPoll.MessageId);
+                //db.InsertRecord("InactivePolls", movePoll);
+
+                //int[] resultsCount =
+                //{
+                //    0, 0, 0, 0, 0, 0
+                //};
+
+                //foreach (var vote in movePoll.Responses)
+                //{
+                //    switch (vote.Vote)
+                //    {
+                //        case "😀":
+                //            resultsCount[0]++;
+                //            break;
+                //        case "🙂":
+                //            resultsCount[1]++;
+                //            break;
+                //        case "😐":
+                //            resultsCount[2]++;
+                //            break;
+                //        case "☹":
+                //            resultsCount[3]++;
+                //            break;
+                //        case "😢":
+                //            resultsCount[4]++;
+                //            break;
+                //        case "😡":
+                //            resultsCount[5]++;
+                //            break;
+                //        default:
+                //            break;
+                //    }
+                //}
+
+                //var resultsEmbed = await EmbedHandler.CreateBasicEmbedBuilder("Results from pulsecheck command:");
+                //resultsEmbed = resultsEmbed
+                //               .AddField("😀 answers:", resultsCount[0])
+                //               .AddField("🙂 answers:", resultsCount[1])
+                //               .AddField("😐 answers:", resultsCount[2])
+                //               .AddField("☹ answers:", resultsCount[3])
+                //               .AddField("😢 answers:", resultsCount[4])
+                //               .AddField("😡 answers:", resultsCount[5]);
+
+                //var serverSettings = db.LoadRecordById<ServerSpecifics>("ServerSpecifics", Context.Guild.Id);
+                //if (serverSettings.PCResultsChannel != null)
+                //{
+                //    var chan = await _client.GetChannelAsync((ulong)serverSettings.PCResultsChannel) as IMessageChannel;
+                //    await chan.SendMessageAsync(embed: resultsEmbed.Build());
+                //}
+                //else
+                //{
+                //    var chan = await _client.GetChannelAsync(newPoll.ChannelId) as IMessageChannel;
+                //    await chan.SendMessageAsync(embed: resultsEmbed.Build());
+                //}
+
+                //db.DeleteRecord<Poll>("ActivePolls", newPoll.MessageId);
+
+                //var getChannel = await _client.GetChannelAsync(newPoll.ChannelId) as IMessageChannel;
+                //var msg = await getChannel.GetMessageAsync(newPoll.MessageId);
+                //if (msg.Channel.GetMessageAsync(msg.Id) != null)
+                //{
+                //    await msg.DeleteAsync();
+                //}
+            }
+            catch (Exception ex)
+            {
+                var exEmbed = await EmbedHandler.CreateErrorEmbed("PulseCheck", ex.Message);
+                await ReplyAsync(embed: exEmbed);
+                await LoggingHandler.LogCriticalAsync("COMND: PulseCheck", null, ex);
             }
         }
     }

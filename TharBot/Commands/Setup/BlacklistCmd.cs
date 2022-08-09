@@ -43,7 +43,8 @@ namespace TharBot.Commands
             {
                 if (type == "")
                 {
-                    var existingRec = db.LoadRecordById<Blacklist>("BlacklistedChannels", Context.Guild.Id);
+                    var serverSettings = db.LoadRecordById<ServerSpecifics>("ServerSpecifics", Context.Guild.Id);
+                    var existingRec = serverSettings.BLChannelId;
 
                     if (existingRec == null)
                     {
@@ -60,7 +61,7 @@ namespace TharBot.Commands
                     }
                     else
                     {
-                        if (!existingRec.BLChannelId.Any())
+                        if (!existingRec.Any())
                         {
                             var noBLShowEmbed = await EmbedHandler.CreateBasicEmbed("Blacklist can't be shown", "This server has no currently blacklisted channels!");
                             await ReplyAsync(embed: noBLShowEmbed);
@@ -69,7 +70,7 @@ namespace TharBot.Commands
                         {
                             var BLShowEmbed = await EmbedHandler.CreateBasicEmbedBuilder($"Current Blacklist for {Context.Guild.Name}");
 
-                            foreach (var channel in existingRec.BLChannelId)
+                            foreach (var channel in existingRec)
                             {
                                 var channelName = Context.Guild.GetChannel(channel).Name;
                                 BLShowEmbed = BLShowEmbed.AddField($"#{channelName}", channel, true);
@@ -79,8 +80,8 @@ namespace TharBot.Commands
                         }
                         else if (flag.ToLower() == "clear")
                         {
-                            existingRec.BLChannelId.Clear();
-                            db.UpsertRecord("BlacklistedChannels", Context.Guild.Id, existingRec);
+                            existingRec.Clear();
+                            db.UpsertRecord("ServerSpecifics", Context.Guild.Id, serverSettings);
 
                             var BLClearEmbed = await EmbedHandler.CreateBasicEmbed("Blacklist cleared!", $"Cleared blacklist for {Context.Guild.Name}");
                             await ReplyAsync(embed: BLClearEmbed);
@@ -89,47 +90,48 @@ namespace TharBot.Commands
                 }
                 else
                 {
-                    var existingRec = db.LoadRecordById<Blacklist>("BlacklistedGameChannels", Context.Guild.Id);
+                    var serverSettings = db.LoadRecordById<ServerSpecifics>("ServerSpecifics", Context.Guild.Id);
+                    var existingRec = serverSettings.GameBLChannelId;
 
                     if (existingRec == null)
                     {
                         if (flag.ToLower() == "show")
                         {
-                            var noBLShowEmbed = await EmbedHandler.CreateBasicEmbed("Blacklist for games can't be shown", "This server has no currently blacklisted channels for games!");
-                            await ReplyAsync(embed: noBLShowEmbed);
+                            var noGameBLShowEmbed = await EmbedHandler.CreateBasicEmbed("Blacklist for games can't be shown", "This server has no currently blacklisted channels for games!");
+                            await ReplyAsync(embed: noGameBLShowEmbed);
                         }
                         else if (flag.ToLower() == "clear")
                         {
-                            var noBLClearEmbed = await EmbedHandler.CreateBasicEmbed("Blacklist for games can't be cleared", "This server has no currently blacklisted channels for games!");
-                            await ReplyAsync(embed: noBLClearEmbed);
+                            var noGameBLClearEmbed = await EmbedHandler.CreateBasicEmbed("Blacklist for games can't be cleared", "This server has no currently blacklisted channels for games!");
+                            await ReplyAsync(embed: noGameBLClearEmbed);
                         }
                     }
                     else
                     {
-                        if (!existingRec.BLChannelId.Any())
+                        if (!existingRec.Any())
                         {
-                            var noBLShowEmbed = await EmbedHandler.CreateBasicEmbed("Blacklist for games can't be shown", "This server has no currently blacklisted channels for games!");
-                            await ReplyAsync(embed: noBLShowEmbed);
+                            var noGameBLShowEmbed = await EmbedHandler.CreateBasicEmbed("Blacklist for games can't be shown", "This server has no currently blacklisted channels for games!");
+                            await ReplyAsync(embed: noGameBLShowEmbed);
                         }
                         else if (flag.ToLower() == "show")
                         {
-                            var BLShowEmbed = await EmbedHandler.CreateBasicEmbedBuilder($"Current game command Blacklist for {Context.Guild.Name}");
+                            var GameBLShowEmbed = await EmbedHandler.CreateBasicEmbedBuilder($"Current game command Blacklist for {Context.Guild.Name}");
 
-                            foreach (var channel in existingRec.BLChannelId)
+                            foreach (var channel in existingRec)
                             {
                                 var channelName = Context.Guild.GetChannel(channel).Name;
-                                BLShowEmbed = BLShowEmbed.AddField($"#{channelName}", channel, true);
+                                GameBLShowEmbed = GameBLShowEmbed.AddField($"#{channelName}", channel, true);
                             }
 
-                            await ReplyAsync(embed: BLShowEmbed.Build());
+                            await ReplyAsync(embed: GameBLShowEmbed.Build());
                         }
                         else if (flag.ToLower() == "clear")
                         {
-                            existingRec.BLChannelId.Clear();
-                            db.UpsertRecord("BlacklistedGameChannels", Context.Guild.Id, existingRec);
+                            existingRec.Clear();
+                            db.UpsertRecord("ServerSpecifics", Context.Guild.Id, serverSettings);
 
-                            var BLClearEmbed = await EmbedHandler.CreateBasicEmbed("Blacklist for games cleared!", $"Cleared game command blacklist for {Context.Guild.Name}");
-                            await ReplyAsync(embed: BLClearEmbed);
+                            var GameBLClearEmbed = await EmbedHandler.CreateBasicEmbed("Blacklist for games cleared!", $"Cleared game command blacklist for {Context.Guild.Name}");
+                            await ReplyAsync(embed: GameBLClearEmbed);
                         }
                     }
                 }

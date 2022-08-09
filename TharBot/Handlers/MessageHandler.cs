@@ -32,45 +32,61 @@ namespace TharBot.Handlers
             var existingBan = db.LoadRecordById<BannedUser>("UserBanlist", socketMessage.Author.Id);
             if (existingBan != null) return;
             var forGuildId = socketMessage.Channel as SocketGuildChannel;
+            var serverSettings = db.LoadRecordById<ServerSpecifics>("ServerSpecifics", forGuildId.Guild.Id);
 
-            await Task.Delay(1000);
-            var existingServerProfile = db.LoadRecordById<GameServerProfile>("GameProfiles", forGuildId.Guild.Id);
-            var showLevelUpMessage = true;
-            if (existingServerProfile != null)
+            if (serverSettings == null)
             {
-                showLevelUpMessage = existingServerProfile.ShowLevelUpMessage;
+                serverSettings = new ServerSpecifics
+                {
+                    ServerId = forGuildId.Guild.Id,
+                    BLChannelId = new List<ulong>(),
+                    WLChannelId = new List<ulong>(),
+                    GameBLChannelId = new List<ulong>(),
+                    GameWLChannelId = new List<ulong>(),
+                    AttributeDialogs = new List<GameAttributeDialog>(),
+                    Memes = new Dictionary<string, string>(),
+                    Polls = new List<Poll>(),
+                    Prefix = "th.",
+                    PCResultsChannel = null,
+                    Reminders = new List<Reminders>(),
+                    ShowLevelUpMessage = true
+                };
+                db.InsertRecord("ServerSpecifics", serverSettings);
             }
 
-            var existingWLRec = db.LoadRecordById<Whitelist>("WhitelistedChannels", forGuildId.Guild.Id);
-            if (existingWLRec != null)
+            await Task.Delay(1000);
+            var existingUserProfile = db.LoadRecordById<GameUser>("UserProfiles", message.Author.Id);
+            var showLevelUpMessage = serverSettings.ShowLevelUpMessage;
+            
+
+            if (serverSettings.WLChannelId != null)
             {
-                if (existingWLRec.WLChannelId.Any())
+                if (serverSettings.WLChannelId.Any())
                 {
-                    if (!existingWLRec.WLChannelId.Contains(socketMessage.Channel.Id)) showLevelUpMessage = false;
+                    if (!serverSettings.WLChannelId.Contains(socketMessage.Channel.Id)) showLevelUpMessage = false;
                 }
             }
 
-            var existingBLRec = db.LoadRecordById<Blacklist>("BlacklistedChannels", forGuildId.Guild.Id);
-            if (existingBLRec != null)
+            if (serverSettings.BLChannelId != null)
             {
-                if (existingBLRec.BLChannelId.Any())
+                if (serverSettings.BLChannelId.Any())
                 {
-                    if (existingBLRec.BLChannelId.Contains(socketMessage.Channel.Id)) showLevelUpMessage = false;
+                    if (serverSettings.BLChannelId.Contains(socketMessage.Channel.Id)) showLevelUpMessage = false;
                 }
             }
 
             var random = new Random();
-            if (existingServerProfile == null)
+            if (existingUserProfile == null)
             {
-                var newProfile = new GameServerProfile
-                {
-                    ServerId = forGuildId.Guild.Id,
-                    Users = new List<GameUserProfile>(),
-                    ShowLevelUpMessage = true
-                };
-                var newUserProfile = new GameUserProfile
+                var newProfile = new GameUser
                 {
                     UserId = message.Author.Id,
+                    Servers = new List<GameServerStats>(),
+                    LastSeenUsername = message.Author.Username
+                };
+                var newServerStats = new GameServerStats
+                {
+                    ServerId = forGuildId.Guild.Id,
                     NextRewards = DateTime.UtcNow + TimeSpan.FromMinutes(1),
                     TharCoins = 10,
                     Exp = random.Next(8, 13),
@@ -84,7 +100,7 @@ namespace TharBot.Handlers
                         Wisdom = 0,
                         Luck = 0
                     },
-                    AttributePoints = GameUserProfile.StartingAttributePoints,
+                    AttributePoints = GameServerStats.StartingAttributePoints,
                     NumMessages = 1,
                     Debuffs = new GameDebuffs
                     {
@@ -95,19 +111,19 @@ namespace TharBot.Handlers
                         DoTStrength = 0
                     }
                 };
-                newUserProfile.CurrentHP = newUserProfile.BaseHP;
-                newUserProfile.CurrentMP = newUserProfile.BaseMP;
-                newProfile.Users.Add(newUserProfile);
-                db.InsertRecord("GameProfiles", newProfile);
+                newServerStats.CurrentHP = newServerStats.BaseHP;
+                newServerStats.CurrentMP = newServerStats.BaseMP;
+                newProfile.Servers.Add(newServerStats);
+                db.InsertRecord("UserProfiles", newProfile);
             }
             else
             {
-                var existingUserProfile = existingServerProfile.Users.Where(x => x.UserId == message.Author.Id).FirstOrDefault();
-                if (existingUserProfile == null)
+                var existingServerStats = existingUserProfile.Servers.Where(x => x.ServerId == forGuildId.Guild.Id).FirstOrDefault();
+                if (existingServerStats == null)
                 {
-                    var newUserProfile = new GameUserProfile
+                    var newUserProfile = new GameServerStats
                     {
-                        UserId = message.Author.Id,
+                        ServerId = forGuildId.Guild.Id,
                         NextRewards = DateTime.UtcNow + TimeSpan.FromMinutes(1),
                         TharCoins = 10,
                         Exp = random.Next(8, 13),
@@ -121,7 +137,7 @@ namespace TharBot.Handlers
                             Wisdom = 0,
                             Luck = 0
                         },
-                        AttributePoints = GameUserProfile.StartingAttributePoints,
+                        AttributePoints = GameServerStats.StartingAttributePoints,
                         NumMessages = 1,
                         Debuffs = new GameDebuffs
                         {
@@ -134,14 +150,14 @@ namespace TharBot.Handlers
                     };
                     newUserProfile.CurrentHP = newUserProfile.BaseHP;
                     newUserProfile.CurrentMP = newUserProfile.BaseMP;
-                    existingServerProfile.Users.Add(newUserProfile);
+                    existingUserProfile.Servers.Add(newUserProfile);
                 }
                 else
                 {
-                    existingUserProfile.NumMessages++;
-                    if (existingUserProfile.Debuffs == null)
+                    existingServerStats.NumMessages++;
+                    if (existingServerStats.Debuffs == null)
                     {
-                        existingUserProfile.Debuffs = new GameDebuffs
+                        existingServerStats.Debuffs = new GameDebuffs
                         {
                             StunDuration = 0,
                             HoTDuration = 0,
@@ -150,41 +166,36 @@ namespace TharBot.Handlers
                             DoTStrength = 0
                         };
                     }
-                    if (existingUserProfile.NextRewards < DateTime.UtcNow)
+                    if (existingServerStats.NextRewards < DateTime.UtcNow)
                     {
-                        existingUserProfile.NextRewards = DateTime.UtcNow + TimeSpan.FromMinutes(1);
-                        existingUserProfile.TharCoins += 10;
-                        existingUserProfile.Exp += random.Next(8, 13);
+                        existingServerStats.NextRewards = DateTime.UtcNow + TimeSpan.FromMinutes(1);
+                        existingServerStats.TharCoins += 10;
+                        existingServerStats.Exp += random.Next(8, 13);
                     }
-                    if (existingUserProfile.Exp >= existingUserProfile.ExpToLevel)
+                    if (existingServerStats.Exp >= existingServerStats.ExpToLevel)
                     {
-                        var prefix = "";
-                        var existingPrefix = db.LoadRecordById<Prefixes>("Prefixes", forGuildId.Guild.Id);
-                        if (existingPrefix != null)
-                        {
-                            prefix = existingPrefix.Prefix;
-                        }
-                        else
-                        {
-                            prefix = _configuration["Prefix"];
-                        }
-                        existingUserProfile.Exp -= existingUserProfile.ExpToLevel;
-                        existingUserProfile.Level++;
-                        existingUserProfile.CurrentHP = existingUserProfile.BaseHP;
-                        existingUserProfile.CurrentMP = existingUserProfile.BaseMP;
-                        existingUserProfile.AttributePoints += GameUserProfile.AttributePointsPerLevel;
+                        string? prefix;
+                        if (serverSettings.Prefix != null) prefix = serverSettings.Prefix;
+                        else prefix = _configuration["Prefix"];
+
+                        existingServerStats.Exp -= existingServerStats.ExpToLevel;
+                        existingServerStats.Level++;
+                        existingServerStats.CurrentHP = existingServerStats.BaseHP;
+                        existingServerStats.CurrentMP = existingServerStats.BaseMP;
+                        existingServerStats.AttributePoints += GameServerStats.AttributePointsPerLevel;
                         if (showLevelUpMessage)
                         {
                             var levelUpEmbed = await EmbedHandler.CreateBasicEmbedBuilder("Level up!");
-                            levelUpEmbed = levelUpEmbed.WithDescription($"Congratulations {socketMessage.Author.Mention}, you've reached level {existingUserProfile.Level}!\n" +
+                            levelUpEmbed = levelUpEmbed.WithDescription($"Congratulations {socketMessage.Author.Mention}, you've reached level {existingServerStats.Level}!\n" +
                                                                         $"Your health and mana has been refilled.\n" +
-                                                                        $"You have gained {GameUserProfile.AttributePointsPerLevel} attribute points, use the {prefix}attributes command to spend them!")
+                                                                        $"You have gained {GameServerStats.AttributePointsPerLevel} attribute points, use the {prefix}attributes command to spend them!")
                                                        .WithThumbnailUrl(message.Author.GetAvatarUrl(ImageFormat.Auto, 2048) ?? message.Author.GetDefaultAvatarUrl());
                             await socketMessage.Channel.SendMessageAsync(embed: levelUpEmbed.Build());
                         }
                     }
                 }
-                db.UpsertRecord("GameProfiles", forGuildId.Guild.Id, existingServerProfile);
+                existingUserProfile.LastSeenUsername = message.Author.Username;
+                db.UpsertRecord("UserProfiles", message.Author.Id, existingUserProfile);
             }
         }
     }

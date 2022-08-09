@@ -25,11 +25,12 @@ namespace TharBot.Commands
         [RequireOwner(Group = "Permission")]
         public async Task PrefixAsync([Remainder] string? prefix = null)
         {
-            var existingPrefix = db.LoadRecordById<Prefixes>("Prefixes", Context.Guild.Id);
+            var serverSettings = db.LoadRecordById<ServerSpecifics>("ServerSpecifics", Context.Guild.Id);
             string? currentPrefix;
 
-            if (existingPrefix != null) currentPrefix = existingPrefix.Prefix;
+            if (serverSettings.Prefix != null) currentPrefix = serverSettings.Prefix;
             else currentPrefix = _configuration["Prefix"];
+
             if (prefix == null)
             {
                 var embed = await EmbedHandler.CreateBasicEmbed("Prefix", $"Current prefix for this server is \"{currentPrefix}\"");
@@ -37,22 +38,10 @@ namespace TharBot.Commands
             }
             else
             {
-                if (existingPrefix != null)
-                {
-                    existingPrefix.Prefix = prefix;
-                    db.UpsertRecord("Prefixes", Context.Guild.Id, existingPrefix);
-                }
-                else
-                {
-                    existingPrefix = new Prefixes
-                    {
-                        ServerId = Context.Guild.Id,
-                        Prefix = prefix,
-                    };
-                    db.InsertRecord("Prefixes", existingPrefix);
-                }
+                serverSettings.Prefix = prefix;
+                db.UpsertRecord("ServerSpecifics", Context.Guild.Id, serverSettings);
                
-                var embed = await EmbedHandler.CreateBasicEmbed("Prefix", $"Changed prefix for this server to \"{existingPrefix.Prefix}\"");
+                var embed = await EmbedHandler.CreateBasicEmbed("Prefix", $"Changed prefix for this server to \"{serverSettings.Prefix}\"");
                 await ReplyAsync(embed: embed);
             }
         }

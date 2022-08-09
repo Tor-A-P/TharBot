@@ -27,43 +27,42 @@ namespace TharBot.Commands.Game
         {
             try
             {
-                var existingWL = db.LoadRecordById<Whitelist>("WhitelistedGameChannels", Context.Guild.Id);
-                if (existingWL != null)
+                var serverSettings = db.LoadRecordById<ServerSpecifics>("ServerSpecifics", Context.Guild.Id);
+                if (serverSettings.GameWLChannelId != null)
                 {
-                    if (existingWL.WLChannelId.Any())
+                    if (serverSettings.GameWLChannelId.Any())
                     {
-                        if (!existingWL.WLChannelId.Contains(Context.Channel.Id)) return;
+                        if (!serverSettings.GameWLChannelId.Contains(Context.Channel.Id)) return;
                     }
                 }
 
-                var existingBL = db.LoadRecordById<Blacklist>("BlacklistedGameChannels", Context.Guild.Id);
-                if (existingBL != null)
+                if (serverSettings.GameBLChannelId != null)
                 {
-                    if (existingBL.BLChannelId.Any())
+                    if (serverSettings.GameBLChannelId.Any())
                     {
-                        if (existingBL.BLChannelId.Contains(Context.Channel.Id)) return;
+                        if (serverSettings.GameBLChannelId.Contains(Context.Channel.Id)) return;
                     }
                 }
 
-                var serverProfile = db.LoadRecordById<GameServerProfile>("GameProfiles", Context.Guild.Id);
-                if (serverProfile == null)
+                var userProfile = db.LoadRecordById<GameUser>("UserProfiles", Context.User.Id);
+                if (userProfile == null)
                 {
-                    var noServerProfEmbed = await EmbedHandler.CreateUserErrorEmbed("Could not find server profile", "It seems this server has no profile, try sending a message (not a command) and then use this command again!");
+                    var noServerProfEmbed = await EmbedHandler.CreateUserErrorEmbed("Could not find user profile", "It seems you have no profile on this server, try sending a message (not a command) and then use this command again!");
                     await ReplyAsync(embed: noServerProfEmbed);
                 }
                 else
                 {
-                    var userProfile = serverProfile.Users.Where(x => x.UserId == Context.User.Id).FirstOrDefault();
-                    if (userProfile == null)
+                    var serverStats = userProfile.Servers.Where(x => x.ServerId == Context.Guild.Id).FirstOrDefault();
+                    if (serverStats == null)
                     {
                         var noUserProfEmbed = await EmbedHandler.CreateUserErrorEmbed("Could not find user profile", "It seems you have no profile on this server, try sending a message (not a command) and then use this command again!");
                         await ReplyAsync(embed: noUserProfEmbed);
                     }
                     else
                     {
-                        if (userProfile.LastRespec + TimeSpan.FromHours(24) > DateTime.UtcNow)
+                        if (serverStats.LastRespec + TimeSpan.FromHours(24) > DateTime.UtcNow)
                         {
-                            var cooldownTime = userProfile.LastRespec.Subtract(DateTime.UtcNow) + TimeSpan.FromHours(24);
+                            var cooldownTime = serverStats.LastRespec.Subtract(DateTime.UtcNow) + TimeSpan.FromHours(24);
                             var respecOnCDEmbed = await EmbedHandler.CreateUserErrorEmbed("Respec command on cooldown",
                                 $"You used the respec command too recently, please wait {cooldownTime.Hours} hours, {cooldownTime.Minutes} minutes and {cooldownTime.Seconds} seconds before doing a respec!");
                             await ReplyAsync(embed: respecOnCDEmbed);
@@ -71,16 +70,16 @@ namespace TharBot.Commands.Game
                         }
 
                         var totalRespecPoints = strength + dexterity + intelligence + constitution + wisdom + luck;
-                        if (totalRespecPoints > userProfile.AttributePoints)
+                        if (totalRespecPoints > serverStats.AttributePoints)
                         {
                             var tooManyPointsEmbed = await EmbedHandler.CreateUserErrorEmbed("Too many points entered",
-                                $"The total of the attribute distribution you entered was {totalRespecPoints}, but you only have {userProfile.AttributePoints} to spend!");
+                                $"The total of the attribute distribution you entered was {totalRespecPoints}, but you only have {serverStats.AttributePoints} to spend!");
                             await ReplyAsync(embed: tooManyPointsEmbed);
                             return;
                         }
 
-                        userProfile.LastRespec = DateTime.UtcNow;
-                        userProfile.Attributes = new GameStats
+                        serverStats.LastRespec = DateTime.UtcNow;
+                        serverStats.Attributes = new GameStats
                         {
                             Strength = strength,
                             Intelligence = intelligence,
@@ -89,17 +88,16 @@ namespace TharBot.Commands.Game
                             Wisdom = wisdom,
                             Luck = luck
                         };
-                        userProfile.CurrentMP += GameUserProfile.WisdomMPBonus * wisdom;
-                        if (userProfile.CurrentMP > userProfile.BaseMP) userProfile.CurrentMP = userProfile.BaseMP;
-                        userProfile.CurrentHP += GameUserProfile.ConstitutionHPBonus * constitution;
-                        if (userProfile.CurrentHP > userProfile.BaseHP) userProfile.CurrentHP = userProfile.BaseHP;
+                        serverStats.CurrentMP += GameServerStats.WisdomMPBonus * wisdom;
+                        if (serverStats.CurrentMP > serverStats.BaseMP) serverStats.CurrentMP = serverStats.BaseMP;
+                        serverStats.CurrentHP += GameServerStats.ConstitutionHPBonus * constitution;
+                        if (serverStats.CurrentHP > serverStats.BaseHP) serverStats.CurrentHP = serverStats.BaseHP;
 
-                        db.UpsertRecord("GameProfiles", serverProfile.ServerId, serverProfile);
+                        db.UpsertRecord("UserProfiles", userProfile.UserId, userProfile);
 
-                        var existingPrefix = db.LoadRecordById<Prefixes>("Prefixes", Context.Guild.Id);
                         string? currentPrefix;
 
-                        if (existingPrefix != null) currentPrefix = existingPrefix.Prefix;
+                        if (serverSettings.Prefix != null) currentPrefix = serverSettings.Prefix;
                         else currentPrefix = _configuration["Prefix"];
 
                         if (totalRespecPoints == 0)

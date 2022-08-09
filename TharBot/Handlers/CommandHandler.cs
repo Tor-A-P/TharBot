@@ -46,20 +46,20 @@ namespace TharBot.Handlers
                 return;
             }
 
-            var existingPrefix = db.LoadRecordById<Prefixes>("Prefixes", commandContext.Guild.Id);
+            var serverSettings = db.LoadRecordById<ServerSpecifics>("ServerSpecifics", commandContext.Guild.Id);
             string? prefix;
-            if (existingPrefix != null) prefix = existingPrefix.Prefix;
+            if (serverSettings.Prefix != null) prefix = serverSettings.Prefix;
             else prefix = _configuration["Prefix"];
             
             if (result.Error == CommandError.UnknownCommand)
             {
                 if (commandContext.User.Id == Client.CurrentUser.Id) return;
-                var memeList = db.LoadRecordById<MemeCommands>("Memes", commandContext.Guild.Id);
+                var memeList = serverSettings.Memes;
                 if (memeList != null)
                 {
-                    if (memeList.Memes.ContainsKey(commandContext.Message.ToString().Replace($"{prefix}", "")))
+                    if (memeList.ContainsKey(commandContext.Message.ToString().Replace($"{prefix}", "")))
                     {
-                        await commandContext.Channel.SendMessageAsync(memeList.Memes[commandContext.Message.ToString()
+                        await commandContext.Channel.SendMessageAsync(memeList[commandContext.Message.ToString()
                             .Replace($"{prefix}", "")]);
                         await LoggingHandler.LogInformationAsync("bot", $"Executed custom meme " +
                             $"\"{commandContext.Message.ToString().Replace($"{prefix}", "")}\"!");
@@ -83,26 +83,25 @@ namespace TharBot.Handlers
             if (existingBan != null) return;
             var forGuildId = socketMessage.Channel as SocketGuildChannel;
 
-            var existingPrefix = db.LoadRecordById<Prefixes>("Prefixes", forGuildId.Guild.Id);
+            var serverSettings = db.LoadRecordById<ServerSpecifics>("ServerSpecifics", forGuildId.Guild.Id);
             string? prefix;
-            if (existingPrefix != null) prefix = existingPrefix.Prefix;
+            if (serverSettings == null) return;
+            if (serverSettings.Prefix != null) prefix = serverSettings.Prefix;
             else prefix = _configuration["Prefix"];
 
-            var existingWLRec = db.LoadRecordById<Whitelist>("WhitelistedChannels", forGuildId.Guild.Id);
-            if (existingWLRec != null)
+            if (serverSettings.WLChannelId != null)
             {
-                if (existingWLRec.WLChannelId.Any())
+                if (serverSettings.WLChannelId.Any())
                 {
-                    if (!existingWLRec.WLChannelId.Contains(socketMessage.Channel.Id) && (message.Content != $"{prefix}wlc")) return;
+                    if (!serverSettings.WLChannelId.Contains(socketMessage.Channel.Id) && (message.Content != $"{prefix}wlc")) return;
                 }
             }
 
-            var existingBLRec = db.LoadRecordById<Blacklist>("BlacklistedChannels", forGuildId.Guild.Id);
-            if (existingBLRec != null)
+            if (serverSettings.BLChannelId != null)
             {
-                if (existingBLRec.BLChannelId.Any())
+                if (serverSettings.BLChannelId.Any())
                 {
-                    if (existingBLRec.BLChannelId.Contains(socketMessage.Channel.Id) && (message.Content != $"{prefix}blc")) return;
+                    if (serverSettings.BLChannelId.Contains(socketMessage.Channel.Id) && (message.Content != $"{prefix}blc")) return;
                 }
             }
 

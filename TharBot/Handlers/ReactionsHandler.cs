@@ -53,9 +53,12 @@ namespace TharBot.Handlers
                 };
                 if (!pollEmojis.Contains(reaction.Emote)) return;
 
-                var recs = db.LoadRecords<Poll>("ActivePolls");
+                var forGuildId = await Client.GetChannelAsync(reaction.Channel.Id) as SocketGuildChannel;
+                var serverSpecifics = db.LoadRecordById<ServerSpecifics>("ServerSpecifics", forGuildId.Guild.Id);
 
-                var activePoll = db.LoadRecordById<Poll>("ActivePolls", message.Id);
+                if (serverSpecifics.Polls == null) return;
+
+                var activePoll = serverSpecifics.Polls.Where(x => x.MessageId == reaction.MessageId).FirstOrDefault();
 
                 if (activePoll == null) return;
                 else
@@ -82,10 +85,17 @@ namespace TharBot.Handlers
 
                         if (emoji.Name == "😢" || emoji.Name == "😡")
                         {
-                            var forGuildId = await Client.GetChannelAsync(channel.Id) as SocketGuildChannel;
-                            var resultsChannelSettings = db.LoadRecordById<PulseCheckResultsChannel>("PulsecheckResultsChannel", forGuildId.Guild.Id);
-                            var responseChan = await Client.GetChannelAsync(resultsChannelSettings.ResultsChannel) as IMessageChannel;
-                            await responseChan.SendMessageAsync($"{reaction.User.Value.Mention} just answered {emoji.Name} to the pulsecheck, maybe someone should check up on them?");
+                            var resultsChannelSettings = db.LoadRecordById<ServerSpecifics>("ServerSpecifics", forGuildId.Guild.Id).PCResultsChannel;
+                            if (resultsChannelSettings != null)
+                            {
+                                var responseChan = await Client.GetChannelAsync((ulong)resultsChannelSettings) as IMessageChannel;
+                                await responseChan.SendMessageAsync($"{reaction.User.Value.Mention} just answered {emoji.Name} to the pulsecheck, maybe someone should check up on them?");
+                            }
+                            else
+                            {
+                                var responseChan = await Client.GetChannelAsync(activePoll.ChannelId) as IMessageChannel;
+                                await responseChan.SendMessageAsync($"{reaction.User.Value.Mention} just answered {emoji.Name} to the pulsecheck, maybe someone should check up on them?");
+                            }
                         }
                     }
                     else
@@ -102,15 +112,22 @@ namespace TharBot.Handlers
 
                             if (emoji.Name == "😢" || emoji.Name == "😡")
                             {
-                                var forGuildId = await Client.GetChannelAsync(channel.Id) as SocketGuildChannel;
-                                var resultsChannelSettings = db.LoadRecordById<PulseCheckResultsChannel>("PulsecheckResultsChannel", forGuildId.Guild.Id);
-                                var responseChan = await Client.GetChannelAsync(resultsChannelSettings.ResultsChannel) as IMessageChannel;
-                                await responseChan.SendMessageAsync($"@Here {reaction.User.Value.Mention} just answered {emoji.Name} to the pulsecheck, maybe someone should check up on them?");
+                                var resultsChannelSettings = db.LoadRecordById<ServerSpecifics>("ServerSpecifics", forGuildId.Guild.Id).PCResultsChannel;
+                                if (resultsChannelSettings != null)
+                                {
+                                    var responseChan = await Client.GetChannelAsync((ulong)resultsChannelSettings) as IMessageChannel;
+                                    await responseChan.SendMessageAsync($"{reaction.User.Value.Mention} just answered {emoji.Name} to the pulsecheck, maybe someone should check up on them?");
+                                }
+                                else
+                                {
+                                    var responseChan = await Client.GetChannelAsync(activePoll.ChannelId) as IMessageChannel;
+                                    await responseChan.SendMessageAsync($"{reaction.User.Value.Mention} just answered {emoji.Name} to the pulsecheck, maybe someone should check up on them?");
+                                }
                             }
                         }
                     }
 
-                    db.UpsertRecord("ActivePolls", activePoll.MessageId, activePoll);
+                    db.UpsertRecord("ServerSpecifics", serverSpecifics.ServerId, serverSpecifics);
                 }
             }
             catch (Exception ex)
@@ -136,19 +153,24 @@ namespace TharBot.Handlers
 
             try
             {
-                var attributeDialog = db.LoadRecordById<GameAttributeDialog>("ActiveAttributeDialogs", reaction.MessageId);
+                var forGuildId = await Client.GetChannelAsync(channel.Id) as SocketGuildChannel;
                 var chan = await Client.GetChannelAsync(channel.Id) as IMessageChannel;
                 IUserMessage? msg = message.HasValue ? message.Value : await chan.GetMessageAsync(message.Id) as IUserMessage;
+
+                var serverSpecifics = db.LoadRecordById<ServerSpecifics>("ServerSpecifics", forGuildId.Guild.Id);
+                if (serverSpecifics.AttributeDialogs == null) return;
+                var attributeDialog = serverSpecifics.AttributeDialogs.Where(x => x.MessageId == message.Id).FirstOrDefault();
+                
 
                 if (attributeDialog != null)
                 {
                     if (reaction.UserId != attributeDialog.UserId) return;
                     var user = await Client.GetUserAsync(attributeDialog.UserId) as SocketUser;
-                    var serverProfile = db.LoadRecordById<GameServerProfile>("GameProfiles", attributeDialog.ServerId);
-                    var userProfile = serverProfile.Users.Where(x => x.UserId == attributeDialog.UserId).FirstOrDefault();
+                    var userProfile = db.LoadRecordById<GameUser>("UserProfiles", attributeDialog.UserId);
+                    var serverStats = userProfile.Servers.Where(x => x.ServerId == attributeDialog.ServerId).FirstOrDefault();
                     var attributeAddedText = "";
 
-                    if (userProfile.AvailableAttributePoints <= 0)
+                    if (serverStats.AvailableAttributePoints <= 0)
                     {
                         attributeAddedText = "You have no available attribute points to spend!";
                     }
@@ -156,40 +178,40 @@ namespace TharBot.Handlers
                     {
                         if (reaction.Emote.Name == EmoteHandler.Strength.Name)
                         {
-                            userProfile.Attributes.Strength++;
+                            serverStats.Attributes.Strength++;
                             attributeAddedText = $"{EmoteHandler.Strength}You increased your Strength by 1!{EmoteHandler.Strength}";
                         }
                         else if (reaction.Emote.Name == EmoteHandler.Intelligence.Name)
                         {
-                            userProfile.Attributes.Intelligence++;
+                            serverStats.Attributes.Intelligence++;
                             attributeAddedText = $"{EmoteHandler.Intelligence}You increased your Intelligence by 1!{EmoteHandler.Intelligence}";
                         }
                         else if (reaction.Emote.Name == EmoteHandler.Dexterity.Name)
                         {
-                            userProfile.Attributes.Dexterity++;
+                            serverStats.Attributes.Dexterity++;
                             attributeAddedText = $"{EmoteHandler.Dexterity}You increased your Dexterity by 1!{EmoteHandler.Dexterity}";
                         }
                         else if (reaction.Emote.Name == EmoteHandler.Constitution.Name)
                         {
-                            userProfile.Attributes.Constitution++;
+                            serverStats.Attributes.Constitution++;
                             attributeAddedText = $"{EmoteHandler.Constitution}You increased your Constitution by 1!{EmoteHandler.Constitution}";
-                            userProfile.CurrentHP += GameUserProfile.ConstitutionHPBonus;
+                            serverStats.CurrentHP += GameServerStats.ConstitutionHPBonus;
                         }
                         else if (reaction.Emote.Name == EmoteHandler.Wisdom.Name)
                         {
-                            userProfile.Attributes.Wisdom++;
+                            serverStats.Attributes.Wisdom++;
                             attributeAddedText = $"{EmoteHandler.Wisdom}You increased your Wisdom by 1!{EmoteHandler.Wisdom}";
-                            userProfile.CurrentMP += GameUserProfile.WisdomMPBonus;
+                            serverStats.CurrentMP += GameServerStats.WisdomMPBonus;
                         }
                         else if (reaction.Emote.Name == EmoteHandler.Luck.Name)
                         {
-                            userProfile.Attributes.Luck++;
+                            serverStats.Attributes.Luck++;
                             attributeAddedText = $"{EmoteHandler.Luck}You increased your Luck by 1!{EmoteHandler.Luck}";
                         }
                     }
-                    db.UpsertRecord("GameProfiles", attributeDialog.ServerId, serverProfile);
+                    db.UpsertRecord("UserProfiles", attributeDialog.UserId, userProfile);
                     await msg.RemoveReactionAsync(reaction.Emote, reaction.UserId);
-                    var showAttributesEmbed = await EmbedHandler.CreateAttributeEmbedBuilder(userProfile, user);
+                    var showAttributesEmbed = await EmbedHandler.CreateAttributeEmbedBuilder(serverStats, user);
                     showAttributesEmbed.AddField("­", attributeAddedText);
                     await msg.ModifyAsync(x => x.Embed = showAttributesEmbed.Build());
                 }

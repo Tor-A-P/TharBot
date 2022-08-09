@@ -29,21 +29,20 @@ namespace TharBot.Commands
         {
             try
             {
-                var existingWL = db.LoadRecordById<Whitelist>("WhitelistedGameChannels", Context.Guild.Id);
-                if (existingWL != null)
+                var serverSettings = db.LoadRecordById<ServerSpecifics>("ServerSpecifics", Context.Guild.Id);
+                if (serverSettings.GameWLChannelId != null)
                 {
-                    if (existingWL.WLChannelId.Any())
+                    if (serverSettings.GameWLChannelId.Any())
                     {
-                        if (!existingWL.WLChannelId.Contains(Context.Channel.Id)) return;
+                        if (!serverSettings.GameWLChannelId.Contains(Context.Channel.Id)) return;
                     }
                 }
 
-                var existingBL = db.LoadRecordById<Blacklist>("BlacklistedGameChannels", Context.Guild.Id);
-                if (existingBL != null)
+                if (serverSettings.GameBLChannelId != null)
                 {
-                    if (existingBL.BLChannelId.Any())
+                    if (serverSettings.GameBLChannelId.Any())
                     {
-                        if (existingBL.BLChannelId.Contains(Context.Channel.Id)) return;
+                        if (serverSettings.GameBLChannelId.Contains(Context.Channel.Id)) return;
                     }
                 }
 
@@ -54,23 +53,23 @@ namespace TharBot.Commands
                     return;
                 }
 
-                var serverProfile = db.LoadRecordById<GameServerProfile>("GameProfiles", Context.Guild.Id);
-                if (serverProfile == null)
+                var userProfile = db.LoadRecordById<GameUser>("UserProfiles", Context.User.Id);
+                if (userProfile == null)
                 {
-                    var noServerProfEmbed = await EmbedHandler.CreateUserErrorEmbed("Could not find server profile", "It seems this server has no profile, try sending a message (not a command) and then use this command again!");
+                    var noServerProfEmbed = await EmbedHandler.CreateUserErrorEmbed("Could not find user profile", "It seems you have no profile on this server, try sending a message (not a command) and then use this command again!");
                     await ReplyAsync(embed: noServerProfEmbed);
                 }
                 else
                 {
-                    var userProfile = serverProfile.Users.Where(x => x.UserId == Context.User.Id).FirstOrDefault();
-                    if (userProfile == null)
+                    var serverStats = userProfile.Servers.Where(x => x.ServerId == Context.Guild.Id).FirstOrDefault();
+                    if (serverStats == null)
                     {
                         var noUserProfEmbed = await EmbedHandler.CreateUserErrorEmbed("Could not find user profile", "It seems you have no profile on this server, try sending a message (not a command) and then use this command again!");
                         await ReplyAsync(embed: noUserProfEmbed);
                     }
                     else
                     {
-                        if (userProfile.GambaInProgress)
+                        if (serverStats.GambaInProgress)
                         {
                             var embed = await EmbedHandler.CreateUserErrorEmbed("Gamble already in progress!", "You already have a running gamble, please wait until it finishes before starting a new one!");
                             await ReplyAsync(embed: embed);
@@ -95,13 +94,13 @@ namespace TharBot.Commands
                         };
                         var random = new Random();
                         var regex = new Regex(Regex.Escape($"{EmoteHandler.Slots}"));
-                        var chance = 33 + userProfile.BonusGambaChance;
+                        var chance = 33 + serverStats.BonusGambaChance;
                         var user = Context.User;
                         var embedTitle = "★彡 𝚂𝙻𝙾𝚃 𝙼𝙰𝙲𝙷𝙸𝙽𝙴 ★彡";
 
                         if (amount.ToLower() == "all" || amount.EndsWith('%'))
                         {
-                            double slots = userProfile.TharCoins;
+                            double slots = serverStats.TharCoins;
                             if (amount.EndsWith('%'))
                             {
                                 amount = amount.Remove(amount.Length - 1);
@@ -122,10 +121,10 @@ namespace TharBot.Commands
                                     return;
                                 }
                             }
-                            //userProfile.GambaInProgress = true;
-                            userProfile.TharCoins -= (long)slots;
+                            serverStats.GambaInProgress = true;
+                            serverStats.TharCoins -= (long)slots;
 
-                            db.UpsertRecord("GameProfiles", Context.Guild.Id, serverProfile);
+                            db.UpsertRecord("UserProfiles", Context.User.Id, userProfile);
 
                             var embed = await EmbedHandler.CreateBasicEmbed(embedTitle,
                                         $"{EmoteHandler.Blank}{EmoteHandler.BoxDownRight}{EmoteHandler.BoxLeftRight}{EmoteHandler.BoxLeftDownRight}{EmoteHandler.BoxLeftRight}{EmoteHandler.BoxLeftDownRight}{EmoteHandler.BoxLeftRight}{EmoteHandler.BoxLeftDown}\n" +
@@ -171,8 +170,8 @@ namespace TharBot.Commands
                             embed = await EmbedHandler.CreateBasicEmbed(embedTitle, regex.Replace(embed.Description, resultEmojis[2].Name, 1));
                             await slotsMsg.ModifyAsync(x => x.Embed = embed);
 
-                            serverProfile = db.LoadRecordById<GameServerProfile>("GameProfiles", Context.Guild.Id);
-                            userProfile = serverProfile.Users.Where(x => x.UserId == Context.User.Id).FirstOrDefault();
+                            userProfile = db.LoadRecordById<GameUser>("UserProfiles", Context.User.Id);
+                            serverStats = userProfile.Servers.Where(x => x.ServerId == Context.Guild.Id).FirstOrDefault();
 
                             if (userProfile.UserId == 966367996408905768 || userProfile.UserId == 985805083423952936)
                             {
@@ -180,11 +179,11 @@ namespace TharBot.Commands
                                 winnerEmbed.AddField("­", embed.Description)
                                            .AddField("Bot always wins, baybee :sunglasses:", $"TharBot wins {(long)slots * 40} TharCoins!")
                                            .WithFooter("Visual design for slot machine shamelessly lifted from the Lawliet discord bot (https://lawlietbot.xyz/)");
-                                userProfile.TharCoins += ((long)slots * 40);
-                                userProfile.GambaInProgress = false;
+                                serverStats.TharCoins += ((long)slots * 40);
+                                serverStats.GambaInProgress = false;
                                 await slotsMsg.ModifyAsync(x => x.Embed = winnerEmbed.Build());
 
-                                db.UpsertRecord("GameProfiles", Context.Guild.Id, serverProfile);
+                                db.UpsertRecord("UserProfiles", Context.User.Id, userProfile);
                                 return;
                             }
 
@@ -194,11 +193,11 @@ namespace TharBot.Commands
                                 winnerEmbed.AddField("­", embed.Description)
                                            .AddField("***JACKPOT!!!***", $"You win {(long)slots * 40} TharCoins!")
                                            .WithFooter("Visual design for slot machine shamelessly lifted from the Lawliet discord bot (https://lawlietbot.xyz/)");
-                                userProfile.TharCoins += ((long)slots * 40);
-                                userProfile.GambaInProgress = false;
+                                serverStats.TharCoins += ((long)slots * 40);
+                                serverStats.GambaInProgress = false;
                                 await slotsMsg.ModifyAsync(x => x.Embed = winnerEmbed.Build());
 
-                                db.UpsertRecord("GameProfiles", Context.Guild.Id, serverProfile);
+                                db.UpsertRecord("UserProfiles", Context.User.Id, userProfile);
                             }
                             else if (resultEmojis[0].Name == resultEmojis[1].Name || resultEmojis[1].Name == resultEmojis[2].Name || resultEmojis[0].Name == resultEmojis[2].Name)
                             {
@@ -206,11 +205,11 @@ namespace TharBot.Commands
                                 winnerEmbed.AddField("­", embed.Description)
                                            .AddField("A WINNER IS YOU!", $"You win {(long)slots * 3} TharCoins!")
                                            .WithFooter("Visual design for slot machine shamelessly lifted from the Lawliet discord bot (https://lawlietbot.xyz/)"); ;
-                                userProfile.TharCoins += ((long)slots * 3);
-                                userProfile.GambaInProgress = false;
+                                serverStats.TharCoins += ((long)slots * 3);
+                                serverStats.GambaInProgress = false;
                                 await slotsMsg.ModifyAsync(x => x.Embed = winnerEmbed.Build());
 
-                                db.UpsertRecord("GameProfiles", Context.Guild.Id, serverProfile);
+                                db.UpsertRecord("UserProfiles", Context.User.Id, userProfile);
                             }
                             else
                             {
@@ -218,24 +217,24 @@ namespace TharBot.Commands
                                 loserEmbed.AddField("­", embed.Description)
                                            .AddField("You lose!", $"You lost {(long)slots} TharCoins :(")
                                            .WithFooter("Visual design for slot machine shamelessly lifted from the Lawliet discord bot (https://lawlietbot.xyz/)"); ;
-                                userProfile.GambaInProgress = false;
+                                serverStats.GambaInProgress = false;
                                 await slotsMsg.ModifyAsync(x => x.Embed = loserEmbed.Build());
 
-                                db.UpsertRecord("GameProfiles", Context.Guild.Id, serverProfile);
+                                db.UpsertRecord("UserProfiles", Context.User.Id, userProfile);
                             }
                         }
                         else if (long.TryParse(amount, out var slots))
                         {
-                            if (slots > userProfile.TharCoins)
+                            if (slots > serverStats.TharCoins)
                             {
-                                var notEnoughPointsEmbed = await EmbedHandler.CreateUserErrorEmbed("Not enough TharCoin", $"You only have {userProfile.TharCoins} TharCoins, you can't spend {slots} on gambling!");
+                                var notEnoughPointsEmbed = await EmbedHandler.CreateUserErrorEmbed("Not enough TharCoin", $"You only have {serverStats.TharCoins} TharCoins, you can't spend {slots} on gambling!");
                                 await ReplyAsync(embed: notEnoughPointsEmbed);
                             }
                             else
                             {
-                                //userProfile.GambaInProgress = true;
-                                userProfile.TharCoins -= slots;
-                                db.UpsertRecord("GameProfiles", Context.Guild.Id, serverProfile);
+                                serverStats.GambaInProgress = true;
+                                serverStats.TharCoins -= slots;
+                                db.UpsertRecord("UserProfiles", Context.User.Id, userProfile);
 
                                 var embed = await EmbedHandler.CreateBasicEmbed(embedTitle,
                                         $"{EmoteHandler.Blank}{EmoteHandler.BoxDownRight}{EmoteHandler.BoxLeftRight}{EmoteHandler.BoxLeftDownRight}{EmoteHandler.BoxLeftRight}{EmoteHandler.BoxLeftDownRight}{EmoteHandler.BoxLeftRight}{EmoteHandler.BoxLeftDown}\n" +
@@ -280,8 +279,8 @@ namespace TharBot.Commands
                                 embed = await EmbedHandler.CreateBasicEmbed(embedTitle, regex.Replace(embed.Description, resultEmojis[2].Name, 1));
                                 await slotsMsg.ModifyAsync(x => x.Embed = embed);
 
-                                serverProfile = db.LoadRecordById<GameServerProfile>("GameProfiles", Context.Guild.Id);
-                                userProfile = serverProfile.Users.Where(x => x.UserId == Context.User.Id).FirstOrDefault();
+                                userProfile = db.LoadRecordById<GameUser>("UserProfiles", Context.User.Id);
+                                serverStats = userProfile.Servers.Where(x => x.ServerId == Context.Guild.Id).FirstOrDefault();
 
                                 if (userProfile.UserId == 966367996408905768 || userProfile.UserId == 985805083423952936)
                                 {
@@ -289,11 +288,11 @@ namespace TharBot.Commands
                                     winnerEmbed.AddField("­", embed.Description)
                                                .AddField("Bot always wins, baybee :sunglasses:", $"TharBot wins {(long)slots * 40} TharCoins!")
                                                .WithFooter("Visual design for slot machine shamelessly lifted from the Lawliet discord bot (https://lawlietbot.xyz/)");
-                                    userProfile.TharCoins += ((long)slots * 40);
-                                    userProfile.GambaInProgress = false;
+                                    serverStats.TharCoins += ((long)slots * 40);
+                                    serverStats.GambaInProgress = false;
                                     await slotsMsg.ModifyAsync(x => x.Embed = winnerEmbed.Build());
 
-                                    db.UpsertRecord("GameProfiles", Context.Guild.Id, serverProfile);
+                                    db.UpsertRecord("UserProfiles", Context.User.Id, userProfile);
                                     return;
                                 }
 
@@ -303,11 +302,11 @@ namespace TharBot.Commands
                                     winnerEmbed.AddField("­", embed.Description)
                                                .AddField("***JACKPOT!!!***", $"You win {slots * 40} TharCoins!")
                                                .WithFooter("Visual design for slot machine shamelessly lifted from the Lawliet discord bot (https://lawlietbot.xyz/)"); ;
-                                    userProfile.TharCoins += (slots * 40);
-                                    userProfile.GambaInProgress = false;
+                                    serverStats.TharCoins += (slots * 40);
+                                    serverStats.GambaInProgress = false;
                                     await slotsMsg.ModifyAsync(x => x.Embed = winnerEmbed.Build());
 
-                                    db.UpsertRecord("GameProfiles", Context.Guild.Id, serverProfile);
+                                    db.UpsertRecord("UserProfiles", Context.User.Id, userProfile);
                                 }
                                 else if (resultEmojis[0].Name == resultEmojis[1].Name || resultEmojis[1].Name == resultEmojis[2].Name || resultEmojis[0].Name == resultEmojis[2].Name)
                                 {
@@ -315,11 +314,11 @@ namespace TharBot.Commands
                                     winnerEmbed.AddField("­", embed.Description)
                                                .AddField("A WINNER IS YOU!", $"You win {slots * 3} TharCoins!")
                                                .WithFooter("Visual design for slot machine shamelessly lifted from the Lawliet discord bot (https://lawlietbot.xyz/)"); ;
-                                    userProfile.TharCoins += (slots * 3);
-                                    userProfile.GambaInProgress = false;
+                                    serverStats.TharCoins += (slots * 3);
+                                    serverStats.GambaInProgress = false;
                                     await slotsMsg.ModifyAsync(x => x.Embed = winnerEmbed.Build());
 
-                                    db.UpsertRecord("GameProfiles", Context.Guild.Id, serverProfile);
+                                    db.UpsertRecord("UserProfiles", Context.User.Id, userProfile);
                                 }
                                 else
                                 {
@@ -327,10 +326,10 @@ namespace TharBot.Commands
                                     loserEmbed.AddField("­", embed.Description)
                                                .AddField("You lose!", $"You lost {slots} TharCoins :(")
                                                .WithFooter("Visual design for slot machine shamelessly lifted from the Lawliet discord bot (https://lawlietbot.xyz/)"); ;
-                                    userProfile.GambaInProgress = false;
+                                    serverStats.GambaInProgress = false;
                                     await slotsMsg.ModifyAsync(x => x.Embed = loserEmbed.Build());
 
-                                    db.UpsertRecord("GameProfiles", Context.Guild.Id, serverProfile);
+                                    db.UpsertRecord("UserProfiles", Context.User.Id, userProfile);
                                 }
                             }
                         }

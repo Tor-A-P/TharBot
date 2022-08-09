@@ -81,7 +81,7 @@ namespace TharBot.Handlers
             return embedBuilder;
         }
 
-        public static async Task<Embed> CreateGameEmbed(GameFight fight, GameUserProfile user, string userName)
+        public static async Task<Embed> CreateGameEmbed(GameFight fight, GameServerStats user, string userName)
         {
             var embed = await Task.Run(() => new EmbedBuilder()
                  .WithTitle($"{userName} vs Level {fight.Enemy.Level} {fight.Enemy.Name}!")
@@ -118,23 +118,23 @@ namespace TharBot.Handlers
             return embed.Build();
         }
 
-        public static async Task<EmbedBuilder> CreateAttributeEmbedBuilder(GameUserProfile userProfile, SocketUser user)
+        public static async Task<EmbedBuilder> CreateAttributeEmbedBuilder(GameServerStats userProfile, SocketUser user)
         {
             var embed = await Task.Run(() => new EmbedBuilder()
                  .WithTitle($"{user}'s attributes:")
                  .AddField($"Available points: {userProfile.AvailableAttributePoints}", $"Total points spent already: {userProfile.SpentAttributePoints}")
                  .AddField($"{EmoteHandler.Strength} Strength: {userProfile.Attributes.Strength}",
-                           $"Increases your attack damage by {GameUserProfile.AttackPerStrength} per point.")
+                           $"Increases your attack damage by {GameServerStats.AttackPerStrength} per point.")
                  .AddField($"{EmoteHandler.Intelligence} Intelligence: {userProfile.Attributes.Intelligence}",
-                           $"Increases your spellpower by {GameUserProfile.IntSpellPower} per point. (Not implemented yet)")
+                           $"Increases your spellpower by {GameServerStats.IntSpellPower} per point. (Not implemented yet)")
                  .AddField($"{EmoteHandler.Dexterity} Dexterity: {userProfile.Attributes.Dexterity}",
-                           $"Increases your crit chance by {GameUserProfile.DexCritModifier} and your defense by {GameUserProfile.DexDefModifier} per point.")
+                           $"Increases your crit chance by {GameServerStats.DexCritModifier} and your defense by {GameServerStats.DexDefModifier} per point.")
                  .AddField($"{EmoteHandler.Constitution} Constitution: {userProfile.Attributes.Constitution}",
-                           $"Increases your health by {GameUserProfile.ConstitutionHPBonus} and your health regen per minute by {GameUserProfile.ConstitutionHPRegenBonus}% of your max health per point.")
+                           $"Increases your health by {GameServerStats.ConstitutionHPBonus} and your health regen per minute by {GameServerStats.ConstitutionHPRegenBonus}% of your max health per point.")
                  .AddField($"{EmoteHandler.Wisdom} Wisdom: {userProfile.Attributes.Wisdom}",
-                           $"Increases your mana by {GameUserProfile.WisdomMPBonus} and your mana regen per minute by {GameUserProfile.WisdomMPRegenBonus}% of your max mana per point. (Doesn't really do anything until intelligence is implemented)")
+                           $"Increases your mana by {GameServerStats.WisdomMPBonus} and your mana regen per minute by {GameServerStats.WisdomMPRegenBonus}% of your max mana per point. (Doesn't really do anything until intelligence is implemented)")
                  .AddField($"{EmoteHandler.Luck} Luck: {userProfile.Attributes.Luck}",
-                           $"Increases your Critical damage by {GameUserProfile.LuckCritModifier}% per point, and your chance to win the low prize in gambles by 0.33% per point.")
+                           $"Increases your Critical damage by {GameServerStats.LuckCritModifier}% per point, and your chance to win the low prize in gambles by 0.33% per point.")
                  .WithThumbnailUrl(user.GetAvatarUrl(ImageFormat.Auto, 2048) ?? user.GetDefaultAvatarUrl())
                  .WithFooter("Use the reactions down below to add 1 point to the specified attribute, if you have available points to spend."));
 
