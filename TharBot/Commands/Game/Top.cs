@@ -29,7 +29,7 @@
 //        {
 //            try
 //            {
-//                var serverSettings = db.LoadRecordById<ServerSpecifics>("ServerSpecifics", Context.Guild.Id);
+//                var serverSettings = await db.LoadRecordByIdAsync<ServerSpecifics>("ServerSpecifics", Context.Guild.Id);
 //                if (serverSettings.GameWLChannelId != null)
 //                {
 //                    if (serverSettings.GameWLChannelId.Any())
@@ -46,7 +46,7 @@
 //                    }
 //                }
 
-//                var serverProfile = db.LoadRecordById<GameServerProfile>("GameProfiles", Context.Guild.Id);
+//                var serverProfile = await db.LoadRecordByIdAsync<GameServerProfile>("GameProfiles", Context.Guild.Id);
 //                if (serverProfile == null || serverProfile.Users.Where(x => x.UserId == Context.User.Id) == null)
 //                {
 //                    var noServerProfEmbed = await EmbedHandler.CreateUserErrorEmbed("Could not find server profile", "It seems this server has no profile, try sending a message (not a command) and then use this command again!");

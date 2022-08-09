@@ -67,7 +67,7 @@ namespace TharBot.Commands
 
                 var poll = await ReplyAsync(embed: embed);
 
-                var serverSpecifics = db.LoadRecordById<ServerSpecifics>("ServerSpecifics", Context.Guild.Id);
+                var serverSpecifics = await db.LoadRecordByIdAsync<ServerSpecifics>("ServerSpecifics", Context.Guild.Id);
                 if (serverSpecifics.Polls != null)
                 {
                     var activePoll = serverSpecifics.Polls.Where(x => x.MessageId == poll.Id).FirstOrDefault();
@@ -95,7 +95,7 @@ namespace TharBot.Commands
                         NumOptions = options.Length
                     };
                     serverSpecifics.Polls.Add(newPoll);
-                    db.UpsertRecord("ServerSpecifics", Context.Guild.Id, serverSpecifics);
+                    await db.UpsertRecordAsync("ServerSpecifics", Context.Guild.Id, serverSpecifics);
 
                     for (int i = 0; i < options.Length; i++)
                     {
@@ -104,7 +104,7 @@ namespace TharBot.Commands
 
                     //await Task.Delay(duration * 60000);
 
-                    //var movePoll = db.LoadRecordById<Poll>("ActivePolls", newPoll.MessageId);
+                    //var movePoll = await db.LoadRecordByIdAsync<Poll>("ActivePolls", newPoll.MessageId);
                     //db.InsertRecord("InactivePolls", movePoll);
 
                     //int[] resultsCount =
@@ -168,7 +168,7 @@ namespace TharBot.Commands
 
                     //await poll.Channel.SendMessageAsync(embed: resultsEmbed.Build());
 
-                    //db.DeleteRecord<Poll>("ActivePolls", newPoll.MessageId);
+                    //await db.DeleteRecordAsync<Poll>("ActivePolls", newPoll.MessageId);
                 }
                 catch (Exception ex)
                 {

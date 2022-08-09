@@ -23,7 +23,7 @@ namespace TharBot.Commands
         public async Task BlacklistUserAsync(ulong userId)
         {
             var db = new MongoCRUDHandler("TharBot", _config);
-            var banList = db.LoadRecords<BannedUser>("UserBanlist");
+            var banList = await db.LoadRecordsAsync<BannedUser>("UserBanlist");
             var existingBan = banList.Where(x => x.UserId == userId).FirstOrDefault();
             var bannedUser = await Context.Client.GetUserAsync(userId);
 
@@ -33,13 +33,13 @@ namespace TharBot.Commands
                 {
                     UserId = userId,
                 };
-                db.InsertRecord("UserBanlist", newBan);
+                await db.InsertRecordAsync("UserBanlist", newBan);
                 var embed = await EmbedHandler.CreateBasicEmbed("User banned", $"Banned user {bannedUser.Mention} from using the bot!");
                 await ReplyAsync(embed: embed);
             }
             else
             {
-                db.DeleteRecord<BannedUser>("UserBanlist", existingBan.UserId);
+                await db.DeleteRecordAsync<BannedUser>("UserBanlist", existingBan.UserId);
                 var embed = await EmbedHandler.CreateBasicEmbed("User unbanned", $"Unbanned user {bannedUser.Mention}, they can now use the bot again! :D");
                 await ReplyAsync(embed: embed);
             }

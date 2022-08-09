@@ -26,7 +26,7 @@ namespace TharBot.Commands.Game
         {
             try
             {
-                var serverSettings = db.LoadRecordById<ServerSpecifics>("ServerSpecifics", Context.Guild.Id);
+                var serverSettings = await db.LoadRecordByIdAsync<ServerSpecifics>("ServerSpecifics", Context.Guild.Id);
                 if (serverSettings.GameWLChannelId != null)
                 {
                     if (serverSettings.GameWLChannelId.Any())
@@ -43,7 +43,7 @@ namespace TharBot.Commands.Game
                     }
                 }
 
-                var userProfile = db.LoadRecordById<GameUser>("UserProfiles", Context.User.Id);
+                var userProfile = await db.LoadRecordByIdAsync<GameUser>("UserProfiles", Context.User.Id);
                 if (userProfile == null)
                 {
                     var noServerProfEmbed = await EmbedHandler.CreateUserErrorEmbed("Could not find user profile", "It seems you have no profile on this server, try sending a message (not a command) and then use this command again!");
@@ -75,7 +75,7 @@ namespace TharBot.Commands.Game
                         serverSettings.AttributeDialogs = new List<GameAttributeDialog>();
                     }
                     serverSettings.AttributeDialogs.Add(attributeDialog);
-                    db.UpsertRecord("ServerSpecifics", Context.Guild.Id, serverSettings);
+                    await db.UpsertRecordAsync("ServerSpecifics", Context.Guild.Id, serverSettings);
                     var emotes = new Emote[]
                     {
                     EmoteHandler.Strength,
@@ -150,7 +150,7 @@ namespace TharBot.Commands.Game
                 }
                 var successEmbed = await EmbedHandler.CreateBasicEmbed($"{attribute} upgraded!", $"You have added {amount} points to {attribute}");
                 await ReplyAsync(embed: successEmbed);
-                db.UpsertRecord("GameProfiles", Context.User.Id, userProfile);
+                await db.UpsertRecordAsync("GameProfiles", Context.User.Id, userProfile);
             }
             catch (Exception ex)
             {

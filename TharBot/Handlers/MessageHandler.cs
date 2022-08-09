@@ -29,10 +29,10 @@ namespace TharBot.Handlers
         private async Task EXPCoinOnMessage(SocketMessage socketMessage)
         {
             if (socketMessage is not SocketUserMessage message) return;
-            var existingBan = db.LoadRecordById<BannedUser>("UserBanlist", socketMessage.Author.Id);
+            var existingBan = await db.LoadRecordByIdAsync<BannedUser>("UserBanlist", socketMessage.Author.Id);
             if (existingBan != null) return;
             var forGuildId = socketMessage.Channel as SocketGuildChannel;
-            var serverSettings = db.LoadRecordById<ServerSpecifics>("ServerSpecifics", forGuildId.Guild.Id);
+            var serverSettings = await db.LoadRecordByIdAsync<ServerSpecifics>("ServerSpecifics", forGuildId.Guild.Id);
 
             if (serverSettings == null)
             {
@@ -51,11 +51,11 @@ namespace TharBot.Handlers
                     Reminders = new List<Reminders>(),
                     ShowLevelUpMessage = true
                 };
-                db.InsertRecord("ServerSpecifics", serverSettings);
+                await db.InsertRecordAsync("ServerSpecifics", serverSettings);
             }
 
             await Task.Delay(1000);
-            var existingUserProfile = db.LoadRecordById<GameUser>("UserProfiles", message.Author.Id);
+            var existingUserProfile = await db.LoadRecordByIdAsync<GameUser>("UserProfiles", message.Author.Id);
             var showLevelUpMessage = serverSettings.ShowLevelUpMessage;
             
 
@@ -114,7 +114,7 @@ namespace TharBot.Handlers
                 newServerStats.CurrentHP = newServerStats.BaseHP;
                 newServerStats.CurrentMP = newServerStats.BaseMP;
                 newProfile.Servers.Add(newServerStats);
-                db.InsertRecord("UserProfiles", newProfile);
+                await db.InsertRecordAsync("UserProfiles", newProfile);
             }
             else
             {
@@ -195,7 +195,7 @@ namespace TharBot.Handlers
                     }
                 }
                 existingUserProfile.LastSeenUsername = message.Author.Username;
-                db.UpsertRecord("UserProfiles", message.Author.Id, existingUserProfile);
+                await db.UpsertRecordAsync("UserProfiles", message.Author.Id, existingUserProfile);
             }
         }
     }

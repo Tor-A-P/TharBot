@@ -29,7 +29,7 @@ namespace TharBot.Commands
         {
             try
             {
-                var serverSettings = db.LoadRecordById<ServerSpecifics>("ServerSpecifics", Context.Guild.Id);
+                var serverSettings = await db.LoadRecordByIdAsync<ServerSpecifics>("ServerSpecifics", Context.Guild.Id);
                 if (serverSettings.GameWLChannelId != null)
                 {
                     if (serverSettings.GameWLChannelId.Any())
@@ -53,7 +53,7 @@ namespace TharBot.Commands
                     return;
                 }
 
-                var userProfile = db.LoadRecordById<GameUser>("UserProfiles", Context.User.Id);
+                var userProfile = await db.LoadRecordByIdAsync<GameUser>("UserProfiles", Context.User.Id);
                 if (userProfile == null)
                 {
                     var noServerProfEmbed = await EmbedHandler.CreateUserErrorEmbed("Could not find user profile", "It seems you have no profile on this server, try sending a message (not a command) and then use this command again!");
@@ -124,7 +124,7 @@ namespace TharBot.Commands
                             serverStats.GambaInProgress = true;
                             serverStats.TharCoins -= (long)slots;
 
-                            db.UpsertRecord("UserProfiles", Context.User.Id, userProfile);
+                            await db.UpsertRecordAsync("UserProfiles", Context.User.Id, userProfile);
 
                             var embed = await EmbedHandler.CreateBasicEmbed(embedTitle,
                                         $"{EmoteHandler.Blank}{EmoteHandler.BoxDownRight}{EmoteHandler.BoxLeftRight}{EmoteHandler.BoxLeftDownRight}{EmoteHandler.BoxLeftRight}{EmoteHandler.BoxLeftDownRight}{EmoteHandler.BoxLeftRight}{EmoteHandler.BoxLeftDown}\n" +
@@ -170,7 +170,7 @@ namespace TharBot.Commands
                             embed = await EmbedHandler.CreateBasicEmbed(embedTitle, regex.Replace(embed.Description, resultEmojis[2].Name, 1));
                             await slotsMsg.ModifyAsync(x => x.Embed = embed);
 
-                            userProfile = db.LoadRecordById<GameUser>("UserProfiles", Context.User.Id);
+                            userProfile = await db.LoadRecordByIdAsync<GameUser>("UserProfiles", Context.User.Id);
                             serverStats = userProfile.Servers.Where(x => x.ServerId == Context.Guild.Id).FirstOrDefault();
 
                             if (userProfile.UserId == 966367996408905768 || userProfile.UserId == 985805083423952936)
@@ -183,7 +183,7 @@ namespace TharBot.Commands
                                 serverStats.GambaInProgress = false;
                                 await slotsMsg.ModifyAsync(x => x.Embed = winnerEmbed.Build());
 
-                                db.UpsertRecord("UserProfiles", Context.User.Id, userProfile);
+                                await db.UpsertRecordAsync("UserProfiles", Context.User.Id, userProfile);
                                 return;
                             }
 
@@ -197,7 +197,7 @@ namespace TharBot.Commands
                                 serverStats.GambaInProgress = false;
                                 await slotsMsg.ModifyAsync(x => x.Embed = winnerEmbed.Build());
 
-                                db.UpsertRecord("UserProfiles", Context.User.Id, userProfile);
+                                await db.UpsertRecordAsync("UserProfiles", Context.User.Id, userProfile);
                             }
                             else if (resultEmojis[0].Name == resultEmojis[1].Name || resultEmojis[1].Name == resultEmojis[2].Name || resultEmojis[0].Name == resultEmojis[2].Name)
                             {
@@ -209,7 +209,7 @@ namespace TharBot.Commands
                                 serverStats.GambaInProgress = false;
                                 await slotsMsg.ModifyAsync(x => x.Embed = winnerEmbed.Build());
 
-                                db.UpsertRecord("UserProfiles", Context.User.Id, userProfile);
+                                await db.UpsertRecordAsync("UserProfiles", Context.User.Id, userProfile);
                             }
                             else
                             {
@@ -220,7 +220,7 @@ namespace TharBot.Commands
                                 serverStats.GambaInProgress = false;
                                 await slotsMsg.ModifyAsync(x => x.Embed = loserEmbed.Build());
 
-                                db.UpsertRecord("UserProfiles", Context.User.Id, userProfile);
+                                await db.UpsertRecordAsync("UserProfiles", Context.User.Id, userProfile);
                             }
                         }
                         else if (long.TryParse(amount, out var slots))
@@ -234,7 +234,7 @@ namespace TharBot.Commands
                             {
                                 serverStats.GambaInProgress = true;
                                 serverStats.TharCoins -= slots;
-                                db.UpsertRecord("UserProfiles", Context.User.Id, userProfile);
+                                await db.UpsertRecordAsync("UserProfiles", Context.User.Id, userProfile);
 
                                 var embed = await EmbedHandler.CreateBasicEmbed(embedTitle,
                                         $"{EmoteHandler.Blank}{EmoteHandler.BoxDownRight}{EmoteHandler.BoxLeftRight}{EmoteHandler.BoxLeftDownRight}{EmoteHandler.BoxLeftRight}{EmoteHandler.BoxLeftDownRight}{EmoteHandler.BoxLeftRight}{EmoteHandler.BoxLeftDown}\n" +
@@ -279,7 +279,7 @@ namespace TharBot.Commands
                                 embed = await EmbedHandler.CreateBasicEmbed(embedTitle, regex.Replace(embed.Description, resultEmojis[2].Name, 1));
                                 await slotsMsg.ModifyAsync(x => x.Embed = embed);
 
-                                userProfile = db.LoadRecordById<GameUser>("UserProfiles", Context.User.Id);
+                                userProfile = await db.LoadRecordByIdAsync<GameUser>("UserProfiles", Context.User.Id);
                                 serverStats = userProfile.Servers.Where(x => x.ServerId == Context.Guild.Id).FirstOrDefault();
 
                                 if (userProfile.UserId == 966367996408905768 || userProfile.UserId == 985805083423952936)
@@ -292,7 +292,7 @@ namespace TharBot.Commands
                                     serverStats.GambaInProgress = false;
                                     await slotsMsg.ModifyAsync(x => x.Embed = winnerEmbed.Build());
 
-                                    db.UpsertRecord("UserProfiles", Context.User.Id, userProfile);
+                                    await db.UpsertRecordAsync("UserProfiles", Context.User.Id, userProfile);
                                     return;
                                 }
 
@@ -306,7 +306,7 @@ namespace TharBot.Commands
                                     serverStats.GambaInProgress = false;
                                     await slotsMsg.ModifyAsync(x => x.Embed = winnerEmbed.Build());
 
-                                    db.UpsertRecord("UserProfiles", Context.User.Id, userProfile);
+                                    await db.UpsertRecordAsync("UserProfiles", Context.User.Id, userProfile);
                                 }
                                 else if (resultEmojis[0].Name == resultEmojis[1].Name || resultEmojis[1].Name == resultEmojis[2].Name || resultEmojis[0].Name == resultEmojis[2].Name)
                                 {
@@ -318,7 +318,7 @@ namespace TharBot.Commands
                                     serverStats.GambaInProgress = false;
                                     await slotsMsg.ModifyAsync(x => x.Embed = winnerEmbed.Build());
 
-                                    db.UpsertRecord("UserProfiles", Context.User.Id, userProfile);
+                                    await db.UpsertRecordAsync("UserProfiles", Context.User.Id, userProfile);
                                 }
                                 else
                                 {
@@ -329,7 +329,7 @@ namespace TharBot.Commands
                                     serverStats.GambaInProgress = false;
                                     await slotsMsg.ModifyAsync(x => x.Embed = loserEmbed.Build());
 
-                                    db.UpsertRecord("UserProfiles", Context.User.Id, userProfile);
+                                    await db.UpsertRecordAsync("UserProfiles", Context.User.Id, userProfile);
                                 }
                             }
                         }

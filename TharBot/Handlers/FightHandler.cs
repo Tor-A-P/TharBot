@@ -35,7 +35,7 @@ namespace TharBot.Handlers
 
             try
             {
-                var fight = db.LoadRecordById<GameFight>("ActiveFights", reaction.MessageId);
+                var fight = await db.LoadRecordByIdAsync<GameFight>("ActiveFights", reaction.MessageId);
                 var chan = await Client.GetChannelAsync(channel.Id) as IMessageChannel;
                 IUserMessage? msg = message.HasValue ? message.Value : await chan.GetMessageAsync(message.Id) as IUserMessage;
 
@@ -43,14 +43,14 @@ namespace TharBot.Handlers
                 {
                     if (reaction.UserId != fight.UserId) return;
                     var prefix = "";
-                    var serverSettings = db.LoadRecordById<ServerSpecifics>("ServerSpecifics", fight.ServerId);
+                    var serverSettings = await db.LoadRecordByIdAsync<ServerSpecifics>("ServerSpecifics", fight.ServerId);
                     if (serverSettings.Prefix != null) prefix = serverSettings.Prefix;
                     else prefix = _configuration["Prefix"];
 
                     var coinReward = fight.Enemy.Level * 50;
                     var expReward = fight.Enemy.Level * 20;
                     await msg.RemoveReactionAsync(reaction.Emote, reaction.UserId);
-                    var userProfile = db.LoadRecordById<GameUser>("UserProfiles", fight.UserId);
+                    var userProfile = await db.LoadRecordByIdAsync<GameUser>("UserProfiles", fight.UserId);
                     var serverStats = userProfile.Servers.Where(x => x.ServerId == fight.ServerId).FirstOrDefault();
                     var user = Client.GetUser(fight.UserId);
                     fight.TurnNumber++;
@@ -123,8 +123,8 @@ namespace TharBot.Handlers
                                 DoTDuration = 0,
                                 DoTStrength = 0
                             };
-                            db.DeleteRecord<GameFight>("ActiveFights", reaction.MessageId);
-                            db.UpsertRecord("UserProfiles", fight.UserId, userProfile);
+                            await db.DeleteRecordAsync<GameFight>("ActiveFights", reaction.MessageId);
+                            await db.UpsertRecordAsync("UserProfiles", fight.UserId, userProfile);
                             return;
                         }
                     }
@@ -151,8 +151,8 @@ namespace TharBot.Handlers
                             DoTDuration = 0,
                             DoTStrength = 0
                         };
-                        db.DeleteRecord<GameFight>("ActiveFights", reaction.MessageId);
-                        db.UpsertRecord("UserProfiles", fight.UserId, userProfile);
+                        await db.DeleteRecordAsync<GameFight>("ActiveFights", reaction.MessageId);
+                        await db.UpsertRecordAsync("UserProfiles", fight.UserId, userProfile);
                         return;
                     }
 
@@ -164,8 +164,8 @@ namespace TharBot.Handlers
                     fight.Enemy.Debuffs.StunDuration--;
                     fight.Enemy.Debuffs.DoTDuration--;
                     fight.Enemy.Debuffs.HoTDuration--;
-                    db.UpsertRecord("ActiveFights", reaction.MessageId, fight);
-                    db.UpsertRecord("UserProfiles", fight.UserId, userProfile);
+                    await db.UpsertRecordAsync("ActiveFights", reaction.MessageId, fight);
+                    await db.UpsertRecordAsync("UserProfiles", fight.UserId, userProfile);
                 }
                 else
                 {

@@ -39,7 +39,7 @@ namespace TharBot.Handlers
 
         public async void PollHandling(object? source, ElapsedEventArgs e)
         {
-            var serverSpecifics = db.LoadRecords<ServerSpecifics>("ServerSpecifics");
+            var serverSpecifics = await db.LoadRecordsAsync<ServerSpecifics>("ServerSpecifics");
 
             foreach (var server in serverSpecifics)
             {
@@ -96,7 +96,7 @@ namespace TharBot.Handlers
                                                .AddField("😡 answers:", resultsCount[5]);
 
                                 var forGuildId = await Client.GetChannelAsync(poll.ChannelId) as SocketGuildChannel;
-                                var resultsChannelSettings = db.LoadRecordById<ServerSpecifics>("ServerSpecifics", forGuildId.Guild.Id).PCResultsChannel;
+                                var resultsChannelSettings = (await db.LoadRecordByIdAsync<ServerSpecifics>("ServerSpecifics", forGuildId.Guild.Id)).PCResultsChannel;
                                 if (resultsChannelSettings != null)
                                 {
                                     var chan = await Client.GetChannelAsync((ulong)resultsChannelSettings) as IMessageChannel;
@@ -217,22 +217,21 @@ namespace TharBot.Handlers
                     }
                 }
             }
-
         }
 
-        public void RemovePoll(ServerSpecifics? server, Poll? poll)
+        public async void RemovePoll(ServerSpecifics? server, Poll? poll)
         {
-            server = db.LoadRecordById<ServerSpecifics>("ServerSpecifics", server.ServerId);
+            server = await db.LoadRecordByIdAsync<ServerSpecifics>("ServerSpecifics", server.ServerId);
             poll = server.Polls.Where(x => x.MessageId == poll.MessageId).FirstOrDefault();
             server.Polls.Remove(poll);
-            db.UpsertRecord("ServerSpecifics", server.ServerId, server);
+            await db.UpsertRecordAsync("ServerSpecifics", server.ServerId, server);
         }
 
         public async void ReminderHandling(object? source, ElapsedEventArgs e)
         {
             try
             {
-                var serverSpecifics = db.LoadRecords<ServerSpecifics>("ServerSpecifics");
+                var serverSpecifics = await db.LoadRecordsAsync<ServerSpecifics>("ServerSpecifics");
 
                 foreach (var server in serverSpecifics)
                 {
@@ -243,9 +242,8 @@ namespace TharBot.Handlers
                             var channel = await Client.GetChannelAsync(reminder.ChannelId) as IMessageChannel;
                             var user = await Client.GetUserAsync(reminder.UserId);
 
-                            server.Reminders.Remove(reminder);
-                            db.UpsertRecord("ServerSpecifics", server.ServerId, server);
                             await channel.SendMessageAsync($"Reminder, {user.Mention}: {reminder.ReminderText}");
+                            RemoveReminder(server, reminder);
                         }
                     }
                 }
@@ -256,9 +254,17 @@ namespace TharBot.Handlers
             }
         }
 
+        public async void RemoveReminder(ServerSpecifics? server, Reminders? reminder)
+        {
+            server = await db.LoadRecordByIdAsync<ServerSpecifics>("ServerSpecifics", server.ServerId);
+            reminder = server.Reminders.Where(x => x.Id == reminder.Id).FirstOrDefault();
+            server.Reminders.Remove(reminder);
+            await db.UpsertRecordAsync("ServerSpecifics", server.ServerId, server);
+        }
+
         public async void DailyPCHandling(object? source, ElapsedEventArgs e)
         {
-            var serverSpecifics = db.LoadRecords<ServerSpecifics>("ServerSpecifics");
+            var serverSpecifics = await db.LoadRecordsAsync<ServerSpecifics>("ServerSpecifics");
             foreach (var server in serverSpecifics)
             {
                 if (server.DailyPC == null) return;
@@ -316,7 +322,7 @@ namespace TharBot.Handlers
                             };
                             server.Polls.Add(newPoll);
                             server.DailyPC.LastTimeRun = DateTime.UtcNow;
-                            db.UpsertRecord("ServerSpecifics", server.ServerId, server);
+                            await db.UpsertRecordAsync("ServerSpecifics", server.ServerId, server);
 
                             foreach (var emoji in emojis)
                             {
@@ -335,7 +341,7 @@ namespace TharBot.Handlers
 
         public async void GameHandling(object? source, ElapsedEventArgs e)
         {
-            var userProfiles = db.LoadRecords<GameUser>("UserProfiles");
+            var userProfiles = await db.LoadRecordsAsync<GameUser>("UserProfiles");
 
             if (userProfiles == null) return;
 
@@ -350,13 +356,13 @@ namespace TharBot.Handlers
                     if (serverStats.CurrentHP > serverStats.BaseHP) serverStats.CurrentHP = serverStats.BaseHP;
                     if (serverStats.CurrentMP > serverStats.BaseMP) serverStats.CurrentMP = serverStats.BaseMP;
                 }
-                db.UpsertRecord("UserProfiles", userProfile.UserId, userProfile);
+                await db.UpsertRecordAsync("UserProfiles", userProfile.UserId, userProfile);
             }
         }
 
         public async void FightOverHandling(object? source, ElapsedEventArgs e)
         {
-            var activeFights = db.LoadRecords<GameFight>("ActiveFights");
+            var activeFights = await db.LoadRecordsAsync<GameFight>("ActiveFights");
 
             foreach (var fight in activeFights)
             {
@@ -369,7 +375,7 @@ namespace TharBot.Handlers
                             var embed = msg.Embeds.FirstOrDefault();
                             if (embed != null)
                             {
-                                var userProfile = db.LoadRecordById<GameUser>("UserProfiles", fight.UserId);
+                                var userProfile = await db.LoadRecordByIdAsync<GameUser>("UserProfiles", fight.UserId);
                                 var serverStats = userProfile.Servers.Where(x => x.ServerId == fight.ServerId).FirstOrDefault();
                                 var user = await Client.GetUserAsync(fight.UserId);
                                 var builder = embed.ToEmbedBuilder();
@@ -385,8 +391,8 @@ namespace TharBot.Handlers
                                     DoTDuration = 0,
                                     DoTStrength = 0
                                 };
-                                db.DeleteRecord<GameFight>("ActiveFights", fight.MessageId);
-                                db.UpsertRecord("UserProfiles", userProfile.UserId, userProfile);
+                                await db.DeleteRecordAsync<GameFight>("ActiveFights", fight.MessageId);
+                                await db.UpsertRecordAsync("UserProfiles", userProfile.UserId, userProfile);
                             }
                         }
                     }
@@ -398,7 +404,7 @@ namespace TharBot.Handlers
         {
             try
             {
-                var serverSpecifics = db.LoadRecords<ServerSpecifics>("ServerSpecifics");
+                var serverSpecifics = await db.LoadRecordsAsync<ServerSpecifics>("ServerSpecifics");
 
                 foreach (var server in serverSpecifics)
                 {
@@ -417,8 +423,7 @@ namespace TharBot.Handlers
                                         await msg.RemoveAllReactionsAsync();
                                     }
                                 }
-                                server.AttributeDialogs.Remove(dialog);
-                                db.UpsertRecord("ServerSpecifics", server.ServerId, server);
+                                RemoveAttributeDialog(server, dialog);
                             }
                         }
                         catch (Exception ex)
@@ -434,6 +439,13 @@ namespace TharBot.Handlers
             {
                 await LoggingHandler.LogCriticalAsync("Bot", null, ex);
             }
+        }
+        public async void RemoveAttributeDialog(ServerSpecifics? server, GameAttributeDialog? attributeDialog)
+        {
+            server = await db.LoadRecordByIdAsync<ServerSpecifics>("ServerSpecifics", server.ServerId);
+            attributeDialog = server.AttributeDialogs.Where(x => x.MessageId == attributeDialog.MessageId).FirstOrDefault();
+            server.AttributeDialogs.Remove(attributeDialog);
+            await db.UpsertRecordAsync("ServerSpecifics", server.ServerId, server);
         }
     }
 }

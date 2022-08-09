@@ -53,7 +53,7 @@ namespace TharBot.Commands
 
             var pulsecheck = await ReplyAsync(embed: embed);
 
-            var serverSpecifics = db.LoadRecordById<ServerSpecifics>("ServerSpecifics", Context.Guild.Id);
+            var serverSpecifics = await db.LoadRecordByIdAsync<ServerSpecifics>("ServerSpecifics", Context.Guild.Id);
             if (serverSpecifics.Polls != null)
             {
                 var activePoll = serverSpecifics.Polls.Where(x => x.MessageId == pulsecheck.Id).FirstOrDefault();
@@ -81,7 +81,7 @@ namespace TharBot.Commands
                     CompletionTime = DateTime.UtcNow + TimeSpan.FromMinutes((double)duration)
                 };
                 serverSpecifics.Polls.Add(newPoll);
-                db.UpsertRecord("ServerSpecifics", Context.Guild.Id, serverSpecifics);
+                await db.UpsertRecordAsync("ServerSpecifics", Context.Guild.Id, serverSpecifics);
 
                 foreach (var emoji in emojis)
                 {
@@ -90,7 +90,7 @@ namespace TharBot.Commands
 
                 //await Task.Delay(duration.Value * 60000);
 
-                //var movePoll = db.LoadRecordById<Poll>("ActivePolls", newPoll.MessageId);
+                //var movePoll = await db.LoadRecordByIdAsync<Poll>("ActivePolls", newPoll.MessageId);
                 //db.InsertRecord("InactivePolls", movePoll);
 
                 //int[] resultsCount =
@@ -134,7 +134,7 @@ namespace TharBot.Commands
                 //               .AddField("😢 answers:", resultsCount[4])
                 //               .AddField("😡 answers:", resultsCount[5]);
 
-                //var serverSettings = db.LoadRecordById<ServerSpecifics>("ServerSpecifics", Context.Guild.Id);
+                //var serverSettings = await db.LoadRecordByIdAsync<ServerSpecifics>("ServerSpecifics", Context.Guild.Id);
                 //if (serverSettings.PCResultsChannel != null)
                 //{
                 //    var chan = await _client.GetChannelAsync((ulong)serverSettings.PCResultsChannel) as IMessageChannel;
@@ -146,7 +146,7 @@ namespace TharBot.Commands
                 //    await chan.SendMessageAsync(embed: resultsEmbed.Build());
                 //}
 
-                //db.DeleteRecord<Poll>("ActivePolls", newPoll.MessageId);
+                //await db.DeleteRecordAsync<Poll>("ActivePolls", newPoll.MessageId);
 
                 //var getChannel = await _client.GetChannelAsync(newPoll.ChannelId) as IMessageChannel;
                 //var msg = await getChannel.GetMessageAsync(newPoll.MessageId);

@@ -33,7 +33,7 @@ namespace TharBot.Commands
         [RequireOwner]
         public async Task StunMeAsync(int rounds = 1)
         {
-            var userProfile = db.LoadRecordById<GameUser>("UserProfiles", Context.User.Id);
+            var userProfile = await db.LoadRecordByIdAsync<GameUser>("UserProfiles", Context.User.Id);
             if (userProfile == null)
             {
                 var noServerProfEmbed = await EmbedHandler.CreateUserErrorEmbed("Could not find user profile", "It seems you have no profile on this server, try sending a message (not a command) and then use this command again!");
@@ -48,7 +48,7 @@ namespace TharBot.Commands
                 return;
             }
             serverStats.Debuffs.StunDuration = rounds;
-            db.UpsertRecord("UserProfiles", Context.User.Id, userProfile);
+            await db.UpsertRecordAsync("UserProfiles", Context.User.Id, userProfile);
             var embed = await EmbedHandler.CreateBasicEmbed("Stunned you!", $"Stunned you for {rounds} rounds.");
             await ReplyAsync(embed: embed);
         }
@@ -60,7 +60,7 @@ namespace TharBot.Commands
         public async Task HealMeAsync()
         {
             await Task.Delay(2000);
-            var userProfile = db.LoadRecordById<GameUser>("UserProfiles", Context.User.Id);
+            var userProfile = await db.LoadRecordByIdAsync<GameUser>("UserProfiles", Context.User.Id);
             if (userProfile == null)
             {
                 var noServerProfEmbed = await EmbedHandler.CreateUserErrorEmbed("Could not find user profile", "It seems you have no profile on this server, try sending a message (not a command) and then use this command again!");
@@ -75,7 +75,7 @@ namespace TharBot.Commands
                 return;
             }
             serverStats.CurrentHP = serverStats.BaseHP;
-            db.UpsertRecord("UserProfiles", Context.User.Id, userProfile);
+            await db.UpsertRecordAsync("UserProfiles", Context.User.Id, userProfile);
             var embed = await EmbedHandler.CreateBasicEmbed("Healed you!", "Returned you to full base health!");
             await ReplyAsync(embed: embed);
         }

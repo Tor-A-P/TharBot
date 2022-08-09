@@ -24,7 +24,7 @@ namespace TharBot.Commands
         {
             var db = new MongoCRUDHandler("TharBot", _config);
 
-            var banlist = db.LoadRecords<BannedUser>("UserBanlist");
+            var banlist = await db.LoadRecordsAsync<BannedUser>("UserBanlist");
             var embed = await EmbedHandler.CreateBasicEmbedBuilder("Users banned from using TharBot");
             if (banlist.Count > 0)
             {

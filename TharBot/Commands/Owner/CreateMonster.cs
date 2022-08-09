@@ -24,7 +24,7 @@ namespace TharBot.Commands
         {
             try
             {
-                var oldMon = db.LoadRecordById<GameMonster>("MonsterList", name);
+                var oldMon = await db.LoadRecordByIdAsync<GameMonster>("MonsterList", name);
                 if (oldMon != null)
                 {
                     var monsterExistsEmbed = await EmbedHandler.CreateUserErrorEmbed("Monster exists already!", $"There's already a monster named {name} in the database, be more creative!");
@@ -46,7 +46,7 @@ namespace TharBot.Commands
                         Luck = luk
                     }
                 };
-                db.InsertRecord("MonsterList", newMon);
+                await db.InsertRecordAsync("MonsterList", newMon);
                 var monsterAddedEmbed = await EmbedHandler.CreateBasicEmbed($"Added monster \"{name}\" to the database",
                     $"{name} can be encountered after level {minLevel}, and has the following stats:\n" +
                     $"Strength: {str}\n" +

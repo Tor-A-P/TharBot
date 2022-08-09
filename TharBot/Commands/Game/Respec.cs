@@ -27,7 +27,7 @@ namespace TharBot.Commands.Game
         {
             try
             {
-                var serverSettings = db.LoadRecordById<ServerSpecifics>("ServerSpecifics", Context.Guild.Id);
+                var serverSettings = await db.LoadRecordByIdAsync<ServerSpecifics>("ServerSpecifics", Context.Guild.Id);
                 if (serverSettings.GameWLChannelId != null)
                 {
                     if (serverSettings.GameWLChannelId.Any())
@@ -44,7 +44,7 @@ namespace TharBot.Commands.Game
                     }
                 }
 
-                var userProfile = db.LoadRecordById<GameUser>("UserProfiles", Context.User.Id);
+                var userProfile = await db.LoadRecordByIdAsync<GameUser>("UserProfiles", Context.User.Id);
                 if (userProfile == null)
                 {
                     var noServerProfEmbed = await EmbedHandler.CreateUserErrorEmbed("Could not find user profile", "It seems you have no profile on this server, try sending a message (not a command) and then use this command again!");
@@ -93,7 +93,7 @@ namespace TharBot.Commands.Game
                         serverStats.CurrentHP += GameServerStats.ConstitutionHPBonus * constitution;
                         if (serverStats.CurrentHP > serverStats.BaseHP) serverStats.CurrentHP = serverStats.BaseHP;
 
-                        db.UpsertRecord("UserProfiles", userProfile.UserId, userProfile);
+                        await db.UpsertRecordAsync("UserProfiles", userProfile.UserId, userProfile);
 
                         string? currentPrefix;
 

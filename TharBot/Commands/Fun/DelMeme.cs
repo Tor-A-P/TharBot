@@ -24,7 +24,7 @@ namespace TharBot.Commands
         [Remarks("Fun")]
         public async Task DelMemeAsync(string cmdName)
         {
-            var serverSettings = db.LoadRecordById<ServerSpecifics>("ServerSpecifics", Context.Guild.Id);
+            var serverSettings = await db.LoadRecordByIdAsync<ServerSpecifics>("ServerSpecifics", Context.Guild.Id);
 
             if (serverSettings.Memes == null)
             {
@@ -41,7 +41,7 @@ namespace TharBot.Commands
             else
             {
                 serverSettings.Memes.Remove(cmdName);
-                db.UpsertRecord("ServerSpecifics", Context.Guild.Id, serverSettings);
+                await db.UpsertRecordAsync("ServerSpecifics", Context.Guild.Id, serverSettings);
 
                 var embed = await EmbedHandler.CreateBasicEmbed($"{cmdName} removed!", $"Removed custom command named {cmdName}");
                 await ReplyAsync(embed: embed);

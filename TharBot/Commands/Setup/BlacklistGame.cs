@@ -28,7 +28,7 @@ namespace TharBot.Commands
             {
                 if (channelId == 0) channelId = Context.Channel.Id;
 
-                var serverSettings = db.LoadRecordById<ServerSpecifics>("ServerSpecifics", Context.Guild.Id);
+                var serverSettings = await db.LoadRecordByIdAsync<ServerSpecifics>("ServerSpecifics", Context.Guild.Id);
                 var existingWL = serverSettings.GameWLChannelId;
 
                 if (existingWL != null)
@@ -46,21 +46,21 @@ namespace TharBot.Commands
                 {
                     var channelIdList = new List<ulong> { channelId };
                     serverSettings.GameBLChannelId = channelIdList;
-                    db.UpsertRecord("ServerSpecifics", Context.Guild.Id, serverSettings);
+                    await db.UpsertRecordAsync("ServerSpecifics", Context.Guild.Id, serverSettings);
                     var embed = await EmbedHandler.CreateBasicEmbed("Channel blacklisted for games", $"Blacklisted channel #{Context.Client.GetChannel(channelId)} for games.");
                     await ReplyAsync(embed: embed);
                 }
                 else if (serverSettings.GameBLChannelId.Contains(channelId))
                 {
                     serverSettings.GameBLChannelId.Remove(channelId);
-                    db.UpsertRecord("ServerSpecifics", Context.Guild.Id, serverSettings);
+                    await db.UpsertRecordAsync("ServerSpecifics", Context.Guild.Id, serverSettings);
                     var embed = await EmbedHandler.CreateBasicEmbed("Channel removed from blacklist for games.", $"Removed channel #{Context.Client.GetChannel(channelId)} from the blacklist for games.");
                     await ReplyAsync(embed: embed);
                 }
                 else
                 {
                     serverSettings.GameBLChannelId.Add(channelId);
-                    db.UpsertRecord("ServerSpecifics", Context.Guild.Id, serverSettings);
+                    await db.UpsertRecordAsync("ServerSpecifics", Context.Guild.Id, serverSettings);
                     var embed = await EmbedHandler.CreateBasicEmbed("Channel blacklisted for games", $"Blacklisted channel #{Context.Client.GetChannel(channelId)} for games.");
                     await ReplyAsync(embed: embed);
                 }

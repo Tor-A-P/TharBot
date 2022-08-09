@@ -54,7 +54,7 @@ namespace TharBot.Handlers
                 if (!pollEmojis.Contains(reaction.Emote)) return;
 
                 var forGuildId = await Client.GetChannelAsync(reaction.Channel.Id) as SocketGuildChannel;
-                var serverSpecifics = db.LoadRecordById<ServerSpecifics>("ServerSpecifics", forGuildId.Guild.Id);
+                var serverSpecifics = await db.LoadRecordByIdAsync<ServerSpecifics>("ServerSpecifics", forGuildId.Guild.Id);
 
                 if (serverSpecifics.Polls == null) return;
 
@@ -85,7 +85,7 @@ namespace TharBot.Handlers
 
                         if (emoji.Name == "😢" || emoji.Name == "😡")
                         {
-                            var resultsChannelSettings = db.LoadRecordById<ServerSpecifics>("ServerSpecifics", forGuildId.Guild.Id).PCResultsChannel;
+                            var resultsChannelSettings = (await db.LoadRecordByIdAsync<ServerSpecifics>("ServerSpecifics", forGuildId.Guild.Id)).PCResultsChannel;
                             if (resultsChannelSettings != null)
                             {
                                 var responseChan = await Client.GetChannelAsync((ulong)resultsChannelSettings) as IMessageChannel;
@@ -112,7 +112,7 @@ namespace TharBot.Handlers
 
                             if (emoji.Name == "😢" || emoji.Name == "😡")
                             {
-                                var resultsChannelSettings = db.LoadRecordById<ServerSpecifics>("ServerSpecifics", forGuildId.Guild.Id).PCResultsChannel;
+                                var resultsChannelSettings = (await db.LoadRecordByIdAsync<ServerSpecifics>("ServerSpecifics", forGuildId.Guild.Id)).PCResultsChannel;
                                 if (resultsChannelSettings != null)
                                 {
                                     var responseChan = await Client.GetChannelAsync((ulong)resultsChannelSettings) as IMessageChannel;
@@ -127,7 +127,7 @@ namespace TharBot.Handlers
                         }
                     }
 
-                    db.UpsertRecord("ServerSpecifics", serverSpecifics.ServerId, serverSpecifics);
+                    await db.UpsertRecordAsync("ServerSpecifics", serverSpecifics.ServerId, serverSpecifics);
                 }
             }
             catch (Exception ex)
@@ -157,7 +157,7 @@ namespace TharBot.Handlers
                 var chan = await Client.GetChannelAsync(channel.Id) as IMessageChannel;
                 IUserMessage? msg = message.HasValue ? message.Value : await chan.GetMessageAsync(message.Id) as IUserMessage;
 
-                var serverSpecifics = db.LoadRecordById<ServerSpecifics>("ServerSpecifics", forGuildId.Guild.Id);
+                var serverSpecifics = await db.LoadRecordByIdAsync<ServerSpecifics>("ServerSpecifics", forGuildId.Guild.Id);
                 if (serverSpecifics.AttributeDialogs == null) return;
                 var attributeDialog = serverSpecifics.AttributeDialogs.Where(x => x.MessageId == message.Id).FirstOrDefault();
                 
@@ -166,7 +166,7 @@ namespace TharBot.Handlers
                 {
                     if (reaction.UserId != attributeDialog.UserId) return;
                     var user = await Client.GetUserAsync(attributeDialog.UserId) as SocketUser;
-                    var userProfile = db.LoadRecordById<GameUser>("UserProfiles", attributeDialog.UserId);
+                    var userProfile = await db.LoadRecordByIdAsync<GameUser>("UserProfiles", attributeDialog.UserId);
                     var serverStats = userProfile.Servers.Where(x => x.ServerId == attributeDialog.ServerId).FirstOrDefault();
                     var attributeAddedText = "";
 
@@ -209,7 +209,7 @@ namespace TharBot.Handlers
                             attributeAddedText = $"{EmoteHandler.Luck}You increased your Luck by 1!{EmoteHandler.Luck}";
                         }
                     }
-                    db.UpsertRecord("UserProfiles", attributeDialog.UserId, userProfile);
+                    await db.UpsertRecordAsync("UserProfiles", attributeDialog.UserId, userProfile);
                     await msg.RemoveReactionAsync(reaction.Emote, reaction.UserId);
                     var showAttributesEmbed = await EmbedHandler.CreateAttributeEmbedBuilder(serverStats, user);
                     showAttributesEmbed.AddField("­", attributeAddedText);

@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.Configuration;
 using MongoDB.Bson;
 using MongoDB.Driver;
+using TharBot.DBModels;
 
 namespace TharBot.Handlers
 {
@@ -16,130 +17,99 @@ namespace TharBot.Handlers
             _db = client.GetDatabase(database);
         }
 
-        public void InsertRecord<T>(string table, T record)
+        public async Task InsertRecordAsync<T>(string table, T record)
         {
             try
             {
                 var collection = _db.GetCollection<T>(table);
-                collection.InsertOne(record);
+                await collection.InsertOneAsync(record);
             }
             catch (Exception ex)
             {
-                LoggingHandler.LogCriticalAsync("database", null, ex);
+                await LoggingHandler.LogCriticalAsync("database", null, ex);
             }
         }
 
-        public List<T>? LoadRecords<T>(string table)
+        public async Task<List<T>>? LoadRecordsAsync<T>(string table)
         {
             try
             {
                 var collection = _db.GetCollection<T>(table);
-                return collection.Find(new BsonDocument()).ToList();
+                return await collection.Find(x => true).ToListAsync();
             }
             catch (Exception ex)
             {
-                LoggingHandler.LogCriticalAsync("database", null, ex);
+                await LoggingHandler.LogCriticalAsync("database", null, ex);
                 return null;
             }
         }
 
-        public T? LoadRecordById<T>(string table, ulong id)
+        public async Task<T>? LoadRecordByIdAsync<T>(string table, ulong id)
         {
             try
             {
                 var collection = _db.GetCollection<T>(table);
                 var filter = Builders<T>.Filter.Eq("_id", id);
 
-                return collection.Find(filter).FirstOrDefault();
+                return await collection.Find(filter).FirstOrDefaultAsync();
             }
             catch (Exception ex)
             {
-                LoggingHandler.LogCriticalAsync("database", null, ex);
+                await LoggingHandler.LogCriticalAsync("database", null, ex);
                 return default;
             }
         }
-
-        public T? LoadRecordById<T>(string table, Guid id)
+        
+        public async Task<T>? LoadRecordByIdAsync<T>(string table, string id)
         {
             try
             {
                 var collection = _db.GetCollection<T>(table);
                 var filter = Builders<T>.Filter.Eq("_id", id);
 
-                return collection.Find(filter).FirstOrDefault();
+                return await collection.Find(filter).FirstOrDefaultAsync();
             }
             catch (Exception ex)
             {
-                LoggingHandler.LogCriticalAsync("database", null, ex);
+                await LoggingHandler.LogCriticalAsync("database", null, ex);
                 return default;
             }
         }
 
-        public T? LoadRecordById<T>(string table, string id)
+        //public async Task UpsertRecord<T>(string table, ulong id, UpdateDefinition<T> update, UpdateOptions options = null)
+        //{
+        //    var collection = _db.GetCollection<T>(table);
+        //    //await collection.UpdateOneAsync(filter, update, options);
+        //    if (options == null) options = new UpdateOptions { IsUpsert = true };
+        //    UpdateResult updateResult;
+        //    do
+        //    {
+        //        var filter = Builders<T>.Filter.Eq("_id", id);
+        //        var document = await collection.Find(filter).SingleAsync();
+        //        filter = Builders<T>.Filter.And(
+        //            Builders<T>.Filter.Eq("_id", id),
+        //            Builders<T>.Filter.Eq("TimeStamp", document.TimeStamp));
+        //        updateResult = await collection.UpdateOneAsync(filter, update, options); // Update the document only if the timestamp is the same
+        //    } while (updateResult.ModifiedCount == 0);
+        //}
+
+        public async Task UpsertRecordAsync<T>(string table, ulong id, T record)
         {
             try
             {
                 var collection = _db.GetCollection<T>(table);
-                var filter = Builders<T>.Filter.Eq("_id", id);
-
-                return collection.Find(filter).FirstOrDefault();
-            }
-            catch (Exception ex)
-            {
-                LoggingHandler.LogCriticalAsync("database", null, ex);
-                return default;
-            }
-        }
-
-        public void UpsertRecord<T>(string table, ulong id, T record)
-        {
-            try
-            {
-                var collection = _db.GetCollection<T>(table);
-                collection.ReplaceOne(
+                await collection.ReplaceOneAsync(
                     new BsonDocument("_id", (decimal)id),
                     record,
                     new ReplaceOptions { IsUpsert = true });
             }
             catch (Exception ex)
             {
-                LoggingHandler.LogCriticalAsync("database", null, ex);
+                await LoggingHandler.LogCriticalAsync("database", null, ex);
             }
         }
 
-        public void UpsertRecord<T>(string table, Guid id, T record)
-        {
-            try
-            {
-                var collection = _db.GetCollection<T>(table);
-                collection.ReplaceOne(
-                    new BsonDocument("_id", id),
-                    record,
-                    new ReplaceOptions { IsUpsert = true });
-            }
-            catch (Exception ex)
-            {
-                LoggingHandler.LogCriticalAsync("database", null, ex);
-            }
-        }
-
-        public void UpsertRecord<T>(string table, string id, T record)
-        {
-            try
-            {
-                var collection = _db.GetCollection<T>(table);
-                collection.ReplaceOne(
-                    new BsonDocument("_id", id),
-                    record,
-                    new ReplaceOptions { IsUpsert = true });
-            }
-            catch (Exception ex)
-            {
-                LoggingHandler.LogCriticalAsync("database", null, ex);
-            }
-        }
-
-        public void DeleteRecord<T>(string table, ulong id)
+        public async Task DeleteRecordAsync<T>(string table, ulong id)
         {
             try
             {
@@ -150,37 +120,7 @@ namespace TharBot.Handlers
             }
             catch (Exception ex)
             {
-                LoggingHandler.LogCriticalAsync("database", null, ex);
-            }
-        }
-
-        public void DeleteRecord<T>(string table, Guid id)
-        {
-            try
-            {
-                var collection = _db.GetCollection<T>(table);
-                var filter = Builders<T>.Filter.Eq("_id", id);
-
-                collection.DeleteOne(filter);
-            }
-            catch (Exception ex)
-            {
-                LoggingHandler.LogCriticalAsync("database", null, ex);
-            }
-        }
-
-        public void DeleteRecord<T>(string table, string id)
-        {
-            try
-            {
-                var collection = _db.GetCollection<T>(table);
-                var filter = Builders<T>.Filter.Eq("_id", id);
-
-                collection.DeleteOne(filter);
-            }
-            catch (Exception ex)
-            {
-                LoggingHandler.LogCriticalAsync("database", null, ex);
+                await LoggingHandler.LogCriticalAsync("database", null, ex);
             }
         }
     }

@@ -43,7 +43,7 @@ namespace TharBot.Commands
             {
                 if (type == "")
                 {
-                    var serverSettings = db.LoadRecordById<ServerSpecifics>("ServerSpecifics", Context.Guild.Id);
+                    var serverSettings = await db.LoadRecordByIdAsync<ServerSpecifics>("ServerSpecifics", Context.Guild.Id);
                     var existingRec = serverSettings.BLChannelId;
 
                     if (existingRec == null)
@@ -81,7 +81,7 @@ namespace TharBot.Commands
                         else if (flag.ToLower() == "clear")
                         {
                             existingRec.Clear();
-                            db.UpsertRecord("ServerSpecifics", Context.Guild.Id, serverSettings);
+                            await db.UpsertRecordAsync("ServerSpecifics", Context.Guild.Id, serverSettings);
 
                             var BLClearEmbed = await EmbedHandler.CreateBasicEmbed("Blacklist cleared!", $"Cleared blacklist for {Context.Guild.Name}");
                             await ReplyAsync(embed: BLClearEmbed);
@@ -90,7 +90,7 @@ namespace TharBot.Commands
                 }
                 else
                 {
-                    var serverSettings = db.LoadRecordById<ServerSpecifics>("ServerSpecifics", Context.Guild.Id);
+                    var serverSettings = await db.LoadRecordByIdAsync<ServerSpecifics>("ServerSpecifics", Context.Guild.Id);
                     var existingRec = serverSettings.GameBLChannelId;
 
                     if (existingRec == null)
@@ -128,7 +128,7 @@ namespace TharBot.Commands
                         else if (flag.ToLower() == "clear")
                         {
                             existingRec.Clear();
-                            db.UpsertRecord("ServerSpecifics", Context.Guild.Id, serverSettings);
+                            await db.UpsertRecordAsync("ServerSpecifics", Context.Guild.Id, serverSettings);
 
                             var GameBLClearEmbed = await EmbedHandler.CreateBasicEmbed("Blacklist for games cleared!", $"Cleared game command blacklist for {Context.Guild.Name}");
                             await ReplyAsync(embed: GameBLClearEmbed);

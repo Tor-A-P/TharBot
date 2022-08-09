@@ -29,7 +29,7 @@ namespace TharBot.Commands
         {
             try
             {
-                var serverSettings = db.LoadRecordById<ServerSpecifics>("ServerSpecifics", Context.Guild.Id);
+                var serverSettings = await db.LoadRecordByIdAsync<ServerSpecifics>("ServerSpecifics", Context.Guild.Id);
                 string? prefix;
                 if (serverSettings.Prefix != null) prefix = serverSettings.Prefix;
                 else prefix = _config["Prefix"];
@@ -80,7 +80,7 @@ namespace TharBot.Commands
                     {
                         { cmdName, output }
                     };
-                    db.UpsertRecord("ServerSpecifics", Context.Guild.Id, serverSettings);
+                    await db.UpsertRecordAsync("ServerSpecifics", Context.Guild.Id, serverSettings);
 
                     var embed = await EmbedHandler.CreateBasicEmbed($"Command {cmdName} created!", $"Type {prefix}{cmdName} to use it.");
                     await ReplyAsync(embed: embed);
@@ -93,7 +93,7 @@ namespace TharBot.Commands
                 else
                 {
                     serverSettings.Memes.Add(cmdName, output);
-                    db.UpsertRecord("ServerSpecifics", Context.Guild.Id, serverSettings);
+                    await db.UpsertRecordAsync("ServerSpecifics", Context.Guild.Id, serverSettings);
 
                     var embed = await EmbedHandler.CreateBasicEmbed($"Command {cmdName} created!", $"Type {prefix}{cmdName} to use it.");
                     await ReplyAsync(embed: embed);

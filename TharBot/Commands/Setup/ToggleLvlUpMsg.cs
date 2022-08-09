@@ -22,7 +22,7 @@ namespace TharBot.Commands.Setup
         [RequireOwner(Group = "Permission")]
         public async Task ToggleLvlUpMsgAsync()
         {
-            var serverSpecifics = db.LoadRecordById<ServerSpecifics>("ServerSpecifics", Context.Guild.Id);
+            var serverSpecifics = await db.LoadRecordByIdAsync<ServerSpecifics>("ServerSpecifics", Context.Guild.Id);
             if (serverSpecifics == null)
             {
                 var noServerProfEmbed = await EmbedHandler.CreateUserErrorEmbed("Could not find server profile", "It seems this server has no profile, try sending a message (not a command) and then use this command again!");
@@ -31,7 +31,7 @@ namespace TharBot.Commands.Setup
             }
 
             serverSpecifics.ShowLevelUpMessage = !serverSpecifics.ShowLevelUpMessage;
-            db.UpsertRecord("ServerSpecifics", serverSpecifics.ServerId, serverSpecifics);
+            await db.UpsertRecordAsync("ServerSpecifics", serverSpecifics.ServerId, serverSpecifics);
             string? embedMsg;
             if (serverSpecifics.ShowLevelUpMessage) embedMsg = "I will now show a message every time someone levels up in this server!";
             else embedMsg = "I will no longer show a message every time someone levels up in this server!";

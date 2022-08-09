@@ -28,7 +28,7 @@ namespace TharBot.Commands
         {
             List<CommandInfo> commands = _service.Commands.ToList();
             var embedBuilder = new EmbedBuilder().WithColor(new Color(76, 164, 210));
-            var serverSettings = db.LoadRecordById<ServerSpecifics>("ServerSpecifics", Context.Guild.Id);
+            var serverSettings = await db.LoadRecordByIdAsync<ServerSpecifics>("ServerSpecifics", Context.Guild.Id);
             string? prefix;
             if (serverSettings.Prefix != null) prefix = serverSettings.Prefix;
             else prefix = _configuration["Prefix"];

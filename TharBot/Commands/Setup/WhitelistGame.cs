@@ -29,7 +29,7 @@ namespace TharBot.Commands
             {
                 if (channelId == 0) channelId = Context.Channel.Id;
 
-                var serverSettings = db.LoadRecordById<ServerSpecifics>("ServerSpecifics", Context.Guild.Id);
+                var serverSettings = await db.LoadRecordByIdAsync<ServerSpecifics>("ServerSpecifics", Context.Guild.Id);
 
                 if (serverSettings.GameBLChannelId != null)
                 {
@@ -46,21 +46,21 @@ namespace TharBot.Commands
                 {
                     var channelIdList = new List<ulong> { channelId };
                     serverSettings.GameWLChannelId = channelIdList;
-                    db.UpsertRecord("ServerSpecifics", Context.Guild.Id, serverSettings);
+                    await db.UpsertRecordAsync("ServerSpecifics", Context.Guild.Id, serverSettings);
                     var embed = await EmbedHandler.CreateBasicEmbed("Channel whitelisted for games", $"Whitelisted channel #{Context.Client.GetChannel(channelId)} for games.");
                     await ReplyAsync(embed: embed);
                 }
                 else if (serverSettings.GameWLChannelId.Contains(channelId))
                 {
                     serverSettings.GameWLChannelId.Remove(channelId);
-                    db.UpsertRecord("ServerSpecifics", Context.Guild.Id, serverSettings);
+                    await db.UpsertRecordAsync("ServerSpecifics", Context.Guild.Id, serverSettings);
                     var embed = await EmbedHandler.CreateBasicEmbed("Channel removed from whitelist for games.", $"Removed channel #{Context.Client.GetChannel(channelId)} from the whitelist for games.");
                     await ReplyAsync(embed: embed);
                 }
                 else
                 {
                     serverSettings.GameWLChannelId.Add(channelId);
-                    db.UpsertRecord("ServerSpecifics", Context.Guild.Id, serverSettings);
+                    await db.UpsertRecordAsync("ServerSpecifics", Context.Guild.Id, serverSettings);
                     var embed = await EmbedHandler.CreateBasicEmbed("Channel whitelisted for games", $"Whitelisted channel #{Context.Client.GetChannel(channelId)} for games.");
                     await ReplyAsync(embed: embed);
                 }

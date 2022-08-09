@@ -25,7 +25,7 @@ namespace TharBot.Commands
         [RequireOwner(Group = "Permission")]
         public async Task PrefixAsync([Remainder] string? prefix = null)
         {
-            var serverSettings = db.LoadRecordById<ServerSpecifics>("ServerSpecifics", Context.Guild.Id);
+            var serverSettings = await db.LoadRecordByIdAsync<ServerSpecifics>("ServerSpecifics", Context.Guild.Id);
             string? currentPrefix;
 
             if (serverSettings.Prefix != null) currentPrefix = serverSettings.Prefix;
@@ -39,7 +39,7 @@ namespace TharBot.Commands
             else
             {
                 serverSettings.Prefix = prefix;
-                db.UpsertRecord("ServerSpecifics", Context.Guild.Id, serverSettings);
+                await db.UpsertRecordAsync("ServerSpecifics", Context.Guild.Id, serverSettings);
                
                 var embed = await EmbedHandler.CreateBasicEmbed("Prefix", $"Changed prefix for this server to \"{serverSettings.Prefix}\"");
                 await ReplyAsync(embed: embed);

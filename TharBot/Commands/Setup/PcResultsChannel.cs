@@ -24,7 +24,7 @@ namespace TharBot.Commands
         [RequireOwner(Group = "Permission")]
         public async Task PcResultsChannelAsync(ulong channelId = 0)
         {
-            var serverSettings = db.LoadRecordById<ServerSpecifics>("ServerSpecifics", Context.Guild.Id);
+            var serverSettings = await db.LoadRecordByIdAsync<ServerSpecifics>("ServerSpecifics", Context.Guild.Id);
 
             if (channelId == 0)
             {
@@ -32,7 +32,7 @@ namespace TharBot.Commands
             }
 
             serverSettings.PCResultsChannel = channelId;
-            db.UpsertRecord("ServerSpecifics", Context.Guild.Id, serverSettings);
+            await db.UpsertRecordAsync("ServerSpecifics", Context.Guild.Id, serverSettings);
 
             var embed = await EmbedHandler.CreateBasicEmbed("Pulsecheck Channel set!", 
                 $"The pulsecheck command will now report its results in #{Context.Client.GetChannel(channelId)}!");

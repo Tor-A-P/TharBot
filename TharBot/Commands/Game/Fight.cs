@@ -26,7 +26,7 @@ namespace TharBot.Commands
         {
             try
             {
-                var serverSettings = db.LoadRecordById<ServerSpecifics>("ServerSpecifics", Context.Guild.Id);
+                var serverSettings = await db.LoadRecordByIdAsync<ServerSpecifics>("ServerSpecifics", Context.Guild.Id);
                 if (serverSettings.GameWLChannelId != null)
                 {
                     if (serverSettings.GameWLChannelId.Any())
@@ -43,7 +43,7 @@ namespace TharBot.Commands
                     }
                 }
 
-                var userProfile = db.LoadRecordById<GameUser>("UserProfiles", Context.User.Id);
+                var userProfile = await db.LoadRecordByIdAsync<GameUser>("UserProfiles", Context.User.Id);
                 if (userProfile == null)
                 {
                     var noServerProfEmbed = await EmbedHandler.CreateUserErrorEmbed("Could not find user profile", "It seems you have no profile on this server, try sending a message (not a command) and then use this command again!");
@@ -82,11 +82,11 @@ namespace TharBot.Commands
                         }
 
                         Random random = new();
-                        var monsterList = db.LoadRecords<GameMonster>("MonsterList");
+                        var monsterList = await db.LoadRecordsAsync<GameMonster>("MonsterList");
                         GameMonster? monster = null;
                         if (enemy != null)
                         {
-                            var enemyProfile = db.LoadRecordById<GameUser>("UserProfiles", enemy.Id);
+                            var enemyProfile = await db.LoadRecordByIdAsync<GameUser>("UserProfiles", enemy.Id);
                             if (enemyProfile == null)
                             {
                                 enemyProfile = new GameUser
@@ -206,10 +206,10 @@ namespace TharBot.Commands
                             ChannelId = Context.Channel.Id,
                             Turns = new List<string>()
                         };
-                        db.InsertRecord("ActiveFights", gameFight);
+                        await db.InsertRecordAsync("ActiveFights", gameFight);
                         serverStats.FightInProgress = true;
                         serverStats.FightsThisHour++;
-                        db.UpsertRecord("UserProfiles", Context.User.Id, userProfile);
+                        await db.UpsertRecordAsync("UserProfiles", Context.User.Id, userProfile);
                         await fight.AddReactionsAsync(emotes);
                     }
                 }
