@@ -1,5 +1,6 @@
 ﻿using Discord.Commands;
 using Microsoft.Extensions.Configuration;
+using MongoDB.Driver;
 using TharBot.DBModels;
 using TharBot.Handlers;
 
@@ -164,7 +165,12 @@ namespace TharBot.Commands.Setup
                     newUserProfile.Servers.Add(newServerStats);
                 }
 
-                await db.UpsertRecordAsync("UserProfiles", oldUserProfile.UserId, newUserProfile);
+                var update = Builders<GameUser>.Update.Set(x => x.Servers, newUserProfile.Servers);
+                var updateOptions = new UpdateOptions
+                {
+                    IsUpsert = true
+                };
+                await db.UpsertUserAsync<GameUser>("UserProfiles", oldUserProfile.UserId, update, updateOptions);
                 numProfiles++;
             }
 

@@ -3,6 +3,7 @@ using Discord.Addons.Hosting;
 using Discord.WebSocket;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using MongoDB.Driver;
 using TharBot.DBModels;
 
 namespace TharBot.Handlers
@@ -209,7 +210,8 @@ namespace TharBot.Handlers
                             attributeAddedText = $"{EmoteHandler.Luck}You increased your Luck by 1!{EmoteHandler.Luck}";
                         }
                     }
-                    await db.UpsertRecordAsync("UserProfiles", attributeDialog.UserId, userProfile);
+                    var update = Builders<GameUser>.Update.Set(x => x.Servers, userProfile.Servers);
+                    await db.UpsertUserAsync<GameUser>("UserProfiles", attributeDialog.UserId, update);
                     await msg.RemoveReactionAsync(reaction.Emote, reaction.UserId);
                     var showAttributesEmbed = await EmbedHandler.CreateAttributeEmbedBuilder(serverStats, user);
                     showAttributesEmbed.AddField("­", attributeAddedText);

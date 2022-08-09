@@ -3,6 +3,7 @@ using Discord.Addons.Hosting;
 using Discord.WebSocket;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using MongoDB.Driver;
 using TharBot.DBModels;
 
 namespace TharBot.Handlers
@@ -52,6 +53,7 @@ namespace TharBot.Handlers
                     await msg.RemoveReactionAsync(reaction.Emote, reaction.UserId);
                     var userProfile = await db.LoadRecordByIdAsync<GameUser>("UserProfiles", fight.UserId);
                     var serverStats = userProfile.Servers.Where(x => x.ServerId == fight.ServerId).FirstOrDefault();
+                    var update = Builders<GameUser>.Update.Set(x => x.Servers, userProfile.Servers);
                     var user = Client.GetUser(fight.UserId);
                     fight.TurnNumber++;
 
@@ -124,7 +126,8 @@ namespace TharBot.Handlers
                                 DoTStrength = 0
                             };
                             await db.DeleteRecordAsync<GameFight>("ActiveFights", reaction.MessageId);
-                            await db.UpsertRecordAsync("UserProfiles", fight.UserId, userProfile);
+                            update = Builders<GameUser>.Update.Set(x => x.Servers, userProfile.Servers);
+                            await db.UpsertUserAsync<GameUser>("UserProfiles", fight.UserId, update);
                             return;
                         }
                     }
@@ -152,7 +155,8 @@ namespace TharBot.Handlers
                             DoTStrength = 0
                         };
                         await db.DeleteRecordAsync<GameFight>("ActiveFights", reaction.MessageId);
-                        await db.UpsertRecordAsync("UserProfiles", fight.UserId, userProfile);
+                        update = Builders<GameUser>.Update.Set(x => x.Servers, userProfile.Servers);
+                        await db.UpsertUserAsync<GameUser>("UserProfiles", fight.UserId, update);
                         return;
                     }
 
@@ -165,7 +169,8 @@ namespace TharBot.Handlers
                     fight.Enemy.Debuffs.DoTDuration--;
                     fight.Enemy.Debuffs.HoTDuration--;
                     await db.UpsertRecordAsync("ActiveFights", reaction.MessageId, fight);
-                    await db.UpsertRecordAsync("UserProfiles", fight.UserId, userProfile);
+                    update = Builders<GameUser>.Update.Set(x => x.Servers, userProfile.Servers);
+                    await db.UpsertUserAsync<GameUser>("UserProfiles", fight.UserId, update);
                 }
                 else
                 {

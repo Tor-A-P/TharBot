@@ -2,6 +2,7 @@
 using Discord.Commands;
 using Discord.WebSocket;
 using Microsoft.Extensions.Configuration;
+using MongoDB.Driver;
 using TharBot.DBModels;
 using TharBot.Handlers;
 
@@ -92,7 +93,8 @@ namespace TharBot.Commands
                                 enemyProfile = new GameUser
                                 {
                                     UserId = enemy.Id,
-                                    Servers = new List<GameServerStats>()
+                                    Servers = new List<GameServerStats>(),
+                                    Revision = 0
                                 };
                             }
                             if (enemyProfile.Servers == null) enemyProfile.Servers = new List<GameServerStats>();
@@ -209,7 +211,8 @@ namespace TharBot.Commands
                         await db.InsertRecordAsync("ActiveFights", gameFight);
                         serverStats.FightInProgress = true;
                         serverStats.FightsThisHour++;
-                        await db.UpsertRecordAsync("UserProfiles", Context.User.Id, userProfile);
+                        var update = Builders<GameUser>.Update.Set(x => x.Servers, userProfile.Servers);
+                        await db.UpsertUserAsync<GameUser>("UserProfiles", userProfile.UserId, update);
                         await fight.AddReactionsAsync(emotes);
                     }
                 }

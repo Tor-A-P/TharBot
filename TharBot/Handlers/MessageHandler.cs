@@ -4,6 +4,7 @@ using Discord.Commands;
 using Discord.WebSocket;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using MongoDB.Driver;
 using System.Reflection;
 using TharBot.DBModels;
 
@@ -54,7 +55,6 @@ namespace TharBot.Handlers
                 await db.InsertRecordAsync("ServerSpecifics", serverSettings);
             }
 
-            await Task.Delay(1000);
             var existingUserProfile = await db.LoadRecordByIdAsync<GameUser>("UserProfiles", message.Author.Id);
             var showLevelUpMessage = serverSettings.ShowLevelUpMessage;
             
@@ -82,7 +82,8 @@ namespace TharBot.Handlers
                 {
                     UserId = message.Author.Id,
                     Servers = new List<GameServerStats>(),
-                    LastSeenUsername = message.Author.Username
+                    LastSeenUsername = message.Author.Username,
+                    Revision = 0
                 };
                 var newServerStats = new GameServerStats
                 {
@@ -194,8 +195,10 @@ namespace TharBot.Handlers
                         }
                     }
                 }
-                existingUserProfile.LastSeenUsername = message.Author.Username;
-                await db.UpsertRecordAsync("UserProfiles", message.Author.Id, existingUserProfile);
+                var update = Builders<GameUser>.Update
+                    .Set(x => x.Servers, existingUserProfile.Servers)
+                    .Set(x => x.LastSeenUsername, message.Author.Username);
+                await db.UpsertUserAsync<GameUser>("UserProfiles", message.Author.Id, update);
             }
         }
     }

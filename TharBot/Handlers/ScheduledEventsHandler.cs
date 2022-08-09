@@ -3,6 +3,7 @@ using Discord.Addons.Hosting;
 using Discord.WebSocket;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using MongoDB.Driver;
 using System.Timers;
 using TharBot.DBModels;
 
@@ -356,7 +357,8 @@ namespace TharBot.Handlers
                     if (serverStats.CurrentHP > serverStats.BaseHP) serverStats.CurrentHP = serverStats.BaseHP;
                     if (serverStats.CurrentMP > serverStats.BaseMP) serverStats.CurrentMP = serverStats.BaseMP;
                 }
-                await db.UpsertRecordAsync("UserProfiles", userProfile.UserId, userProfile);
+                var update = Builders<GameUser>.Update.Set(x => x.Servers, userProfile.Servers);
+                await db.UpsertUserAsync<GameUser>("UserProfiles", userProfile.UserId, update);
             }
         }
 
@@ -392,7 +394,8 @@ namespace TharBot.Handlers
                                     DoTStrength = 0
                                 };
                                 await db.DeleteRecordAsync<GameFight>("ActiveFights", fight.MessageId);
-                                await db.UpsertRecordAsync("UserProfiles", userProfile.UserId, userProfile);
+                                var update = Builders<GameUser>.Update.Set(x => x.Servers, userProfile.Servers);
+                                await db.UpsertUserAsync<GameUser>("UserProfiles", userProfile.UserId, update);
                             }
                         }
                     }

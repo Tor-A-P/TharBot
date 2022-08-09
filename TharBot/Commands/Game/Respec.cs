@@ -1,5 +1,6 @@
 ﻿using Discord.Commands;
 using Microsoft.Extensions.Configuration;
+using MongoDB.Driver;
 using TharBot.DBModels;
 using TharBot.Handlers;
 
@@ -93,7 +94,8 @@ namespace TharBot.Commands.Game
                         serverStats.CurrentHP += GameServerStats.ConstitutionHPBonus * constitution;
                         if (serverStats.CurrentHP > serverStats.BaseHP) serverStats.CurrentHP = serverStats.BaseHP;
 
-                        await db.UpsertRecordAsync("UserProfiles", userProfile.UserId, userProfile);
+                        var update = Builders<GameUser>.Update.Set(x => x.Servers, userProfile.Servers);
+                        await db.UpsertUserAsync<GameUser>("UserProfiles", userProfile.UserId, update);
 
                         string? currentPrefix;
 

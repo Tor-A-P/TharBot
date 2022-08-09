@@ -57,7 +57,8 @@ namespace TharBot.Commands
                         userProfile = new GameUser
                         {
                             UserId = user.Id,
-                            Servers = new List<GameServerStats>()
+                            Servers = new List<GameServerStats>(),
+                            Revision = 0
                         };
                     }
                     
