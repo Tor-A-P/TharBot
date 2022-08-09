@@ -43,38 +43,38 @@ namespace TharBot.Commands
                     }
                 }
 
-                var serverProfile = db.LoadRecordById<GameServerProfile>("GameProfiles", Context.Guild.Id);
-                if (serverProfile == null)
+                var userProfile = db.LoadRecordById<GameUser>("UserProfiles", Context.User.Id);
+                if (userProfile == null)
                 {
-                    var noServerProfEmbed = await EmbedHandler.CreateUserErrorEmbed("Could not find server profile", "It seems this server has no profile, try sending a message (not a command) and then use this command again!");
+                    var noServerProfEmbed = await EmbedHandler.CreateUserErrorEmbed("Could not find user profile", "It seems you have no profile on this server, try sending a message (not a command) and then use this command again!");
                     await ReplyAsync(embed: noServerProfEmbed);
                 }
                 else
                 {
-                    var userProfile = serverProfile.Users.Where(x => x.UserId == Context.User.Id).FirstOrDefault();
-                    if (userProfile == null)
+                    var serverStats = userProfile.Servers.Where(x => x.ServerId == Context.Guild.Id).FirstOrDefault();
+                    if (serverStats == null)
                     {
                         var noUserProfEmbed = await EmbedHandler.CreateUserErrorEmbed("Could not find user profile", "It seems you have no profile on this server, try sending a message (not a command) and then use this command again!");
                         await ReplyAsync(embed: noUserProfEmbed);
                     }
                     else
                     {
-                        if (userProfile.FightPeriodStart + TimeSpan.FromHours(1) <= DateTime.UtcNow)
+                        if (serverStats.FightPeriodStart + TimeSpan.FromHours(1) <= DateTime.UtcNow)
                         {
-                            userProfile.FightsThisHour = 0;
-                            userProfile.FightPeriodStart = DateTime.UtcNow;
+                            serverStats.FightsThisHour = 0;
+                            serverStats.FightPeriodStart = DateTime.UtcNow;
                         }
 
-                        if (userProfile.FightsThisHour >= 10)
+                        if (serverStats.FightsThisHour >= 10)
                         {
-                            var cooldownTime = userProfile.FightPeriodStart.Subtract(DateTime.UtcNow) + TimeSpan.FromHours(1);
+                            var cooldownTime = serverStats.FightPeriodStart.Subtract(DateTime.UtcNow) + TimeSpan.FromHours(1);
                             var embed = await EmbedHandler.CreateUserErrorEmbed("Too many fights!",
                                 $"You have already started 10 fights in the past hour, please wait {cooldownTime.Minutes} minute(s) and {cooldownTime.Seconds} second(s) before starting another!");
                             await ReplyAsync(embed: embed);
                             return;
                         }
 
-                        if (userProfile.FightInProgress)
+                        if (serverStats.FightInProgress)
                         {
                             var embed = await EmbedHandler.CreateUserErrorEmbed("Fight already in progress", "You are already fighting another monster, finish that fight first! (Or wait 5 minutes for the fight to time out)");
                             await ReplyAsync(embed: embed);
@@ -86,12 +86,23 @@ namespace TharBot.Commands
                         GameMonster? monster = null;
                         if (enemy != null)
                         {
-                            var enemyProfile = serverProfile.Users.Where(x => x.UserId == enemy.Id).FirstOrDefault();
+                            var enemyProfile = db.LoadRecordById<GameUser>("UserProfiles", enemy.Id);
                             if (enemyProfile == null)
                             {
-                                enemyProfile = new GameUserProfile
+                                enemyProfile = new GameUser
                                 {
                                     UserId = enemy.Id,
+                                    Servers = new List<GameServerStats>()
+                                };
+                            }
+                            if (enemyProfile.Servers == null) enemyProfile.Servers = new List<GameServerStats>();
+
+                            var enemyStats = enemyProfile.Servers.Where(x => x.ServerId == Context.Guild.Id).FirstOrDefault();
+                            if (enemyStats == null)
+                            {
+                                enemyStats = new GameServerStats
+                                {
+                                    ServerId = Context.Guild.Id,
                                     NextRewards = DateTime.UtcNow + TimeSpan.FromMinutes(1),
                                     TharCoins = 10,
                                     Exp = random.Next(8, 13),
@@ -105,7 +116,7 @@ namespace TharBot.Commands
                                         Wisdom = 0,
                                         Luck = 0
                                     },
-                                    AttributePoints = GameUserProfile.StartingAttributePoints,
+                                    AttributePoints = GameServerStats.StartingAttributePoints,
                                     NumMessages = 1,
                                     Debuffs = new GameDebuffs
                                     {
@@ -116,13 +127,13 @@ namespace TharBot.Commands
                                         DoTStrength = 0
                                     }
                                 };
-                                enemyProfile.CurrentHP = enemyProfile.BaseHP;
-                                enemyProfile.CurrentMP = enemyProfile.BaseMP;
-                                serverProfile.Users.Add(enemyProfile);
+                                enemyStats.CurrentHP = enemyStats.BaseHP;
+                                enemyStats.CurrentMP = enemyStats.BaseMP;
+                                enemyProfile.Servers.Add(enemyStats);
                             }
-                            if (enemyProfile.Debuffs == null)
+                            if (enemyStats.Debuffs == null)
                             {
-                                enemyProfile.Debuffs = new GameDebuffs
+                                enemyStats.Debuffs = new GameDebuffs
                                 {
                                     StunDuration = 0,
                                     HoTDuration = 0,
@@ -135,23 +146,23 @@ namespace TharBot.Commands
                             monster = new GameMonster
                             {
                                 Name = enemy.Username,
-                                Level = enemyProfile.Level,
-                                Stats = enemyProfile.Attributes,
+                                Level = enemyStats.Level,
+                                Stats = enemyStats.Attributes,
                                 MinLevel = 1,
-                                CurrentHP = enemyProfile.BaseHP,
-                                CurrentMP = enemyProfile.BaseMP,
-                                Debuffs = enemyProfile.Debuffs
+                                CurrentHP = enemyStats.BaseHP,
+                                CurrentMP = enemyStats.BaseMP,
+                                Debuffs = enemyStats.Debuffs
                             };
                         }
 
                         if (monster == null)
                         {
                             monster = monsterList[random.Next(monsterList.Count)];
-                            while (monster.MinLevel > userProfile.Level)
+                            while (monster.MinLevel > serverStats.Level)
                             {
                                 monster = monsterList[random.Next(monsterList.Count)];
                             }
-                            monster.Level = random.NextInt64(userProfile.Level - 2, userProfile.Level + 2);
+                            monster.Level = random.NextInt64(serverStats.Level - 2, serverStats.Level + 2);
                             if (monster.Level < 1) monster.Level = 1;
                         }
                         monster.CurrentHP = monster.BaseHP;
@@ -165,11 +176,11 @@ namespace TharBot.Commands
                             DoTStrength = 0
                         };
                         var fightEmbed = await EmbedHandler.CreateBasicEmbedBuilder($"{Context.User.Username} vs Level {monster.Level} {monster.Name}");
-                        fightEmbed.AddField($"Lv. {userProfile.Level} {Context.User.Username}", $"{EmoteHandler.HP} HP:  {userProfile.CurrentHP} / {userProfile.BaseHP}\n" +
-                                                                   $"{EmoteHandler.MP} MP:  {userProfile.CurrentMP} / {userProfile.BaseMP}\n" +
-                                                                   $"{EmoteHandler.Attack} Atk: {userProfile.BaseAtk}\n" +
-                                                                   $"{EmoteHandler.Defense} Def: {userProfile.BaseDef}\n" +
-                                                                   $"{EmoteHandler.Spells}Spellpower: {userProfile.SpellPower}", true)
+                        fightEmbed.AddField($"Lv. {serverStats.Level} {Context.User.Username}", $"{EmoteHandler.HP} HP:  {serverStats.CurrentHP} / {serverStats.BaseHP}\n" +
+                                                                   $"{EmoteHandler.MP} MP:  {serverStats.CurrentMP} / {serverStats.BaseMP}\n" +
+                                                                   $"{EmoteHandler.Attack} Atk: {serverStats.BaseAtk}\n" +
+                                                                   $"{EmoteHandler.Defense} Def: {serverStats.BaseDef}\n" +
+                                                                   $"{EmoteHandler.Spells}Spellpower: {serverStats.SpellPower}", true)
                                   .AddField($"Lv. {monster.Level} {monster.Name}", $"{EmoteHandler.HP} HP:  {monster.CurrentHP} / {monster.BaseHP}\n" +
                                                           $"{EmoteHandler.MP} MP:  {monster.CurrentMP} / {monster.BaseMP}\n" +
                                                           $"{EmoteHandler.Attack} Atk: {monster.BaseAtk}\n" +
@@ -190,15 +201,15 @@ namespace TharBot.Commands
                             TurnNumber = 0,
                             LastMoveTime = DateTime.UtcNow,
                             Enemy = monster,
-                            ServerId = Context.Guild.Id,
+                            ServerId = serverStats.ServerId,
                             UserId = userProfile.UserId,
                             ChannelId = Context.Channel.Id,
                             Turns = new List<string>()
                         };
                         db.InsertRecord("ActiveFights", gameFight);
-                        //userProfile.FightInProgress = true;
-                        userProfile.FightsThisHour++;
-                        db.UpsertRecord("GameProfiles", Context.Guild.Id, serverProfile);
+                        serverStats.FightInProgress = true;
+                        serverStats.FightsThisHour++;
+                        db.UpsertRecord("UserProfiles", Context.User.Id, userProfile);
                         await fight.AddReactionsAsync(emotes);
                     }
                 }

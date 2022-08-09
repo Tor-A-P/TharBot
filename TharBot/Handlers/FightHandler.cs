@@ -50,19 +50,19 @@ namespace TharBot.Handlers
                     var coinReward = fight.Enemy.Level * 50;
                     var expReward = fight.Enemy.Level * 20;
                     await msg.RemoveReactionAsync(reaction.Emote, reaction.UserId);
-                    var serverProfile = db.LoadRecordById<GameServerProfile>("GameProfiles", fight.ServerId);
-                    var userProfile = serverProfile.Users.Where(x => x.UserId == fight.UserId).FirstOrDefault();
+                    var userProfile = db.LoadRecordById<GameUser>("UserProfiles", fight.UserId);
+                    var serverStats = userProfile.Servers.Where(x => x.ServerId == fight.ServerId).FirstOrDefault();
                     var user = Client.GetUser(fight.UserId);
                     fight.TurnNumber++;
 
                     var userCrit = false;
-                    var userDamage = userProfile.BaseAtk;
+                    var userDamage = serverStats.BaseAtk;
                     var userMinDmg = userDamage - (userDamage / 20);
                     var userMaxDmg = userDamage + (userDamage / 20);
                     userDamage = random.Next((int)userMinDmg, (int)userMaxDmg + 1);
-                    if (random.Next(1, 101) <= userProfile.CritChance)
+                    if (random.Next(1, 101) <= serverStats.CritChance)
                     {
-                        userDamage *= 1 + (userProfile.CritDamage / 100);
+                        userDamage *= 1 + (serverStats.CritDamage / 100);
                         userCrit = true;
                     }
                     userDamage = Math.Floor(userDamage - fight.Enemy.BaseDef);
@@ -70,7 +70,7 @@ namespace TharBot.Handlers
 
                     var turnText = "";
 
-                    if (userProfile.Debuffs.StunDuration <= 0)
+                    if (serverStats.Debuffs.StunDuration <= 0)
                     {
                         fight.Enemy.CurrentHP -= userDamage;
 
@@ -93,29 +93,29 @@ namespace TharBot.Handlers
                                         $"You receive {EmoteHandler.Coin}{coinReward} TharCoins and {EmoteHandler.Exp}{expReward} EXP!";
                             fight.Turns.Add(turnText);
                             fight.Enemy.CurrentHP = 0;
-                            var winnerEmbed = await EmbedHandler.CreateGameEmbed(fight, userProfile, user.Username);
+                            var winnerEmbed = await EmbedHandler.CreateGameEmbed(fight, serverStats, user.Username);
                             await msg.ModifyAsync(x => x.Embed = winnerEmbed);
-                            userProfile.NumFightsWon++;
-                            userProfile.TharCoins += coinReward;
-                            userProfile.Exp += expReward;
-                            if (userProfile.Exp >= userProfile.ExpToLevel)
+                            serverStats.NumFightsWon++;
+                            serverStats.TharCoins += coinReward;
+                            serverStats.Exp += expReward;
+                            if (serverStats.Exp >= serverStats.ExpToLevel)
                             {
-                                userProfile.Exp -= userProfile.ExpToLevel;
-                                userProfile.Level += 1;
+                                serverStats.Exp -= serverStats.ExpToLevel;
+                                serverStats.Level += 1;
                                 var levelUpEmbed = await EmbedHandler.CreateBasicEmbedBuilder($"{EmoteHandler.Level}Level up!");
-                                levelUpEmbed = levelUpEmbed.WithDescription($"Congratulations {user.Username}, you've reached level {userProfile.Level}!\n" +
+                                levelUpEmbed = levelUpEmbed.WithDescription($"Congratulations {user.Username}, you've reached level {serverStats.Level}!\n" +
                                                                             $"Your health and mana has been refilled.\n" +
-                                                                            $"You have gained {GameUserProfile.AttributePointsPerLevel} attribute points, use the {prefix}attributes command to spend them!")
+                                                                            $"You have gained {GameServerStats.AttributePointsPerLevel} attribute points, use the {prefix}attributes command to spend them!")
                                                            .WithThumbnailUrl(user.GetAvatarUrl(ImageFormat.Auto, 2048) ?? user.GetDefaultAvatarUrl());
-                                userProfile.CurrentHP = userProfile.BaseHP;
-                                userProfile.CurrentMP = userProfile.BaseMP;
-                                userProfile.AttributePoints += GameUserProfile.AttributePointsPerLevel;
+                                serverStats.CurrentHP = serverStats.BaseHP;
+                                serverStats.CurrentMP = serverStats.BaseMP;
+                                serverStats.AttributePoints += GameServerStats.AttributePointsPerLevel;
 
                                 await chan.SendMessageAsync(embed: levelUpEmbed.Build());
                             }
                             await msg.RemoveAllReactionsAsync();
-                            userProfile.FightInProgress = false;
-                            userProfile.Debuffs = new GameDebuffs
+                            serverStats.FightInProgress = false;
+                            serverStats.Debuffs = new GameDebuffs
                             {
                                 StunDuration = 0,
                                 HoTDuration = 0,
@@ -124,26 +124,26 @@ namespace TharBot.Handlers
                                 DoTStrength = 0
                             };
                             db.DeleteRecord<GameFight>("ActiveFights", reaction.MessageId);
-                            db.UpsertRecord("GameProfiles", fight.ServerId, serverProfile);
+                            db.UpsertRecord("UserProfiles", fight.UserId, userProfile);
                             return;
                         }
                     }
-                    else turnText += $"{user.Username} is stunned for {userProfile.Debuffs.StunDuration} turn(s), and cannot take action!\n";
+                    else turnText += $"{user.Username} is stunned for {serverStats.Debuffs.StunDuration} turn(s), and cannot take action!\n";
 
-                    var enemyTurn = await EnemyTurn(fight, turnText, userProfile, user);
+                    var enemyTurn = await EnemyTurn(fight, turnText, serverStats, user);
                     fight = enemyTurn.fight;
-                    userProfile = enemyTurn.userProfile;
+                    serverStats = enemyTurn.userProfile;
 
-                    if (userProfile.CurrentHP <= 0)
+                    if (serverStats.CurrentHP <= 0)
                     {
                         turnText += $"{user.Username} has passed out! {fight.Enemy.Name} wins the fight!";
                         fight.Turns.Add(turnText);
-                        userProfile.CurrentHP = 0;
-                        var loserEmbed = await EmbedHandler.CreateGameEmbed(fight, userProfile, user.Username);
+                        serverStats.CurrentHP = 0;
+                        var loserEmbed = await EmbedHandler.CreateGameEmbed(fight, serverStats, user.Username);
                         await msg.ModifyAsync(x => x.Embed = loserEmbed);
                         await msg.RemoveAllReactionsAsync();
-                        userProfile.FightInProgress = false;
-                        userProfile.Debuffs = new GameDebuffs
+                        serverStats.FightInProgress = false;
+                        serverStats.Debuffs = new GameDebuffs
                         {
                             StunDuration = 0,
                             HoTDuration = 0,
@@ -152,20 +152,20 @@ namespace TharBot.Handlers
                             DoTStrength = 0
                         };
                         db.DeleteRecord<GameFight>("ActiveFights", reaction.MessageId);
-                        db.UpsertRecord("GameProfiles", fight.ServerId, serverProfile);
+                        db.UpsertRecord("UserProfiles", fight.UserId, userProfile);
                         return;
                     }
 
-                    var embed = await EmbedHandler.CreateGameEmbed(fight, userProfile, user.Username);
+                    var embed = await EmbedHandler.CreateGameEmbed(fight, serverStats, user.Username);
                     await msg.ModifyAsync(x => x.Embed = embed);
-                    userProfile.Debuffs.StunDuration--;
-                    userProfile.Debuffs.DoTDuration--;
-                    userProfile.Debuffs.HoTDuration--;
+                    serverStats.Debuffs.StunDuration--;
+                    serverStats.Debuffs.DoTDuration--;
+                    serverStats.Debuffs.HoTDuration--;
                     fight.Enemy.Debuffs.StunDuration--;
                     fight.Enemy.Debuffs.DoTDuration--;
                     fight.Enemy.Debuffs.HoTDuration--;
                     db.UpsertRecord("ActiveFights", reaction.MessageId, fight);
-                    db.UpsertRecord("GameProfiles", fight.ServerId, serverProfile);
+                    db.UpsertRecord("UserProfiles", fight.UserId, userProfile);
                 }
                 else
                 {
@@ -187,7 +187,7 @@ namespace TharBot.Handlers
 
         }
         
-        private async Task<(GameFight fight, GameUserProfile userProfile)> EnemyTurn(GameFight fight, string turnText, GameUserProfile userProfile, SocketUser user)
+        private async Task<(GameFight fight, GameServerStats userProfile)> EnemyTurn(GameFight fight, string turnText, GameServerStats userProfile, SocketUser user)
         {
             var monsterCrit = false;
             var monsterDamage = fight.Enemy.BaseAtk;

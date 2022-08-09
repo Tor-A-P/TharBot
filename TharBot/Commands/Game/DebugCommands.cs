@@ -33,22 +33,22 @@ namespace TharBot.Commands
         [RequireOwner]
         public async Task StunMeAsync(int rounds = 1)
         {
-            var serverProfile = db.LoadRecordById<GameServerProfile>("GameProfiles", Context.Guild.Id);
-            if (serverProfile == null)
+            var userProfile = db.LoadRecordById<GameUser>("UserProfiles", Context.User.Id);
+            if (userProfile == null)
             {
-                var noServerProfEmbed = await EmbedHandler.CreateUserErrorEmbed("Could not find server profile", "It seems this server has no profile, try sending a message (not a command) and then use this command again!");
+                var noServerProfEmbed = await EmbedHandler.CreateUserErrorEmbed("Could not find user profile", "It seems you have no profile on this server, try sending a message (not a command) and then use this command again!");
                 await ReplyAsync(embed: noServerProfEmbed);
                 return;
             }
-            var userProfile = serverProfile.Users.Where(x => x.UserId == Context.User.Id).FirstOrDefault();
-            if (userProfile == null)
+            var serverStats = userProfile.Servers.Where(x => x.ServerId == Context.Guild.Id).FirstOrDefault();
+            if (serverStats == null)
             {
                 var noUserProfEmbed = await EmbedHandler.CreateUserErrorEmbed("Could not find user profile", "It seems you have no profile on this server, try sending a message (not a command) and then use this command again!");
                 await ReplyAsync(embed: noUserProfEmbed);
                 return;
             }
-            userProfile.Debuffs.StunDuration = rounds;
-            db.UpsertRecord("GameProfiles", Context.Guild.Id, serverProfile);
+            serverStats.Debuffs.StunDuration = rounds;
+            db.UpsertRecord("UserProfiles", Context.User.Id, userProfile);
             var embed = await EmbedHandler.CreateBasicEmbed("Stunned you!", $"Stunned you for {rounds} rounds.");
             await ReplyAsync(embed: embed);
         }
@@ -60,22 +60,22 @@ namespace TharBot.Commands
         public async Task HealMeAsync()
         {
             await Task.Delay(2000);
-            var serverProfile = db.LoadRecordById<GameServerProfile>("GameProfiles", Context.Guild.Id);
-            if (serverProfile == null)
+            var userProfile = db.LoadRecordById<GameUser>("UserProfiles", Context.User.Id);
+            if (userProfile == null)
             {
-                var noServerProfEmbed = await EmbedHandler.CreateUserErrorEmbed("Could not find server profile", "It seems this server has no profile, try sending a message (not a command) and then use this command again!");
+                var noServerProfEmbed = await EmbedHandler.CreateUserErrorEmbed("Could not find user profile", "It seems you have no profile on this server, try sending a message (not a command) and then use this command again!");
                 await ReplyAsync(embed: noServerProfEmbed);
                 return;
             }
-            var userProfile = serverProfile.Users.Where(x => x.UserId == Context.User.Id).FirstOrDefault();
-            if (userProfile == null)
+            var serverStats = userProfile.Servers.Where(x => x.ServerId == Context.Guild.Id).FirstOrDefault();
+            if (serverStats == null)
             {
                 var noUserProfEmbed = await EmbedHandler.CreateUserErrorEmbed("Could not find user profile", "It seems you have no profile on this server, try sending a message (not a command) and then use this command again!");
                 await ReplyAsync(embed: noUserProfEmbed);
                 return;
             }
-            userProfile.CurrentHP = userProfile.BaseHP;
-            db.UpsertRecord("GameProfiles", Context.Guild.Id, serverProfile);
+            serverStats.CurrentHP = serverStats.BaseHP;
+            db.UpsertRecord("UserProfiles", Context.User.Id, userProfile);
             var embed = await EmbedHandler.CreateBasicEmbed("Healed you!", "Returned you to full base health!");
             await ReplyAsync(embed: embed);
         }

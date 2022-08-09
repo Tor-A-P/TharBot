@@ -256,11 +256,6 @@ namespace TharBot.Handlers
             }
         }
 
-        public void RemoveReminder(ServerSpecifics? server, Reminders reminder)
-        {
-
-        }
-
         public async void DailyPCHandling(object? source, ElapsedEventArgs e)
         {
             var serverSpecifics = db.LoadRecords<ServerSpecifics>("ServerSpecifics");
@@ -340,22 +335,22 @@ namespace TharBot.Handlers
 
         public async void GameHandling(object? source, ElapsedEventArgs e)
         {
-            var serverProfiles = db.LoadRecords<GameServerProfile>("GameProfiles");
+            var userProfiles = db.LoadRecords<GameUser>("UserProfiles");
 
-            if (serverProfiles == null) return;
+            if (userProfiles == null) return;
 
-            foreach (var serverProfile in serverProfiles)
+            foreach (var userProfile in userProfiles)
             {
-                foreach (var userProfile in serverProfile.Users)
+                foreach (var serverStats in userProfile.Servers)
                 {
-                    var percentageHealthRegen = (userProfile.Attributes.Constitution * GameUserProfile.ConstitutionHPRegenBonus) + 5;
-                    var percentageManaRegen = (userProfile.Attributes.Wisdom * GameUserProfile.WisdomMPRegenBonus) + 5;
-                    userProfile.CurrentHP += Math.Floor(userProfile.BaseHP / 100 * percentageHealthRegen);
-                    userProfile.CurrentMP += Math.Floor(userProfile.BaseMP / 100 * percentageManaRegen);
-                    if (userProfile.CurrentHP > userProfile.BaseHP) userProfile.CurrentHP = userProfile.BaseHP;
-                    if (userProfile.CurrentMP > userProfile.BaseMP) userProfile.CurrentMP = userProfile.BaseMP;
+                    var percentageHealthRegen = (serverStats.Attributes.Constitution * GameServerStats.ConstitutionHPRegenBonus) + 5;
+                    var percentageManaRegen = (serverStats.Attributes.Wisdom * GameServerStats.WisdomMPRegenBonus) + 5;
+                    serverStats.CurrentHP += Math.Floor(serverStats.BaseHP / 100 * percentageHealthRegen);
+                    serverStats.CurrentMP += Math.Floor(serverStats.BaseMP / 100 * percentageManaRegen);
+                    if (serverStats.CurrentHP > serverStats.BaseHP) serverStats.CurrentHP = serverStats.BaseHP;
+                    if (serverStats.CurrentMP > serverStats.BaseMP) serverStats.CurrentMP = serverStats.BaseMP;
                 }
-                db.UpsertRecord("GameProfiles", serverProfile.ServerId, serverProfile);
+                db.UpsertRecord("UserProfiles", userProfile.UserId, userProfile);
             }
         }
 
@@ -374,15 +369,15 @@ namespace TharBot.Handlers
                             var embed = msg.Embeds.FirstOrDefault();
                             if (embed != null)
                             {
-                                var serverProfile = db.LoadRecordById<GameServerProfile>("GameProfiles", fight.ServerId);
-                                var userProfile = serverProfile.Users.Where(x => x.UserId == fight.UserId).FirstOrDefault();
+                                var userProfile = db.LoadRecordById<GameUser>("UserProfiles", fight.UserId);
+                                var serverStats = userProfile.Servers.Where(x => x.ServerId == fight.ServerId).FirstOrDefault();
                                 var user = await Client.GetUserAsync(fight.UserId);
                                 var builder = embed.ToEmbedBuilder();
                                 builder.AddField($"{user.Username} ran away from the battle!", "Nobody wins this battle.");
                                 await msg.ModifyAsync(x => x.Embed = builder.Build());
                                 await msg.RemoveAllReactionsAsync();
-                                userProfile.FightInProgress = false;
-                                userProfile.Debuffs = new GameDebuffs
+                                serverStats.FightInProgress = false;
+                                serverStats.Debuffs = new GameDebuffs
                                 {
                                     StunDuration = 0,
                                     HoTDuration = 0,
@@ -391,7 +386,7 @@ namespace TharBot.Handlers
                                     DoTStrength = 0
                                 };
                                 db.DeleteRecord<GameFight>("ActiveFights", fight.MessageId);
-                                db.UpsertRecord("GameProfiles", serverProfile.ServerId, serverProfile);
+                                db.UpsertRecord("UserProfiles", userProfile.UserId, userProfile);
                             }
                         }
                     }

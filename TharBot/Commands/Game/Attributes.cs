@@ -43,15 +43,15 @@ namespace TharBot.Commands.Game
                     }
                 }
 
-                var serverProfile = db.LoadRecordById<GameServerProfile>("GameProfiles", Context.Guild.Id);
-                if (serverProfile == null)
+                var userProfile = db.LoadRecordById<GameUser>("UserProfiles", Context.User.Id);
+                if (userProfile == null)
                 {
-                    var noServerProfEmbed = await EmbedHandler.CreateUserErrorEmbed("Could not find server profile", "It seems this server has no profile, try sending a message (not a command) and then use this command again!");
+                    var noServerProfEmbed = await EmbedHandler.CreateUserErrorEmbed("Could not find user profile", "It seems you have no profile on this server, try sending a message (not a command) and then use this command again!");
                     await ReplyAsync(embed: noServerProfEmbed);
                     return;
                 }
-                var userProfile = serverProfile.Users.Where(x => x.UserId == Context.User.Id).FirstOrDefault();
-                if (userProfile == null)
+                var serverStats = userProfile.Servers.Where(x => x.ServerId == Context.Guild.Id).FirstOrDefault();
+                if (serverStats == null)
                 {
                     var noUserProfEmbed = await EmbedHandler.CreateUserErrorEmbed("Could not find user profile", "It seems you have no profile on this server, try sending a message (not a command) and then use this command again!");
                     await ReplyAsync(embed: noUserProfEmbed);
@@ -59,7 +59,7 @@ namespace TharBot.Commands.Game
                 }
                 if (flag == "")
                 {
-                    var showAttributesEmbed = await EmbedHandler.CreateAttributeEmbedBuilder(userProfile, Context.User);
+                    var showAttributesEmbed = await EmbedHandler.CreateAttributeEmbedBuilder(serverStats, Context.User);
                     var msg = await ReplyAsync(embed: showAttributesEmbed.Build());
 
                     var attributeDialog = new GameAttributeDialog
@@ -90,14 +90,14 @@ namespace TharBot.Commands.Game
                     return;
                 }
                 var attributeList = new List<string>
-            {
+                {
                 "strength",
                 "intelligence",
                 "dexterity",
                 "constitution",
                 "wisdom",
                 "luck"
-            };
+                };
                 if (!attributeList.Contains(attribute))
                 {
                     var wrongAttributeEmbed = await EmbedHandler.CreateUserErrorEmbed("Not a valid attribute!", $"{attribute} is not a valid attribute, the allowed attributes are:\n" +
@@ -116,36 +116,36 @@ namespace TharBot.Commands.Game
                     await ReplyAsync(embed: wrongAmountEmbed);
                     return;
                 }
-                if (amount > userProfile.AvailableAttributePoints)
+                if (amount > serverStats.AvailableAttributePoints)
                 {
-                    var notEnoughPointsEmbed = await EmbedHandler.CreateUserErrorEmbed("Not enough available points!", $"You can't add {amount} points to {attribute}, you only have {userProfile.AvailableAttributePoints} available to spend!");
+                    var notEnoughPointsEmbed = await EmbedHandler.CreateUserErrorEmbed("Not enough available points!", $"You can't add {amount} points to {attribute}, you only have {serverStats.AvailableAttributePoints} available to spend!");
                     await ReplyAsync(embed: notEnoughPointsEmbed);
                     return;
                 }
                 switch (attribute.ToLower())
                 {
                     case "strength":
-                        userProfile.Attributes.Strength += amount;
+                        serverStats.Attributes.Strength += amount;
                         break;
                     case "intelligence":
-                        userProfile.Attributes.Intelligence += amount;
+                        serverStats.Attributes.Intelligence += amount;
                         break;
                     case "dexterity":
-                        userProfile.Attributes.Dexterity += amount;
+                        serverStats.Attributes.Dexterity += amount;
                         break;
                     case "constitution":
-                        userProfile.Attributes.Constitution += amount;
+                        serverStats.Attributes.Constitution += amount;
                         break;
                     case "wisdom":
-                        userProfile.Attributes.Wisdom += amount;
+                        serverStats.Attributes.Wisdom += amount;
                         break;
                     case "luck":
-                        userProfile.Attributes.Luck += amount;
+                        serverStats.Attributes.Luck += amount;
                         break;
                 }
                 var successEmbed = await EmbedHandler.CreateBasicEmbed($"{attribute} upgraded!", $"You have added {amount} points to {attribute}");
                 await ReplyAsync(embed: successEmbed);
-                db.UpsertRecord("GameProfiles", Context.Guild.Id, serverProfile);
+                db.UpsertRecord("GameProfiles", Context.User.Id, userProfile);
             }
             catch (Exception ex)
             {

@@ -7,5 +7,7 @@ namespace TharBot.DBModels
         [BsonId]
         public ulong UserId { get; set; }
         public List<GameServerStats> Servers { get; set; }
+        public DateTime TimeStamp { get; set; }
+        public string? LastSeenUsername { get; set; }
     }
 }

@@ -43,39 +43,89 @@ namespace TharBot.Commands
                 }
 
                 if (user == null) user = Context.User;
-                var serverProfile = db.LoadRecordById<GameServerProfile>("GameProfiles", Context.Guild.Id);
-                if (serverProfile == null)
-                {
-                    var noServerProfEmbed = await EmbedHandler.CreateUserErrorEmbed("Could not find server profile", "It seems this server has no profile, try sending a message (not a command) and then use this command again!");
-                    await ReplyAsync(embed: noServerProfEmbed);
-                    return;
-                }
-                var userProfile = serverProfile.Users.Where(x => x.UserId == user.Id).FirstOrDefault();
+                var userProfile = db.LoadRecordById<GameUser>("UserProfiles", user.Id);
                 if (userProfile == null)
                 {
-                    var noUserProfEmbed = await EmbedHandler.CreateUserErrorEmbed("Could not find user profile", "It seems you have no profile on this server, try sending a message (not a command) and then use this command again!");
-                    await ReplyAsync(embed: noUserProfEmbed);
-                    return;
+                    if (user == Context.User)
+                    {
+                        var noServerProfEmbed = await EmbedHandler.CreateUserErrorEmbed("Could not find user profile", "It seems you have no profile on this server, try sending a message (not a command) and then use this command again!");
+                        await ReplyAsync(embed: noServerProfEmbed);
+                        return;
+                    }
+                    else
+                    {
+                        userProfile = new GameUser
+                        {
+                            UserId = user.Id,
+                            Servers = new List<GameServerStats>()
+                        };
+                    }
+                    
+                }
+                var serverStats = userProfile.Servers.Where(x => x.ServerId == Context.Guild.Id).FirstOrDefault();
+                if (serverStats == null)
+                {
+                    if (user == Context.User)
+                    {
+                        var noUserProfEmbed = await EmbedHandler.CreateUserErrorEmbed("Could not find user profile", "It seems you have no profile on this server, try sending a message (not a command) and then use this command again!");
+                        await ReplyAsync(embed: noUserProfEmbed);
+                        return;
+                    }
+                    else
+                    {
+                        Random random = new();
+                        serverStats = new GameServerStats
+                        {
+                            ServerId = Context.Guild.Id,
+                            NextRewards = DateTime.UtcNow + TimeSpan.FromMinutes(1),
+                            TharCoins = 10,
+                            Exp = random.Next(8, 13),
+                            Level = 1,
+                            Attributes = new GameStats
+                            {
+                                Strength = 0,
+                                Dexterity = 0,
+                                Intelligence = 0,
+                                Constitution = 0,
+                                Wisdom = 0,
+                                Luck = 0
+                            },
+                            AttributePoints = GameServerStats.StartingAttributePoints,
+                            NumMessages = 1,
+                            Debuffs = new GameDebuffs
+                            {
+                                StunDuration = 0,
+                                HoTDuration = 0,
+                                HoTStrength = 0,
+                                DoTDuration = 0,
+                                DoTStrength = 0
+                            }
+                        };
+                        serverStats.CurrentHP = serverStats.BaseHP;
+                        serverStats.CurrentMP = serverStats.BaseMP;
+                        userProfile.Servers.Add(serverStats);
+                        db.InsertRecord("UserProfiles", userProfile);
+                    }
                 }
 
                 var embed = await EmbedHandler.CreateBasicEmbedBuilder($"Profile for {user}");
-                embed.AddField($"{EmoteHandler.Level} Level: {userProfile.Level}",
-                                   $"{EmoteHandler.HP} HP: {userProfile.CurrentHP:N0} / {userProfile.BaseHP:N0}\n" +
-                                   $"{EmoteHandler.Attack} Atk: {userProfile.BaseAtk}\n" +
-                                   $"{EmoteHandler.Strength} Strength: {userProfile.Attributes.Strength}\n" +
-                                   $"{EmoteHandler.Intelligence} Intelligence: {userProfile.Attributes.Intelligence}\n" +
-                                   $"{EmoteHandler.Dexterity} Dexterity: {userProfile.Attributes.Dexterity}\n" +
-                                   $"{EmoteHandler.Crit} Crit Chance: {userProfile.CritChance}%\n" +
-                                   $"{EmoteHandler.Spells} Spellpower: {userProfile.SpellPower}", true)
-                     .AddField($"{EmoteHandler.Exp} Exp: {userProfile.Exp:N0} / {userProfile.ExpToLevel:N0}\n",
-                                   $"{EmoteHandler.MP} MP: {userProfile.CurrentMP:N0} / {userProfile.BaseMP:N0}\n" +
-                                   $"{EmoteHandler.Defense} Def: {userProfile.BaseDef}\n" +
-                                   $"{EmoteHandler.Constitution} Constitution: {userProfile.Attributes.Constitution}\n" +
-                                   $"{EmoteHandler.Wisdom} Wisdom: {userProfile.Attributes.Wisdom}\n" +
-                                   $"{EmoteHandler.Luck} Luck: {userProfile.Attributes.Luck}\n" +
-                                   $"{EmoteHandler.Crit} Crit Damage: {userProfile.CritDamage:N0}%", true)
-                     .AddField("­", $"{EmoteHandler.Coin} TharCoins: {userProfile.TharCoins:N0}")
-                     .WithThumbnailUrl(Context.User.GetAvatarUrl(ImageFormat.Auto, 2048) ?? Context.User.GetDefaultAvatarUrl());
+                embed.AddField($"{EmoteHandler.Level} Level: {serverStats.Level}",
+                                   $"{EmoteHandler.HP} HP: {serverStats.CurrentHP:N0} / {serverStats.BaseHP:N0}\n" +
+                                   $"{EmoteHandler.Attack} Atk: {serverStats.BaseAtk}\n" +
+                                   $"{EmoteHandler.Strength} Strength: {serverStats.Attributes.Strength}\n" +
+                                   $"{EmoteHandler.Intelligence} Intelligence: {serverStats.Attributes.Intelligence}\n" +
+                                   $"{EmoteHandler.Dexterity} Dexterity: {serverStats.Attributes.Dexterity}\n" +
+                                   $"{EmoteHandler.Crit} Crit Chance: {serverStats.CritChance}%\n" +
+                                   $"{EmoteHandler.Spells} Spellpower: {serverStats.SpellPower}", true)
+                     .AddField($"{EmoteHandler.Exp} Exp: {serverStats.Exp:N0} / {serverStats.ExpToLevel:N0}\n",
+                                   $"{EmoteHandler.MP} MP: {serverStats.CurrentMP:N0} / {serverStats.BaseMP:N0}\n" +
+                                   $"{EmoteHandler.Defense} Def: {serverStats.BaseDef}\n" +
+                                   $"{EmoteHandler.Constitution} Constitution: {serverStats.Attributes.Constitution}\n" +
+                                   $"{EmoteHandler.Wisdom} Wisdom: {serverStats.Attributes.Wisdom}\n" +
+                                   $"{EmoteHandler.Luck} Luck: {serverStats.Attributes.Luck}\n" +
+                                   $"{EmoteHandler.Crit} Crit Damage: {serverStats.CritDamage:N0}%", true)
+                     .AddField("­", $"{EmoteHandler.Coin} TharCoins: {serverStats.TharCoins:N0}")
+                     .WithThumbnailUrl(user.GetAvatarUrl(ImageFormat.Auto, 2048) ?? user.GetDefaultAvatarUrl());
                 await ReplyAsync(embed: embed.Build());
             }
             catch (Exception ex)
