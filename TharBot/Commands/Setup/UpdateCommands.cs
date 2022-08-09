@@ -105,10 +105,70 @@ namespace TharBot.Commands.Setup
                 Prefix = existingPrefix.Prefix,
                 PCResultsChannel = existingPCRC.ResultsChannel,
                 Reminders = new List<Reminders>(),
-                ShowLevelUpMessage = existingLvlUpMsg
+                ShowLevelUpMessage = false
             };
             db.UpsertRecord("ServerSpecifics", Context.Guild.Id, serverSettings);
             var embed = await EmbedHandler.CreateBasicEmbed("Server settings updated to new format!", "Reminder that this wipes the poll and reminder lists, re-add anything important manually.");
+            await ReplyAsync(embed: embed);
+        }
+
+        [Command("Updateprofiles")]
+        [Summary("Converts profiles to the new format")]
+        [RequireOwner]
+        public async Task UpdateProfilesAsync()
+        {
+            var oldServerProfile = db.LoadRecordById<GameServerProfile>("GameProfiles", Context.Guild.Id);
+            var numProfiles = 0;
+            foreach (var oldUserProfile in oldServerProfile.Users)
+            {
+                var newUserProfile = db.LoadRecordById<GameUser>("UserProfiles", oldUserProfile.UserId);
+                if (newUserProfile == null)
+                {
+                    newUserProfile = new GameUser
+                    {
+                        UserId = oldUserProfile.UserId,
+                        Servers = new List<GameServerStats>()
+                    };
+                }
+
+                var newServerStats = newUserProfile.Servers.Where(x => x.ServerId == oldServerProfile.ServerId).FirstOrDefault();
+                if (newServerStats == null)
+                {
+                    newServerStats = new GameServerStats
+                    {
+                        ServerId = oldServerProfile.ServerId,
+                        NextRewards = DateTime.UtcNow + TimeSpan.FromMinutes(1),
+                        TharCoins = oldUserProfile.TharCoins,
+                        Exp = oldUserProfile.Exp,
+                        Level = oldUserProfile.Level,
+                        Attributes = oldUserProfile.Attributes,
+                        AttributePoints = oldUserProfile.AttributePoints,
+                        NumMessages = oldUserProfile.NumMessages,
+                        NumFightsWon = oldUserProfile.NumFightsWon,
+                        LastRespec = oldUserProfile.LastRespec,
+                        FightInProgress = false,
+                        GambaInProgress = false,
+                        FightsThisHour = oldUserProfile.FightsThisHour,
+                        FightPeriodStart = oldUserProfile.FightPeriodStart,
+                        CurrentHP = oldUserProfile.CurrentHP,
+                        CurrentMP = oldUserProfile.CurrentMP,
+                        Debuffs = new GameDebuffs
+                        {
+                            StunDuration = 0,
+                            HoTDuration = 0,
+                            HoTStrength = 0,
+                            DoTDuration = 0,
+                            DoTStrength = 0
+                        }
+                    };
+                    newUserProfile.Servers.Add(newServerStats);
+                }
+
+                db.UpsertRecord("UserProfiles", oldUserProfile.UserId, newUserProfile);
+                numProfiles++;
+            }
+
+            var embed = await EmbedHandler.CreateBasicEmbed("Updated profiles!", $"Updated {numProfiles} profiles to the new format! Hopefully nothing broke too bad...");
             await ReplyAsync(embed: embed);
         }
     }
