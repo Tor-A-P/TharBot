@@ -137,6 +137,7 @@ namespace TharBot.Commands.Setup
                         Servers = new List<GameServerStats>(),
                         Revision = 0
                     };
+                    await db.InsertRecordAsync("UserProfiles", newUserProfile);
                 }
 
                 var newServerStats = newUserProfile.Servers.Where(x => x.ServerId == oldServerProfile.ServerId).FirstOrDefault();

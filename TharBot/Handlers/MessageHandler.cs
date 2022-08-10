@@ -56,7 +56,7 @@ namespace TharBot.Handlers
                 await db.InsertRecordAsync("ServerSpecifics", serverSettings);
             }
 
-            await Task.Delay(100);
+            await Task.Delay(500);
             var existingUserProfile = await db.LoadRecordByIdAsync<GameUser>("UserProfiles", message.Author.Id);
             var showLevelUpMessage = serverSettings.ShowLevelUpMessage;
             

@@ -348,6 +348,7 @@ namespace TharBot.Handlers
         public async void GameHandling(object? source, ElapsedEventArgs e)
         {
             var userProfiles = await db.LoadRecordsAsync<GameUser>("UserProfiles");
+            Random random = new();
 
             if (userProfiles == null) return;
 
@@ -355,6 +356,21 @@ namespace TharBot.Handlers
             {
                 foreach (var serverStats in userProfile.Servers)
                 {
+                    var user = await Client.GetUserAsync(userProfile.UserId) as SocketGuildUser;
+                    if (user.VoiceChannel != null)
+                    {
+                        serverStats.Exp += random.Next(8, 13);
+                        serverStats.TharCoins += 10;
+
+                        if (serverStats.Exp >= serverStats.ExpToLevel)
+                        {
+                            serverStats.Exp -= serverStats.ExpToLevel;
+                            serverStats.Level++;
+                            serverStats.CurrentHP = serverStats.BaseHP;
+                            serverStats.CurrentMP = serverStats.BaseMP;
+                            serverStats.AttributePoints += GameServerStats.AttributePointsPerLevel;
+                        }
+                    }
                     var percentageHealthRegen = (serverStats.Attributes.Constitution * GameServerStats.ConstitutionHPRegenBonus) + 5;
                     var percentageManaRegen = (serverStats.Attributes.Wisdom * GameServerStats.WisdomMPRegenBonus) + 5;
                     serverStats.CurrentHP += Math.Floor(serverStats.BaseHP / 100 * percentageHealthRegen);
@@ -448,6 +464,7 @@ namespace TharBot.Handlers
                 await LoggingHandler.LogCriticalAsync("Bot", null, ex);
             }
         }
+
         public async void RemoveAttributeDialog(ServerSpecifics? server, GameAttributeDialog? attributeDialog)
         {
             server = await db.LoadRecordByIdAsync<ServerSpecifics>("ServerSpecifics", server.ServerId);

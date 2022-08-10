@@ -8,22 +8,23 @@ namespace TharBot.Handlers
     public static class EmbedHandler
     {
         // Embed descriptions are limited to 4096 characters.
+        // Embed fields are limited to 1024 characters.
 
         public static async Task<EmbedBuilder> CreateBasicEmbedBuilder(string title)
         {
-            var embedBuilder = await Task.Run(() => (new EmbedBuilder()
+            var embedBuilder = await Task.Run(() => new EmbedBuilder()
                 .WithTitle(title)
                 .WithColor(new Color(76, 164, 210))
-                .WithCurrentTimestamp()));
+                .WithCurrentTimestamp());
             return embedBuilder;
         }
         public static async Task<Embed> CreateBasicEmbed(string title, string description)
         {
-            var embed = await Task.Run(() => (new EmbedBuilder()
+            var embed = await Task.Run(() => new EmbedBuilder()
                 .WithTitle(title)
                 .WithDescription(description)
                 .WithColor(new Color(76, 164, 210))
-                .WithCurrentTimestamp().Build()));
+                .WithCurrentTimestamp().Build());
             return embed;
         }
 
