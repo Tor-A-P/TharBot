@@ -225,7 +225,8 @@ namespace TharBot.Handlers
             server = await db.LoadRecordByIdAsync<ServerSpecifics>("ServerSpecifics", server.ServerId);
             poll = server.Polls.Where(x => x.MessageId == poll.MessageId).FirstOrDefault();
             server.Polls.Remove(poll);
-            await db.UpsertRecordAsync("ServerSpecifics", server.ServerId, server);
+            var update = Builders<ServerSpecifics>.Update.Set(x => x.Polls, server.Polls);
+            await db.UpsertServerAsync<ServerSpecifics>("ServerSpecifics", server.ServerId, update);
         }
 
         public async void ReminderHandling(object? source, ElapsedEventArgs e)
@@ -260,7 +261,8 @@ namespace TharBot.Handlers
             server = await db.LoadRecordByIdAsync<ServerSpecifics>("ServerSpecifics", server.ServerId);
             reminder = server.Reminders.Where(x => x.Id == reminder.Id).FirstOrDefault();
             server.Reminders.Remove(reminder);
-            await db.UpsertRecordAsync("ServerSpecifics", server.ServerId, server);
+            var update = Builders<ServerSpecifics>.Update.Set(x => x.Reminders, server.Reminders);
+            await db.UpsertServerAsync<ServerSpecifics>("ServerSpecifics", server.ServerId, update);
         }
 
         public async void DailyPCHandling(object? source, ElapsedEventArgs e)
@@ -323,7 +325,10 @@ namespace TharBot.Handlers
                             };
                             server.Polls.Add(newPoll);
                             server.DailyPC.LastTimeRun = DateTime.UtcNow;
-                            await db.UpsertRecordAsync("ServerSpecifics", server.ServerId, server);
+                            var update = Builders<ServerSpecifics>.Update
+                                .Set(x => x.Polls, server.Polls)
+                                .Set(x => x.DailyPC, server.DailyPC);
+                            await db.UpsertServerAsync<ServerSpecifics>("ServerSpecifics", server.ServerId, update);
 
                             foreach (var emoji in emojis)
                             {
@@ -448,7 +453,8 @@ namespace TharBot.Handlers
             server = await db.LoadRecordByIdAsync<ServerSpecifics>("ServerSpecifics", server.ServerId);
             attributeDialog = server.AttributeDialogs.Where(x => x.MessageId == attributeDialog.MessageId).FirstOrDefault();
             server.AttributeDialogs.Remove(attributeDialog);
-            await db.UpsertRecordAsync("ServerSpecifics", server.ServerId, server);
+            var update = Builders<ServerSpecifics>.Update.Set(x => x.AttributeDialogs, server.AttributeDialogs);
+            await db.UpsertServerAsync<ServerSpecifics>("ServerSpecifics", server.ServerId, update);
         }
     }
 }

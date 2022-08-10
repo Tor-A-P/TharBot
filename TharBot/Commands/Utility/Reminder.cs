@@ -1,6 +1,7 @@
 ﻿using Discord.Commands;
 using Microsoft.Recognizers.Text;
 using Microsoft.Recognizers.Text.DateTime;
+using MongoDB.Driver;
 using System.Text.RegularExpressions;
 using TharBot.DBModels;
 using TharBot.Handlers;
@@ -53,7 +54,7 @@ namespace TharBot.Commands
                 {
                     var newReminder = new Reminders
                     {
-                        Id = new Guid(),
+                        Id = Guid.NewGuid(),
                         ReminderText = reminderText,
                         ChannelId = Context.Channel.Id,
                         UserId = Context.User.Id,
@@ -61,7 +62,8 @@ namespace TharBot.Commands
                     };
                     var serverSpecifics = await db.LoadRecordByIdAsync<ServerSpecifics>("ServerSpecifics", Context.Guild.Id);
                     serverSpecifics.Reminders.Add(newReminder);
-                    await db.UpsertRecordAsync("ServerSpecifics", Context.Guild.Id, serverSpecifics);
+                    var update = Builders<ServerSpecifics>.Update.Set(x => x.Reminders, serverSpecifics.Reminders);
+                    await db.UpsertServerAsync<ServerSpecifics>("ServerSpecifics", Context.Guild.Id, update);
 
                     var embed = await EmbedHandler.CreateBasicEmbed("Reminder created!", $"I will remind you to {reminderText} at {dateTime:f}");
                     await ReplyAsync(embed: embed);

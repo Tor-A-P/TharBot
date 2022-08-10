@@ -81,10 +81,8 @@ namespace TharBot.Handlers
             var collection = _db.GetCollection<ServerSpecifics>(table);
             UpdateResult updateResult;
 
-            var revisionUpdate = Builders<ServerSpecifics>.Update
-                .Inc(x => x.Revision, 1);
-            var combinedUpdate = Builders<ServerSpecifics>.Update
-                .Combine(update, revisionUpdate);
+            var revisionUpdate = Builders<ServerSpecifics>.Update.Inc(x => x.Revision, 1);
+            var combinedUpdate = Builders<ServerSpecifics>.Update.Combine(update, revisionUpdate);
 
             do
             {
@@ -99,10 +97,8 @@ namespace TharBot.Handlers
             var collection = _db.GetCollection<GameUser>(table);
             UpdateResult updateResult;
 
-            var revisionUpdate = Builders<GameUser>.Update
-                .Inc(x => x.Revision, 1);
-            var combinedUpdate = Builders<GameUser>.Update
-                .Combine(update, revisionUpdate);
+            var revisionUpdate = Builders<GameUser>.Update.Inc(x => x.Revision, 1);
+            var combinedUpdate = Builders<GameUser>.Update.Combine(update, revisionUpdate);
 
             do
             {

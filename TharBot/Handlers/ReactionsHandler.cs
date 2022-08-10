@@ -127,8 +127,8 @@ namespace TharBot.Handlers
                             }
                         }
                     }
-
-                    await db.UpsertRecordAsync("ServerSpecifics", serverSpecifics.ServerId, serverSpecifics);
+                    var update = Builders<ServerSpecifics>.Update.Set(x => x.Polls, serverSpecifics.Polls);
+                    await db.UpsertServerAsync<ServerSpecifics>("ServerSpecifics", serverSpecifics.ServerId, update);
                 }
             }
             catch (Exception ex)
