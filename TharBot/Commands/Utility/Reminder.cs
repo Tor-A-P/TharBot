@@ -63,7 +63,7 @@ namespace TharBot.Commands
                     var serverSpecifics = await db.LoadRecordByIdAsync<ServerSpecifics>("ServerSpecifics", Context.Guild.Id);
                     serverSpecifics.Reminders.Add(newReminder);
                     var update = Builders<ServerSpecifics>.Update.Set(x => x.Reminders, serverSpecifics.Reminders);
-                    await db.UpsertServerAsync<ServerSpecifics>("ServerSpecifics", Context.Guild.Id, update);
+                    await db.UpdateServerAsync<ServerSpecifics>("ServerSpecifics", Context.Guild.Id, update);
 
                     var embed = await EmbedHandler.CreateBasicEmbed("Reminder created!", $"I will remind you to {reminderText} at {dateTime:f}");
                     await ReplyAsync(embed: embed);

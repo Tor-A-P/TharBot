@@ -51,9 +51,27 @@ namespace TharBot.Commands
             {
                 if (commandUser.VoiceChannel != bot.VoiceChannel)
                 {
-                    var wrongVCEmbed = await EmbedHandler.CreateUserErrorEmbed("Play", "You must be connected to the same voice channel as the bot!");
-                    await ReplyAsync(embed: wrongVCEmbed);
-                    return;
+                    if (bot.VoiceChannel == null)
+                    {
+                        try
+                        {
+                            await _lavaNode.JoinAsync(commandUser.VoiceChannel, Context.Channel as ITextChannel);
+                            await ReplyAsync($"Joined {commandUser.VoiceChannel.Name}!");
+                            await Task.Delay(500);
+                        }
+                        catch (Exception ex)
+                        {
+                            var exEmbed = await EmbedHandler.CreateErrorEmbed("Play", ex.Message);
+                            await ReplyAsync(embed: exEmbed);
+                            await LoggingHandler.LogCriticalAsync("COMND: Play", null, ex);
+                        }
+                    }
+                    else
+                    {
+                        var wrongVCEmbed = await EmbedHandler.CreateUserErrorEmbed("Play", "You must be connected to the same voice channel as the bot!");
+                        await ReplyAsync(embed: wrongVCEmbed);
+                        return;
+                    }
                 }
             }
 

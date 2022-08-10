@@ -49,7 +49,7 @@ namespace TharBot.Commands
                     var channelIdList = new List<ulong> { channelId };
                     serverSettings.BLChannelId = channelIdList;
                     var update = Builders<ServerSpecifics>.Update.Set(x => x.BLChannelId, serverSettings.BLChannelId);
-                    await db.UpsertServerAsync<ServerSpecifics>("ServerSpecifics", Context.Guild.Id, update);
+                    await db.UpdateServerAsync<ServerSpecifics>("ServerSpecifics", Context.Guild.Id, update);
                     var embed = await EmbedHandler.CreateBasicEmbed("Channel blacklisted", $"Blacklisted channel #{Context.Client.GetChannel(channelId)}.");
                     await ReplyAsync(embed: embed);
                 }
@@ -57,7 +57,7 @@ namespace TharBot.Commands
                 {
                     serverSettings.BLChannelId.Remove(channelId);
                     var update = Builders<ServerSpecifics>.Update.Set(x => x.BLChannelId, serverSettings.BLChannelId);
-                    await db.UpsertServerAsync<ServerSpecifics>("ServerSpecifics", Context.Guild.Id, update);
+                    await db.UpdateServerAsync<ServerSpecifics>("ServerSpecifics", Context.Guild.Id, update);
                     var embed = await EmbedHandler.CreateBasicEmbed("Channel removed from blacklist", $"Removed channel #{Context.Client.GetChannel(channelId)} from the blacklist.");
                     await ReplyAsync(embed: embed);
                 }
@@ -65,7 +65,7 @@ namespace TharBot.Commands
                 {
                     serverSettings.BLChannelId.Add(channelId);
                     var update = Builders<ServerSpecifics>.Update.Set(x => x.BLChannelId, serverSettings.BLChannelId);
-                    await db.UpsertServerAsync<ServerSpecifics>("ServerSpecifics", Context.Guild.Id, update);
+                    await db.UpdateServerAsync<ServerSpecifics>("ServerSpecifics", Context.Guild.Id, update);
                     var embed = await EmbedHandler.CreateBasicEmbed("Channel blacklisted", $"Blacklisted channel #{Context.Client.GetChannel(channelId)}.");
                     await ReplyAsync(embed: embed);
                 }

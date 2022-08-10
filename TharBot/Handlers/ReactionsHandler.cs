@@ -128,7 +128,7 @@ namespace TharBot.Handlers
                         }
                     }
                     var update = Builders<ServerSpecifics>.Update.Set(x => x.Polls, serverSpecifics.Polls);
-                    await db.UpsertServerAsync<ServerSpecifics>("ServerSpecifics", serverSpecifics.ServerId, update);
+                    await db.UpdateServerAsync<ServerSpecifics>("ServerSpecifics", serverSpecifics.ServerId, update);
                 }
             }
             catch (Exception ex)
@@ -211,7 +211,7 @@ namespace TharBot.Handlers
                         }
                     }
                     var update = Builders<GameUser>.Update.Set(x => x.Servers, userProfile.Servers);
-                    await db.UpsertUserAsync<GameUser>("UserProfiles", attributeDialog.UserId, update);
+                    await db.UpdateUserAsync<GameUser>("UserProfiles", attributeDialog.UserId, update);
                     await msg.RemoveReactionAsync(reaction.Emote, reaction.UserId);
                     var showAttributesEmbed = await EmbedHandler.CreateAttributeEmbedBuilder(serverStats, user);
                     showAttributesEmbed.AddField("­", attributeAddedText);

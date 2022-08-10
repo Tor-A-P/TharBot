@@ -34,7 +34,7 @@ namespace TharBot.Commands
 
             serverSettings.PCResultsChannel = channelId;
             var update = Builders<ServerSpecifics>.Update.Set(x => x.PCResultsChannel, serverSettings.PCResultsChannel);
-            await db.UpsertServerAsync<ServerSpecifics>("ServerSpecifics", Context.Guild.Id, update);
+            await db.UpdateServerAsync<ServerSpecifics>("ServerSpecifics", Context.Guild.Id, update);
 
             var embed = await EmbedHandler.CreateBasicEmbed("Pulsecheck Channel set!", 
                 $"The pulsecheck command will now report its results in #{Context.Client.GetChannel(channelId)}!");

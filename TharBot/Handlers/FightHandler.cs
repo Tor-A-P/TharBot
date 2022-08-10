@@ -127,7 +127,7 @@ namespace TharBot.Handlers
                             };
                             await db.DeleteRecordAsync<GameFight>("ActiveFights", reaction.MessageId);
                             update = Builders<GameUser>.Update.Set(x => x.Servers, userProfile.Servers);
-                            await db.UpsertUserAsync<GameUser>("UserProfiles", fight.UserId, update);
+                            await db.UpdateUserAsync<GameUser>("UserProfiles", fight.UserId, update);
                             return;
                         }
                     }
@@ -156,7 +156,7 @@ namespace TharBot.Handlers
                         };
                         await db.DeleteRecordAsync<GameFight>("ActiveFights", reaction.MessageId);
                         update = Builders<GameUser>.Update.Set(x => x.Servers, userProfile.Servers);
-                        await db.UpsertUserAsync<GameUser>("UserProfiles", fight.UserId, update);
+                        await db.UpdateUserAsync<GameUser>("UserProfiles", fight.UserId, update);
                         return;
                     }
 
@@ -170,7 +170,7 @@ namespace TharBot.Handlers
                     fight.Enemy.Debuffs.HoTDuration--;
                     await db.UpsertRecordAsync("ActiveFights", reaction.MessageId, fight);
                     update = Builders<GameUser>.Update.Set(x => x.Servers, userProfile.Servers);
-                    await db.UpsertUserAsync<GameUser>("UserProfiles", fight.UserId, update);
+                    await db.UpdateUserAsync<GameUser>("UserProfiles", fight.UserId, update);
                 }
                 else
                 {

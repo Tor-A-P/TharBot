@@ -33,7 +33,7 @@ namespace TharBot.Commands.Setup
 
             serverSpecifics.ShowLevelUpMessage = !serverSpecifics.ShowLevelUpMessage;
             var update = Builders<ServerSpecifics>.Update.Set(x => x.ShowLevelUpMessage, serverSpecifics.ShowLevelUpMessage);
-            await db.UpsertServerAsync<ServerSpecifics>("ServerSpecifics", Context.Guild.Id, update);
+            await db.UpdateServerAsync<ServerSpecifics>("ServerSpecifics", Context.Guild.Id, update);
             string? embedMsg;
             if (serverSpecifics.ShowLevelUpMessage) embedMsg = "I will now show a message every time someone levels up in this server!";
             else embedMsg = "I will no longer show a message every time someone levels up in this server!";

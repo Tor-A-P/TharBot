@@ -51,7 +51,7 @@ namespace TharBot.Commands
             serverStats.Debuffs.StunDuration = rounds;
 
             var update = Builders<GameUser>.Update.Set(x => x.Servers, userProfile.Servers);
-            await db.UpsertUserAsync<GameUser>("UserProfiles", userProfile.UserId, update);
+            await db.UpdateUserAsync<GameUser>("UserProfiles", userProfile.UserId, update);
 
             var embed = await EmbedHandler.CreateBasicEmbed("Stunned you!", $"Stunned you for {rounds} rounds.");
             await ReplyAsync(embed: embed);
@@ -80,7 +80,7 @@ namespace TharBot.Commands
             serverStats.CurrentHP = serverStats.BaseHP;
 
             var update = Builders<GameUser>.Update.Set(x => x.Servers, userProfile.Servers);
-            await db.UpsertUserAsync<GameUser>("UserProfiles", userProfile.UserId, update);
+            await db.UpdateUserAsync<GameUser>("UserProfiles", userProfile.UserId, update);
 
             var embed = await EmbedHandler.CreateBasicEmbed("Healed you!", "Returned you to full base health!");
             await ReplyAsync(embed: embed);

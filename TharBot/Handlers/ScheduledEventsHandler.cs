@@ -6,6 +6,7 @@ using Microsoft.Extensions.Logging;
 using MongoDB.Driver;
 using System.Timers;
 using TharBot.DBModels;
+using Victoria;
 
 namespace TharBot.Handlers
 {
@@ -16,13 +17,15 @@ namespace TharBot.Handlers
         private readonly DiscordSocketClient _client;
         private readonly IConfiguration _configuration;
         private readonly MongoCRUDHandler db;
+        private readonly LavaNode _lavaNode;
 
-        public ScheduledEventsHandler(DiscordSocketClient client, IConfiguration configuration, ILogger<DiscordClientService> logger)
+        public ScheduledEventsHandler(DiscordSocketClient client, IConfiguration configuration, ILogger<DiscordClientService> logger, LavaNode lavaNode)
             : base(client, logger)
         {
             _client = client;
             _configuration = configuration;
             db = new MongoCRUDHandler("TharBot", _configuration);
+            _lavaNode = lavaNode;
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -36,6 +39,7 @@ namespace TharBot.Handlers
             timer60s.Elapsed += GameHandling;
             timer60s.Elapsed += FightOverHandling;
             timer60s.Elapsed += AttributeDialogCleanup;
+            timer60s.Elapsed += StopMusic;
         }
 
         public async void PollHandling(object? source, ElapsedEventArgs e)
@@ -226,7 +230,7 @@ namespace TharBot.Handlers
             poll = server.Polls.Where(x => x.MessageId == poll.MessageId).FirstOrDefault();
             server.Polls.Remove(poll);
             var update = Builders<ServerSpecifics>.Update.Set(x => x.Polls, server.Polls);
-            await db.UpsertServerAsync<ServerSpecifics>("ServerSpecifics", server.ServerId, update);
+            await db.UpdateServerAsync<ServerSpecifics>("ServerSpecifics", server.ServerId, update);
         }
 
         public async void ReminderHandling(object? source, ElapsedEventArgs e)
@@ -262,7 +266,7 @@ namespace TharBot.Handlers
             reminder = server.Reminders.Where(x => x.Id == reminder.Id).FirstOrDefault();
             server.Reminders.Remove(reminder);
             var update = Builders<ServerSpecifics>.Update.Set(x => x.Reminders, server.Reminders);
-            await db.UpsertServerAsync<ServerSpecifics>("ServerSpecifics", server.ServerId, update);
+            await db.UpdateServerAsync<ServerSpecifics>("ServerSpecifics", server.ServerId, update);
         }
 
         public async void DailyPCHandling(object? source, ElapsedEventArgs e)
@@ -328,7 +332,7 @@ namespace TharBot.Handlers
                             var update = Builders<ServerSpecifics>.Update
                                 .Set(x => x.Polls, server.Polls)
                                 .Set(x => x.DailyPC, server.DailyPC);
-                            await db.UpsertServerAsync<ServerSpecifics>("ServerSpecifics", server.ServerId, update);
+                            await db.UpdateServerAsync<ServerSpecifics>("ServerSpecifics", server.ServerId, update);
 
                             foreach (var emoji in emojis)
                             {
@@ -357,20 +361,24 @@ namespace TharBot.Handlers
                 foreach (var serverStats in userProfile.Servers)
                 {
                     var user = await Client.GetUserAsync(userProfile.UserId) as SocketGuildUser;
-                    if (user.VoiceChannel != null)
+                    if (user != null)
                     {
-                        serverStats.Exp += random.Next(8, 13);
-                        serverStats.TharCoins += 10;
-
-                        if (serverStats.Exp >= serverStats.ExpToLevel)
+                        if (user.VoiceChannel != null)
                         {
-                            serverStats.Exp -= serverStats.ExpToLevel;
-                            serverStats.Level++;
-                            serverStats.CurrentHP = serverStats.BaseHP;
-                            serverStats.CurrentMP = serverStats.BaseMP;
-                            serverStats.AttributePoints += GameServerStats.AttributePointsPerLevel;
+                            serverStats.Exp += random.Next(8, 13);
+                            serverStats.TharCoins += 10;
+
+                            if (serverStats.Exp >= serverStats.ExpToLevel)
+                            {
+                                serverStats.Exp -= serverStats.ExpToLevel;
+                                serverStats.Level++;
+                                serverStats.CurrentHP = serverStats.BaseHP;
+                                serverStats.CurrentMP = serverStats.BaseMP;
+                                serverStats.AttributePoints += GameServerStats.AttributePointsPerLevel;
+                            }
                         }
                     }
+                    
                     var percentageHealthRegen = (serverStats.Attributes.Constitution * GameServerStats.ConstitutionHPRegenBonus) + 5;
                     var percentageManaRegen = (serverStats.Attributes.Wisdom * GameServerStats.WisdomMPRegenBonus) + 5;
                     serverStats.CurrentHP += Math.Floor(serverStats.BaseHP / 100 * percentageHealthRegen);
@@ -379,7 +387,7 @@ namespace TharBot.Handlers
                     if (serverStats.CurrentMP > serverStats.BaseMP) serverStats.CurrentMP = serverStats.BaseMP;
                 }
                 var update = Builders<GameUser>.Update.Set(x => x.Servers, userProfile.Servers);
-                await db.UpsertUserAsync<GameUser>("UserProfiles", userProfile.UserId, update);
+                await db.UpdateUserAsync<GameUser>("UserProfiles", userProfile.UserId, update);
             }
         }
 
@@ -416,7 +424,7 @@ namespace TharBot.Handlers
                                 };
                                 await db.DeleteRecordAsync<GameFight>("ActiveFights", fight.MessageId);
                                 var update = Builders<GameUser>.Update.Set(x => x.Servers, userProfile.Servers);
-                                await db.UpsertUserAsync<GameUser>("UserProfiles", userProfile.UserId, update);
+                                await db.UpdateUserAsync<GameUser>("UserProfiles", userProfile.UserId, update);
                             }
                         }
                     }
@@ -471,7 +479,7 @@ namespace TharBot.Handlers
             attributeDialog = server.AttributeDialogs.Where(x => x.MessageId == attributeDialog.MessageId).FirstOrDefault();
             server.AttributeDialogs.Remove(attributeDialog);
             var update = Builders<ServerSpecifics>.Update.Set(x => x.AttributeDialogs, server.AttributeDialogs);
-            await db.UpsertServerAsync<ServerSpecifics>("ServerSpecifics", server.ServerId, update);
+            await db.UpdateServerAsync<ServerSpecifics>("ServerSpecifics", server.ServerId, update);
         }
     }
 }

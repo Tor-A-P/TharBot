@@ -81,7 +81,7 @@ namespace TharBot.Commands
                         {
                             existingRec.Clear();
                             var update = Builders<ServerSpecifics>.Update.Set(x => x.WLChannelId, serverSettings.WLChannelId);
-                            await db.UpsertServerAsync<ServerSpecifics>("ServerSpecifics", Context.Guild.Id, update);
+                            await db.UpdateServerAsync<ServerSpecifics>("ServerSpecifics", Context.Guild.Id, update);
 
                             var WLClearEmbed = await EmbedHandler.CreateBasicEmbed("Whitelist cleared!", $"Cleared whitelist for {Context.Guild.Name}");
                             await ReplyAsync(embed: WLClearEmbed);
@@ -129,7 +129,7 @@ namespace TharBot.Commands
                         {
                             existingRec.Clear();
                             var update = Builders<ServerSpecifics>.Update.Set(x => x.GameWLChannelId, serverSettings.GameWLChannelId);
-                            await db.UpsertServerAsync<ServerSpecifics>("ServerSpecifics", Context.Guild.Id, update);
+                            await db.UpdateServerAsync<ServerSpecifics>("ServerSpecifics", Context.Guild.Id, update);
 
                             var GameWLClearEmbed = await EmbedHandler.CreateBasicEmbed("Whitelist for games cleared!", $"Cleared game command whitelist for {Context.Guild.Name}");
                             await ReplyAsync(embed: GameWLClearEmbed);

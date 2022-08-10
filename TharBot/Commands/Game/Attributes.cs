@@ -79,7 +79,7 @@ namespace TharBot.Commands.Game
                     serverSettings.AttributeDialogs.Add(attributeDialog);
 
                     var serverUpdate = Builders<ServerSpecifics>.Update.Set(x => x.AttributeDialogs, serverSettings.AttributeDialogs);
-                    await db.UpsertServerAsync<ServerSpecifics>("ServerSpecifics", Context.Guild.Id, serverUpdate);
+                    await db.UpdateServerAsync<ServerSpecifics>("ServerSpecifics", Context.Guild.Id, serverUpdate);
                     var emotes = new Emote[]
                     {
                     EmoteHandler.Strength,
@@ -155,7 +155,7 @@ namespace TharBot.Commands.Game
                 var successEmbed = await EmbedHandler.CreateBasicEmbed($"{attribute} upgraded!", $"You have added {amount} points to {attribute}");
                 await ReplyAsync(embed: successEmbed);
                 update = Builders<GameUser>.Update.Set(x => x.Servers, userProfile.Servers);
-                await db.UpsertUserAsync<GameUser>("UserProfiles", Context.User.Id, update);
+                await db.UpdateUserAsync<GameUser>("UserProfiles", Context.User.Id, update);
             }
             catch (Exception ex)
             {

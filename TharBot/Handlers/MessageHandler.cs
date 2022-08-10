@@ -200,7 +200,7 @@ namespace TharBot.Handlers
                 var update = Builders<GameUser>.Update
                     .Set(x => x.Servers, existingUserProfile.Servers)
                     .Set(x => x.LastSeenUsername, message.Author.Username);
-                await db.UpsertUserAsync<GameUser>("UserProfiles", message.Author.Id, update);
+                await db.UpdateUserAsync<GameUser>("UserProfiles", message.Author.Id, update);
             }
         }
     }

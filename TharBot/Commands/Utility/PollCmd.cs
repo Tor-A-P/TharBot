@@ -97,7 +97,7 @@ namespace TharBot.Commands
                     };
                     serverSpecifics.Polls.Add(newPoll);
                     var update = Builders<ServerSpecifics>.Update.Set(x => x.Polls, serverSpecifics.Polls);
-                    await db.UpsertServerAsync<ServerSpecifics>("ServerSpecifics", Context.Guild.Id, update);
+                    await db.UpdateServerAsync<ServerSpecifics>("ServerSpecifics", Context.Guild.Id, update);
 
                     for (int i = 0; i < options.Length; i++)
                     {

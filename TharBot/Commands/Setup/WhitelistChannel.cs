@@ -49,7 +49,7 @@ namespace TharBot.Commands
                     var channelIdList = new List<ulong> { channelId };
                     serverSettings.WLChannelId = channelIdList;
                     var update = Builders<ServerSpecifics>.Update.Set(x => x.WLChannelId, serverSettings.WLChannelId);
-                    await db.UpsertServerAsync<ServerSpecifics>("ServerSpecifics", Context.Guild.Id, update);
+                    await db.UpdateServerAsync<ServerSpecifics>("ServerSpecifics", Context.Guild.Id, update);
                     var embed = await EmbedHandler.CreateBasicEmbed("Channel whitelisted", $"Whitelisted channel #{Context.Client.GetChannel(channelId)}.");
                     await ReplyAsync(embed: embed);
                 }
@@ -57,7 +57,7 @@ namespace TharBot.Commands
                 {
                     serverSettings.WLChannelId.Remove(channelId);
                     var update = Builders<ServerSpecifics>.Update.Set(x => x.WLChannelId, serverSettings.WLChannelId);
-                    await db.UpsertServerAsync<ServerSpecifics>("ServerSpecifics", Context.Guild.Id, update);
+                    await db.UpdateServerAsync<ServerSpecifics>("ServerSpecifics", Context.Guild.Id, update);
                     var embed = await EmbedHandler.CreateBasicEmbed("Channel removed from whitelist.", $"Removed channel #{Context.Client.GetChannel(channelId)} from the whitelist.");
                     await ReplyAsync(embed: embed);
                 }
@@ -65,7 +65,7 @@ namespace TharBot.Commands
                 {
                     serverSettings.WLChannelId.Add(channelId);
                     var update = Builders<ServerSpecifics>.Update.Set(x => x.WLChannelId, serverSettings.WLChannelId);
-                    await db.UpsertServerAsync<ServerSpecifics>("ServerSpecifics", Context.Guild.Id, update);
+                    await db.UpdateServerAsync<ServerSpecifics>("ServerSpecifics", Context.Guild.Id, update);
                     var embed = await EmbedHandler.CreateBasicEmbed("Channel whitelisted", $"Whitelisted channel #{Context.Client.GetChannel(channelId)}.");
                     await ReplyAsync(embed: embed);
                 }

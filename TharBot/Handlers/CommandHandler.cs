@@ -4,6 +4,7 @@ using Discord.Commands;
 using Discord.WebSocket;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using MongoDB.Driver;
 using System.Reflection;
 using TharBot.DBModels;
 
@@ -38,15 +39,19 @@ namespace TharBot.Handlers
             await _service.AddModulesAsync(Assembly.GetEntryAssembly(), _provider);
         }
 
-        private async Task OnCommandExecuted(Optional<CommandInfo> commandInfo, ICommandContext commandContext, IResult result)
+        private async Task OnCommandExecuted(Discord.Optional<CommandInfo> commandInfo, ICommandContext commandContext, IResult result)
         {
+            var serverSettings = await db.LoadRecordByIdAsync<ServerSpecifics>("ServerSpecifics", commandContext.Guild.Id);
+            serverSettings.LastChannelUsed = (SocketTextChannel)commandContext.Channel;
+            var update = Builders<ServerSpecifics>.Update.Set(x => x.LastChannelUsed, serverSettings.LastChannelUsed);
+            await db.UpdateServerAsync<ServerSpecifics>("ServerSpecifics", commandContext.Guild.Id, update);
+
             if (result.IsSuccess)
             {
                 await LoggingHandler.LogInformationAsync("bot", $"Executed command \"{commandInfo.Value.Name}\"!");
                 return;
             }
 
-            var serverSettings = await db.LoadRecordByIdAsync<ServerSpecifics>("ServerSpecifics", commandContext.Guild.Id);
             string? prefix;
             if (serverSettings.Prefix != null) prefix = serverSettings.Prefix;
             else prefix = _configuration["Prefix"];

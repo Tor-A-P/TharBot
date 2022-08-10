@@ -212,7 +212,7 @@ namespace TharBot.Commands
                         serverStats.FightInProgress = true;
                         serverStats.FightsThisHour++;
                         var update = Builders<GameUser>.Update.Set(x => x.Servers, userProfile.Servers);
-                        await db.UpsertUserAsync<GameUser>("UserProfiles", userProfile.UserId, update);
+                        await db.UpdateUserAsync<GameUser>("UserProfiles", userProfile.UserId, update);
                         await fight.AddReactionsAsync(emotes);
                     }
                 }

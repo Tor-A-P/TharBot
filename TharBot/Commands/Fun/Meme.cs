@@ -82,7 +82,7 @@ namespace TharBot.Commands
                         { cmdName, output }
                     };
                     var update = Builders<ServerSpecifics>.Update.Set(x => x.Memes, serverSettings.Memes);
-                    await db.UpsertServerAsync<ServerSpecifics>("ServerSpecifics", Context.Guild.Id, update);
+                    await db.UpdateServerAsync<ServerSpecifics>("ServerSpecifics", Context.Guild.Id, update);
 
                     var embed = await EmbedHandler.CreateBasicEmbed($"Command {cmdName} created!", $"Type {prefix}{cmdName} to use it.");
                     await ReplyAsync(embed: embed);
@@ -96,7 +96,7 @@ namespace TharBot.Commands
                 {
                     serverSettings.Memes.Add(cmdName, output);
                     var update = Builders<ServerSpecifics>.Update.Set(x => x.Memes, serverSettings.Memes);
-                    await db.UpsertServerAsync<ServerSpecifics>("ServerSpecifics", Context.Guild.Id, update);
+                    await db.UpdateServerAsync<ServerSpecifics>("ServerSpecifics", Context.Guild.Id, update);
 
                     var embed = await EmbedHandler.CreateBasicEmbed($"Command {cmdName} created!", $"Type {prefix}{cmdName} to use it.");
                     await ReplyAsync(embed: embed);

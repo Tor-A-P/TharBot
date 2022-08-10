@@ -41,7 +41,7 @@ namespace TharBot.Commands
             {
                 serverSettings.Prefix = prefix;
                 var update = Builders<ServerSpecifics>.Update.Set(x => x.Prefix, serverSettings.Prefix);
-                await db.UpsertServerAsync<ServerSpecifics>("ServerSpecifics", Context.Guild.Id, update);
+                await db.UpdateServerAsync<ServerSpecifics>("ServerSpecifics", Context.Guild.Id, update);
                
                 var embed = await EmbedHandler.CreateBasicEmbed("Prefix", $"Changed prefix for this server to \"{serverSettings.Prefix}\"");
                 await ReplyAsync(embed: embed);

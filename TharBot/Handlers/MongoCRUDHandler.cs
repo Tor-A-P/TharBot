@@ -76,7 +76,7 @@ namespace TharBot.Handlers
             }
         }
 
-        public async Task UpsertServerAsync<T>(string table, ulong id, UpdateDefinition<ServerSpecifics> update, UpdateOptions? options = null)
+        public async Task UpdateServerAsync<T>(string table, ulong id, UpdateDefinition<ServerSpecifics> update, UpdateOptions? options = null)
         {
             var collection = _db.GetCollection<ServerSpecifics>(table);
             UpdateResult updateResult;
@@ -92,7 +92,7 @@ namespace TharBot.Handlers
             } while (updateResult.ModifiedCount == 0);
         }
 
-        public async Task UpsertUserAsync<T>(string table, ulong id, UpdateDefinition<GameUser> update, UpdateOptions? options = null)
+        public async Task UpdateUserAsync<T>(string table, ulong id, UpdateDefinition<GameUser> update, UpdateOptions? options = null)
         {
             var collection = _db.GetCollection<GameUser>(table);
             UpdateResult updateResult;

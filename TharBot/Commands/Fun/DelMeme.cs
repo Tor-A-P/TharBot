@@ -43,7 +43,7 @@ namespace TharBot.Commands
             {
                 serverSettings.Memes.Remove(cmdName);
                 var update = Builders<ServerSpecifics>.Update.Set(x => x.Memes, serverSettings.Memes);
-                await db.UpsertServerAsync<ServerSpecifics>("ServerSpecifics", Context.Guild.Id, update);
+                await db.UpdateServerAsync<ServerSpecifics>("ServerSpecifics", Context.Guild.Id, update);
 
                 var embed = await EmbedHandler.CreateBasicEmbed($"{cmdName} removed!", $"Removed custom command named {cmdName}");
                 await ReplyAsync(embed: embed);

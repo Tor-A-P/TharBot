@@ -126,7 +126,7 @@ namespace TharBot.Commands
                             serverStats.TharCoins -= (long)slots;
 
                             var update = Builders<GameUser>.Update.Set(x => x.Servers, userProfile.Servers);
-                            await db.UpsertUserAsync<GameUser>("UserProfiles", userProfile.UserId, update);
+                            await db.UpdateUserAsync<GameUser>("UserProfiles", userProfile.UserId, update);
 
                             var embed = await EmbedHandler.CreateBasicEmbed(embedTitle,
                                         $"{EmoteHandler.Blank}{EmoteHandler.BoxDownRight}{EmoteHandler.BoxLeftRight}{EmoteHandler.BoxLeftDownRight}{EmoteHandler.BoxLeftRight}{EmoteHandler.BoxLeftDownRight}{EmoteHandler.BoxLeftRight}{EmoteHandler.BoxLeftDown}\n" +
@@ -186,7 +186,7 @@ namespace TharBot.Commands
                                 await slotsMsg.ModifyAsync(x => x.Embed = winnerEmbed.Build());
 
                                 update = Builders<GameUser>.Update.Set(x => x.Servers, userProfile.Servers);
-                                await db.UpsertUserAsync<GameUser>("UserProfiles", userProfile.UserId, update);
+                                await db.UpdateUserAsync<GameUser>("UserProfiles", userProfile.UserId, update);
                                 return;
                             }
 
@@ -201,7 +201,7 @@ namespace TharBot.Commands
                                 await slotsMsg.ModifyAsync(x => x.Embed = winnerEmbed.Build());
 
                                 update = Builders<GameUser>.Update.Set(x => x.Servers, userProfile.Servers);
-                                await db.UpsertUserAsync<GameUser>("UserProfiles", userProfile.UserId, update);
+                                await db.UpdateUserAsync<GameUser>("UserProfiles", userProfile.UserId, update);
                             }
                             else if (resultEmojis[0].Name == resultEmojis[1].Name || resultEmojis[1].Name == resultEmojis[2].Name || resultEmojis[0].Name == resultEmojis[2].Name)
                             {
@@ -214,7 +214,7 @@ namespace TharBot.Commands
                                 await slotsMsg.ModifyAsync(x => x.Embed = winnerEmbed.Build());
 
                                 update = Builders<GameUser>.Update.Set(x => x.Servers, userProfile.Servers);
-                                await db.UpsertUserAsync<GameUser>("UserProfiles", userProfile.UserId, update);
+                                await db.UpdateUserAsync<GameUser>("UserProfiles", userProfile.UserId, update);
                             }
                             else
                             {
@@ -227,7 +227,7 @@ namespace TharBot.Commands
 
                                 update = Builders<GameUser>.Update
                                 .Set(x => x.Servers, userProfile.Servers);
-                                await db.UpsertUserAsync<GameUser>("UserProfiles", userProfile.UserId, update);
+                                await db.UpdateUserAsync<GameUser>("UserProfiles", userProfile.UserId, update);
                             }
                         }
                         else if (long.TryParse(amount, out var slots))
@@ -242,7 +242,7 @@ namespace TharBot.Commands
                                 serverStats.GambaInProgress = true;
                                 serverStats.TharCoins -= slots;
                                 var update = Builders<GameUser>.Update.Set(x => x.Servers, userProfile.Servers);
-                                await db.UpsertUserAsync<GameUser>("UserProfiles", userProfile.UserId, update);
+                                await db.UpdateUserAsync<GameUser>("UserProfiles", userProfile.UserId, update);
 
                                 var embed = await EmbedHandler.CreateBasicEmbed(embedTitle,
                                         $"{EmoteHandler.Blank}{EmoteHandler.BoxDownRight}{EmoteHandler.BoxLeftRight}{EmoteHandler.BoxLeftDownRight}{EmoteHandler.BoxLeftRight}{EmoteHandler.BoxLeftDownRight}{EmoteHandler.BoxLeftRight}{EmoteHandler.BoxLeftDown}\n" +
@@ -301,7 +301,7 @@ namespace TharBot.Commands
                                     await slotsMsg.ModifyAsync(x => x.Embed = winnerEmbed.Build());
 
                                     update = Builders<GameUser>.Update.Set(x => x.Servers, userProfile.Servers);
-                                    await db.UpsertUserAsync<GameUser>("UserProfiles", userProfile.UserId, update);
+                                    await db.UpdateUserAsync<GameUser>("UserProfiles", userProfile.UserId, update);
                                     return;
                                 }
 
@@ -316,7 +316,7 @@ namespace TharBot.Commands
                                     await slotsMsg.ModifyAsync(x => x.Embed = winnerEmbed.Build());
 
                                     update = Builders<GameUser>.Update.Set(x => x.Servers, userProfile.Servers);
-                                    await db.UpsertUserAsync<GameUser>("UserProfiles", userProfile.UserId, update);
+                                    await db.UpdateUserAsync<GameUser>("UserProfiles", userProfile.UserId, update);
                                 }
                                 else if (resultEmojis[0].Name == resultEmojis[1].Name || resultEmojis[1].Name == resultEmojis[2].Name || resultEmojis[0].Name == resultEmojis[2].Name)
                                 {
@@ -329,7 +329,7 @@ namespace TharBot.Commands
                                     await slotsMsg.ModifyAsync(x => x.Embed = winnerEmbed.Build());
 
                                     update = Builders<GameUser>.Update.Set(x => x.Servers, userProfile.Servers);
-                                    await db.UpsertUserAsync<GameUser>("UserProfiles", userProfile.UserId, update);
+                                    await db.UpdateUserAsync<GameUser>("UserProfiles", userProfile.UserId, update);
                                 }
                                 else
                                 {
@@ -341,7 +341,7 @@ namespace TharBot.Commands
                                     await slotsMsg.ModifyAsync(x => x.Embed = loserEmbed.Build());
 
                                     update = Builders<GameUser>.Update.Set(x => x.Servers, userProfile.Servers);
-                                    await db.UpsertUserAsync<GameUser>("UserProfiles", userProfile.UserId, update);
+                                    await db.UpdateUserAsync<GameUser>("UserProfiles", userProfile.UserId, update);
                                 }
                             }
                         }

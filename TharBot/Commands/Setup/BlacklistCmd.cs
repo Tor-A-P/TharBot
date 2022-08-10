@@ -83,7 +83,7 @@ namespace TharBot.Commands
                         {
                             existingRec.Clear();
                             var update = Builders<ServerSpecifics>.Update.Set(x => x.BLChannelId, serverSettings.BLChannelId);
-                            await db.UpsertServerAsync<ServerSpecifics>("ServerSpecifics", Context.Guild.Id, update);
+                            await db.UpdateServerAsync<ServerSpecifics>("ServerSpecifics", Context.Guild.Id, update);
 
                             var BLClearEmbed = await EmbedHandler.CreateBasicEmbed("Blacklist cleared!", $"Cleared blacklist for {Context.Guild.Name}");
                             await ReplyAsync(embed: BLClearEmbed);
@@ -131,7 +131,7 @@ namespace TharBot.Commands
                         {
                             existingRec.Clear();
                             var update = Builders<ServerSpecifics>.Update.Set(x => x.GameBLChannelId, serverSettings.GameBLChannelId);
-                            await db.UpsertServerAsync<ServerSpecifics>("ServerSpecifics", Context.Guild.Id, update);
+                            await db.UpdateServerAsync<ServerSpecifics>("ServerSpecifics", Context.Guild.Id, update);
 
                             var GameBLClearEmbed = await EmbedHandler.CreateBasicEmbed("Blacklist for games cleared!", $"Cleared game command blacklist for {Context.Guild.Name}");
                             await ReplyAsync(embed: GameBLClearEmbed);

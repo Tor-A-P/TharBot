@@ -1,4 +1,5 @@
-﻿using MongoDB.Bson.Serialization.Attributes;
+﻿using Discord.WebSocket;
+using MongoDB.Bson.Serialization.Attributes;
 
 namespace TharBot.DBModels
 {
@@ -19,5 +20,6 @@ namespace TharBot.DBModels
         public ulong? PCResultsChannel { get; set; }
         public List<Reminders>? Reminders { get; set; }
         public bool ShowLevelUpMessage { get; set; }
+        public SocketTextChannel? LastChannelUsed { get; set; }
     }
 }
