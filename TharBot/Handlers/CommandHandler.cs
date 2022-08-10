@@ -43,22 +43,22 @@ namespace TharBot.Handlers
         {
             var serverSettings = await db.LoadRecordByIdAsync<ServerSpecifics>("ServerSpecifics", commandContext.Guild.Id);
 
-            if (commandInfo.Value != null)
-            {
-                if (commandInfo.Value.Remarks != null)
-                {
-                    if (commandInfo.Value.Remarks.ToLower() == "music")
-                    {
-                        serverSettings.LastChannelUsedId = commandContext.Channel.Id;
-                        var update = Builders<ServerSpecifics>.Update.Set(x => x.LastChannelUsedId, serverSettings.LastChannelUsedId);
-                        await db.UpdateServerAsync<ServerSpecifics>("ServerSpecifics", commandContext.Guild.Id, update);
-                    }
-                }
-            }
             
             if (result.IsSuccess)
             {
                 await LoggingHandler.LogInformationAsync("bot", $"Executed command \"{commandInfo.Value.Name}\"!");
+                if (commandInfo.Value != null)
+                {
+                    if (commandInfo.Value.Remarks != null)
+                    {
+                        if (commandInfo.Value.Remarks.ToLower() == "music")
+                        {
+                            serverSettings.LastChannelUsedId = commandContext.Channel.Id;
+                            var update = Builders<ServerSpecifics>.Update.Set(x => x.LastChannelUsedId, serverSettings.LastChannelUsedId);
+                            await db.UpdateServerAsync<ServerSpecifics>("ServerSpecifics", commandContext.Guild.Id, update);
+                        }
+                    }
+                }
                 return;
             }
 
