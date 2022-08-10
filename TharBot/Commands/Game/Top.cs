@@ -62,12 +62,12 @@ namespace TharBot.Commands
                     "coins" or "money" or "tharcoins" => await EmbedCreator("coins", statsList),
                     "fights" or "fight" or "combat" or "monsters" => await EmbedCreator("fights", statsList),
                     _ => await EmbedHandler.CreateUserErrorEmbed("Invalid sorting flag", $"\"{flag}\" is not a valid statistic to sort by, " +
-                                            $"valid flags include: messages, exp, coins. If you use the command without a flag at all, it will default to messages."),
+                                            $"valid flags include: messages, exp, coins, fights. If you use the command without a flag at all, it will default to messages."),
                 };
                 if (embed == null)
                 {
                     embed = await EmbedHandler.CreateUserErrorEmbed("Invalid sorting flag", $"\"{flag}\" is not a valid statistic to sort by, " +
-                                            $"valid flags include: messages, exp, coins. If you use the command without a flag at all, it will default to messages.");
+                                            $"valid flags include: messages, exp, coins, fights. If you use the command without a flag at all, it will default to messages.");
                 }
 
                 await ReplyAsync(embed: embed);
@@ -109,6 +109,69 @@ namespace TharBot.Commands
                     }
                     embed.AddField("Username", nameFieldString, true)
                          .AddField("Total Messages", valueFieldString, true)
+                         .WithFooter(footerString);
+                }
+                else if (flag == "exp")
+                {
+                    var sortedProfiles = profiles.OrderByDescending(x => x.TotalExp());
+                    foreach (var profile in sortedProfiles)
+                    {
+                        var user = await _client.GetUserAsync(profile.UserId);
+                        if (leaderBoardPos <= 15)
+                        {
+                            if (user.Id == Context.User.Id) nameFieldString += $"{leaderBoardPos}. {EmoteHandler.You}{user.Mention}\n";
+                            else nameFieldString += $"{leaderBoardPos}. {user.Mention}\n";
+                            valueFieldString += $"{profile.TotalExp()}\n";
+                        }
+
+                        if (user.Id == Context.User.Id) footerString = $"You are at position {leaderBoardPos} with {profile.TotalExp()} total EXP.";
+                        if (footerString != "" && leaderBoardPos > 15) break;
+                        leaderBoardPos++;
+                    }
+                    embed.AddField("Username", nameFieldString, true)
+                         .AddField("Total EXP", valueFieldString, true)
+                         .WithFooter(footerString);
+                }
+                else if (flag == "coins")
+                {
+                    var sortedProfiles = profiles.OrderByDescending(x => x.TharCoins);
+                    foreach (var profile in sortedProfiles)
+                    {
+                        var user = await _client.GetUserAsync(profile.UserId);
+                        if (leaderBoardPos <= 15)
+                        {
+                            if (user.Id == Context.User.Id) nameFieldString += $"{leaderBoardPos}. {EmoteHandler.You}{user.Mention}\n";
+                            else nameFieldString += $"{leaderBoardPos}. {user.Mention}\n";
+                            valueFieldString += $"{profile.TharCoins}\n";
+                        }
+
+                        if (user.Id == Context.User.Id) footerString = $"You are at position {leaderBoardPos} with {profile.TharCoins} TharCoins.";
+                        if (footerString != "" && leaderBoardPos > 15) break;
+                        leaderBoardPos++;
+                    }
+                    embed.AddField("Username", nameFieldString, true)
+                         .AddField("TharCoins", valueFieldString, true)
+                         .WithFooter(footerString);
+                }
+                else if (flag == "fights")
+                {
+                    var sortedProfiles = profiles.OrderByDescending(x => x.NumFightsWon);
+                    foreach (var profile in sortedProfiles)
+                    {
+                        var user = await _client.GetUserAsync(profile.UserId);
+                        if (leaderBoardPos <= 15)
+                        {
+                            if (user.Id == Context.User.Id) nameFieldString += $"{leaderBoardPos}. {EmoteHandler.You}{user.Mention}\n";
+                            else nameFieldString += $"{leaderBoardPos}. {user.Mention}\n";
+                            valueFieldString += $"{profile.NumFightsWon}\n";
+                        }
+
+                        if (user.Id == Context.User.Id) footerString = $"You are at position {leaderBoardPos} with {profile.NumFightsWon} fights won.";
+                        if (footerString != "" && leaderBoardPos > 15) break;
+                        leaderBoardPos++;
+                    }
+                    embed.AddField("Username", nameFieldString, true)
+                         .AddField("Fights won", valueFieldString, true)
                          .WithFooter(footerString);
                 }
 
