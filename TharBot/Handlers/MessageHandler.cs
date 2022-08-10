@@ -90,6 +90,7 @@ namespace TharBot.Handlers
                 var newServerStats = new GameServerStats
                 {
                     ServerId = forGuildId.Guild.Id,
+                    UserId = message.Author.Id,
                     NextRewards = DateTime.UtcNow + TimeSpan.FromMinutes(1),
                     TharCoins = 10,
                     Exp = random.Next(8, 13),
@@ -127,6 +128,7 @@ namespace TharBot.Handlers
                     var newUserProfile = new GameServerStats
                     {
                         ServerId = forGuildId.Guild.Id,
+                        UserId = message.Author.Id,
                         NextRewards = DateTime.UtcNow + TimeSpan.FromMinutes(1),
                         TharCoins = 10,
                         Exp = random.Next(8, 13),

@@ -3,6 +3,7 @@
     public class GameServerStats
     {
         public ulong ServerId { get; set; }
+        public ulong UserId { get; set; }
         public long TharCoins { get; set; }
         public DateTime NextRewards { get; set; }
         public bool GambaInProgress { get; set; }

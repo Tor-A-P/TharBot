@@ -4,7 +4,7 @@ using MongoDB.Driver;
 using TharBot.DBModels;
 using TharBot.Handlers;
 
-namespace TharBot.Commands.Setup
+namespace TharBot.Commands
 {
     public class UpdateCommands : ModuleBase<SocketCommandContext>
     {
@@ -146,6 +146,7 @@ namespace TharBot.Commands.Setup
                     newServerStats = new GameServerStats
                     {
                         ServerId = oldServerProfile.ServerId,
+                        UserId = oldUserProfile.UserId,
                         NextRewards = DateTime.UtcNow + TimeSpan.FromMinutes(1),
                         TharCoins = oldUserProfile.TharCoins,
                         Exp = oldUserProfile.Exp,

@@ -4,7 +4,7 @@ using MongoDB.Driver;
 using TharBot.DBModels;
 using TharBot.Handlers;
 
-namespace TharBot.Commands.Setup
+namespace TharBot.Commands
 {
     public class ToggleLvlUpMsg : ModuleBase<SocketCommandContext>
     {

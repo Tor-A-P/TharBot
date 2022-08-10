@@ -45,11 +45,14 @@ namespace TharBot.Handlers
 
             if (commandInfo.Value != null)
             {
-                if (commandInfo.Value.Remarks.ToLower() == "music")
+                if (commandInfo.Value.Remarks != null)
                 {
-                    serverSettings.LastChannelUsedId = commandContext.Channel.Id;
-                    var update = Builders<ServerSpecifics>.Update.Set(x => x.LastChannelUsedId, serverSettings.LastChannelUsedId);
-                    await db.UpdateServerAsync<ServerSpecifics>("ServerSpecifics", commandContext.Guild.Id, update);
+                    if (commandInfo.Value.Remarks.ToLower() == "music")
+                    {
+                        serverSettings.LastChannelUsedId = commandContext.Channel.Id;
+                        var update = Builders<ServerSpecifics>.Update.Set(x => x.LastChannelUsedId, serverSettings.LastChannelUsedId);
+                        await db.UpdateServerAsync<ServerSpecifics>("ServerSpecifics", commandContext.Guild.Id, update);
+                    }
                 }
             }
             
