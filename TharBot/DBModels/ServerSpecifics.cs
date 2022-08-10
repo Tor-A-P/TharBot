@@ -20,6 +20,6 @@ namespace TharBot.DBModels
         public ulong? PCResultsChannel { get; set; }
         public List<Reminders>? Reminders { get; set; }
         public bool ShowLevelUpMessage { get; set; }
-        public SocketTextChannel? LastChannelUsed { get; set; }
+        public ulong LastChannelUsedId { get; set; }
     }
 }

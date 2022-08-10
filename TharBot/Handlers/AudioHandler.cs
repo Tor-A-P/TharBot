@@ -44,9 +44,12 @@ namespace TharBot.Handlers
         private async Task OnTrackEnded(TrackEndedEventArgs args)
         {
             if (args.Reason == TrackEndReason.Replaced) return;
+            if (args.Reason == TrackEndReason.Stopped) return;
 
             try
             {
+                if (args.Player == null) return;
+                if (args.Player.Queue == null) return;
                 if (!args.Player.Queue.TryDequeue(out var queueable))
                 {
                     await args.Player.TextChannel.SendMessageAsync("Playback Finished!");

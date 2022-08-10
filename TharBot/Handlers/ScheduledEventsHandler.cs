@@ -7,6 +7,7 @@ using MongoDB.Driver;
 using System.Timers;
 using TharBot.DBModels;
 using Victoria;
+using Victoria.Enums;
 
 namespace TharBot.Handlers
 {
@@ -480,6 +481,48 @@ namespace TharBot.Handlers
             server.AttributeDialogs.Remove(attributeDialog);
             var update = Builders<ServerSpecifics>.Update.Set(x => x.AttributeDialogs, server.AttributeDialogs);
             await db.UpdateServerAsync<ServerSpecifics>("ServerSpecifics", server.ServerId, update);
+        }
+
+        public async void StopMusic(object? source, ElapsedEventArgs e)
+        {
+            try
+            {
+                var serverSpecifics = await db.LoadRecordsAsync<ServerSpecifics>("ServerSpecifics");
+                foreach (var server in serverSpecifics)
+                {
+                    var guild = _client.GetGuild(server.ServerId);
+                    var bot = guild.GetUser(_client.CurrentUser.Id);
+                    var voiceChannel = bot.VoiceChannel;
+
+                    if (voiceChannel == null) return;
+
+                    if (voiceChannel.ConnectedUsers.Count == 1)
+                    {
+                        var player = _lavaNode.GetPlayer(guild);
+
+                        if (player.PlayerState is PlayerState.Playing)
+                        {
+                            player.Queue.Clear();
+                            await player.StopAsync();
+
+                            await _lavaNode.LeaveAsync(voiceChannel);
+                        }
+                        else
+                        {
+                            await player.StopAsync();
+                            await _lavaNode.LeaveAsync(voiceChannel);
+                        }
+
+                        var embed = await EmbedHandler.CreateBasicEmbed("Left voice chat", "I'm not gonna play music for only myself! >:(");
+                        var channel = await _client.GetChannelAsync(server.LastChannelUsedId) as IMessageChannel;
+                        await channel.SendMessageAsync(embed: embed);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                await LoggingHandler.LogCriticalAsync("bot", null, ex);
+            }
         }
     }
 }

@@ -57,7 +57,6 @@ namespace TharBot.Commands
                         {
                             await _lavaNode.JoinAsync(commandUser.VoiceChannel, Context.Channel as ITextChannel);
                             await ReplyAsync($"Joined {commandUser.VoiceChannel.Name}!");
-                            await Task.Delay(500);
                         }
                         catch (Exception ex)
                         {

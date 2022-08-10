@@ -42,10 +42,17 @@ namespace TharBot.Handlers
         private async Task OnCommandExecuted(Discord.Optional<CommandInfo> commandInfo, ICommandContext commandContext, IResult result)
         {
             var serverSettings = await db.LoadRecordByIdAsync<ServerSpecifics>("ServerSpecifics", commandContext.Guild.Id);
-            serverSettings.LastChannelUsed = (SocketTextChannel)commandContext.Channel;
-            var update = Builders<ServerSpecifics>.Update.Set(x => x.LastChannelUsed, serverSettings.LastChannelUsed);
-            await db.UpdateServerAsync<ServerSpecifics>("ServerSpecifics", commandContext.Guild.Id, update);
 
+            if (commandInfo.Value != null)
+            {
+                if (commandInfo.Value.Remarks.ToLower() == "music")
+                {
+                    serverSettings.LastChannelUsedId = commandContext.Channel.Id;
+                    var update = Builders<ServerSpecifics>.Update.Set(x => x.LastChannelUsedId, serverSettings.LastChannelUsedId);
+                    await db.UpdateServerAsync<ServerSpecifics>("ServerSpecifics", commandContext.Guild.Id, update);
+                }
+            }
+            
             if (result.IsSuccess)
             {
                 await LoggingHandler.LogInformationAsync("bot", $"Executed command \"{commandInfo.Value.Name}\"!");
