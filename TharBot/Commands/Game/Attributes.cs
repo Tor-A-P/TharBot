@@ -2,6 +2,7 @@
 using Discord.Commands;
 using Discord.WebSocket;
 using Microsoft.Extensions.Configuration;
+using MongoDB.Driver;
 using TharBot.DBModels;
 using TharBot.Handlers;
 
@@ -26,7 +27,7 @@ namespace TharBot.Commands.Game
         {
             try
             {
-                var serverSettings = db.LoadRecordById<ServerSpecifics>("ServerSpecifics", Context.Guild.Id);
+                var serverSettings = await db.LoadRecordByIdAsync<ServerSpecifics>("ServerSpecifics", Context.Guild.Id);
                 if (serverSettings.GameWLChannelId != null)
                 {
                     if (serverSettings.GameWLChannelId.Any())
@@ -43,7 +44,7 @@ namespace TharBot.Commands.Game
                     }
                 }
 
-                var userProfile = db.LoadRecordById<GameUser>("UserProfiles", Context.User.Id);
+                var userProfile = await db.LoadRecordByIdAsync<GameUser>("UserProfiles", Context.User.Id);
                 if (userProfile == null)
                 {
                     var noServerProfEmbed = await EmbedHandler.CreateUserErrorEmbed("Could not find user profile", "It seems you have no profile on this server, try sending a message (not a command) and then use this command again!");
@@ -57,6 +58,7 @@ namespace TharBot.Commands.Game
                     await ReplyAsync(embed: noUserProfEmbed);
                     return;
                 }
+                var update = Builders<GameUser>.Update.Set(x => x.Servers, userProfile.Servers);
                 if (flag == "")
                 {
                     var showAttributesEmbed = await EmbedHandler.CreateAttributeEmbedBuilder(serverStats, Context.User);
@@ -75,7 +77,9 @@ namespace TharBot.Commands.Game
                         serverSettings.AttributeDialogs = new List<GameAttributeDialog>();
                     }
                     serverSettings.AttributeDialogs.Add(attributeDialog);
-                    db.UpsertRecord("ServerSpecifics", Context.Guild.Id, serverSettings);
+
+                    var serverUpdate = Builders<ServerSpecifics>.Update.Set(x => x.AttributeDialogs, serverSettings.AttributeDialogs);
+                    await db.UpsertServerAsync<ServerSpecifics>("ServerSpecifics", Context.Guild.Id, serverUpdate);
                     var emotes = new Emote[]
                     {
                     EmoteHandler.Strength,
@@ -150,7 +154,8 @@ namespace TharBot.Commands.Game
                 }
                 var successEmbed = await EmbedHandler.CreateBasicEmbed($"{attribute} upgraded!", $"You have added {amount} points to {attribute}");
                 await ReplyAsync(embed: successEmbed);
-                db.UpsertRecord("GameProfiles", Context.User.Id, userProfile);
+                update = Builders<GameUser>.Update.Set(x => x.Servers, userProfile.Servers);
+                await db.UpsertUserAsync<GameUser>("UserProfiles", Context.User.Id, update);
             }
             catch (Exception ex)
             {

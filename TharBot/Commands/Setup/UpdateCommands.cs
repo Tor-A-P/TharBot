@@ -1,5 +1,6 @@
 ﻿using Discord.Commands;
 using Microsoft.Extensions.Configuration;
+using MongoDB.Driver;
 using TharBot.DBModels;
 using TharBot.Handlers;
 
@@ -19,7 +20,7 @@ namespace TharBot.Commands.Setup
         [RequireOwner]
         public async Task UpdateSettingsAsync()
         {
-            var existingBL = db.LoadRecordById<Blacklist>("BlacklistedChannels", Context.Guild.Id);
+            var existingBL = await db.LoadRecordByIdAsync<Blacklist>("BlacklistedChannels", Context.Guild.Id);
             if (existingBL == null)
             {
                 existingBL = new Blacklist
@@ -29,7 +30,7 @@ namespace TharBot.Commands.Setup
                 };
             }
 
-            var existingWL = db.LoadRecordById<Whitelist>("WhitelistedChannels", Context.Guild.Id);
+            var existingWL = await db.LoadRecordByIdAsync<Whitelist>("WhitelistedChannels", Context.Guild.Id);
             if (existingWL == null)
             {
                 existingWL = new Whitelist
@@ -39,7 +40,7 @@ namespace TharBot.Commands.Setup
                 };
             }
 
-            var existingGameBL = db.LoadRecordById<Blacklist>("BlacklistedGameChannels", Context.Guild.Id);
+            var existingGameBL = await db.LoadRecordByIdAsync<Blacklist>("BlacklistedGameChannels", Context.Guild.Id);
             if (existingGameBL == null)
             {
                 existingGameBL = new Blacklist
@@ -49,7 +50,7 @@ namespace TharBot.Commands.Setup
                 };
             }
 
-            var existingGameWL = db.LoadRecordById<Whitelist>("WhitelistedGameChannels", Context.Guild.Id);
+            var existingGameWL = await db.LoadRecordByIdAsync<Whitelist>("WhitelistedGameChannels", Context.Guild.Id);
             if (existingGameWL == null)
             {
                 existingGameWL = new Whitelist
@@ -59,7 +60,7 @@ namespace TharBot.Commands.Setup
                 };
             }
 
-            var existingMeme = db.LoadRecordById<MemeCommands>("Memes", Context.Guild.Id);
+            var existingMeme = await db.LoadRecordByIdAsync<MemeCommands>("Memes", Context.Guild.Id);
             if (existingMeme == null)
             {
                 existingMeme = new MemeCommands
@@ -69,7 +70,7 @@ namespace TharBot.Commands.Setup
                 };
             }
 
-            var existingPrefix = db.LoadRecordById<Prefixes>("Prefixes", Context.Guild.Id);
+            var existingPrefix = await db.LoadRecordByIdAsync<Prefixes>("Prefixes", Context.Guild.Id);
             if (existingPrefix == null)
             {
                 existingPrefix = new Prefixes
@@ -78,7 +79,7 @@ namespace TharBot.Commands.Setup
                     Prefix = "th."
                 };
             }
-            var existingPCRC = db.LoadRecordById<PulseCheckResultsChannel>("PulsecheckResultsChannel", Context.Guild.Id);
+            var existingPCRC = await db.LoadRecordByIdAsync<PulseCheckResultsChannel>("PulsecheckResultsChannel", Context.Guild.Id);
             if (existingPCRC == null)
             {
                 existingPCRC = new PulseCheckResultsChannel
@@ -88,13 +89,14 @@ namespace TharBot.Commands.Setup
                 };
             }
 
-            var existingDailyPC = db.LoadRecordById<DailyPulseCheck>("DailyPulseCheck", Context.Guild.Id);
+            var existingDailyPC = await db.LoadRecordByIdAsync<DailyPulseCheck>("DailyPulseCheck", Context.Guild.Id);
 
-            var existingLvlUpMsg = db.LoadRecordById<GameServerProfile>("GameProfiles", Context.Guild.Id).ShowLevelUpMessage;
+            var existingLvlUpMsg = (await db.LoadRecordByIdAsync<GameServerProfile>("GameProfiles", Context.Guild.Id)).ShowLevelUpMessage;
 
             var serverSettings = new ServerSpecifics
             {
                 ServerId = Context.Guild.Id,
+                Revision = 0,
                 BLChannelId = existingBL.BLChannelId,
                 WLChannelId = existingWL.WLChannelId,
                 GameBLChannelId = existingGameBL.BLChannelId,
@@ -105,9 +107,14 @@ namespace TharBot.Commands.Setup
                 Prefix = existingPrefix.Prefix,
                 PCResultsChannel = existingPCRC.ResultsChannel,
                 Reminders = new List<Reminders>(),
-                ShowLevelUpMessage = false
+                ShowLevelUpMessage = existingLvlUpMsg
             };
-            db.UpsertRecord("ServerSpecifics", Context.Guild.Id, serverSettings);
+            var update = Builders<ServerSpecifics>.Update.Set(x => x.PCResultsChannel, serverSettings.PCResultsChannel);
+            var updateOptions = new UpdateOptions
+            {
+                IsUpsert = true
+            };
+            await db.UpsertServerAsync<ServerSpecifics>("ServerSpecifics", Context.Guild.Id, update, updateOptions);
             var embed = await EmbedHandler.CreateBasicEmbed("Server settings updated to new format!", "Reminder that this wipes the poll and reminder lists, re-add anything important manually.");
             await ReplyAsync(embed: embed);
         }
@@ -117,18 +124,20 @@ namespace TharBot.Commands.Setup
         [RequireOwner]
         public async Task UpdateProfilesAsync()
         {
-            var oldServerProfile = db.LoadRecordById<GameServerProfile>("GameProfiles", Context.Guild.Id);
+            var oldServerProfile = await db.LoadRecordByIdAsync<GameServerProfile>("GameProfiles", Context.Guild.Id);
             var numProfiles = 0;
             foreach (var oldUserProfile in oldServerProfile.Users)
             {
-                var newUserProfile = db.LoadRecordById<GameUser>("UserProfiles", oldUserProfile.UserId);
+                var newUserProfile = await db.LoadRecordByIdAsync<GameUser>("UserProfiles", oldUserProfile.UserId);
                 if (newUserProfile == null)
                 {
                     newUserProfile = new GameUser
                     {
                         UserId = oldUserProfile.UserId,
-                        Servers = new List<GameServerStats>()
+                        Servers = new List<GameServerStats>(),
+                        Revision = 0
                     };
+                    await db.InsertRecordAsync("UserProfiles", newUserProfile);
                 }
 
                 var newServerStats = newUserProfile.Servers.Where(x => x.ServerId == oldServerProfile.ServerId).FirstOrDefault();
@@ -164,7 +173,12 @@ namespace TharBot.Commands.Setup
                     newUserProfile.Servers.Add(newServerStats);
                 }
 
-                db.UpsertRecord("UserProfiles", oldUserProfile.UserId, newUserProfile);
+                var update = Builders<GameUser>.Update.Set(x => x.Servers, newUserProfile.Servers);
+                var updateOptions = new UpdateOptions
+                {
+                    IsUpsert = true
+                };
+                await db.UpsertUserAsync<GameUser>("UserProfiles", oldUserProfile.UserId, update, updateOptions);
                 numProfiles++;
             }
 

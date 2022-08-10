@@ -1,5 +1,6 @@
 ﻿using Discord.Commands;
 using Microsoft.Extensions.Configuration;
+using MongoDB.Driver;
 using TharBot.DBModels;
 using TharBot.Handlers;
 
@@ -33,7 +34,7 @@ namespace TharBot.Commands
         [RequireOwner]
         public async Task StunMeAsync(int rounds = 1)
         {
-            var userProfile = db.LoadRecordById<GameUser>("UserProfiles", Context.User.Id);
+            var userProfile = await db.LoadRecordByIdAsync<GameUser>("UserProfiles", Context.User.Id);
             if (userProfile == null)
             {
                 var noServerProfEmbed = await EmbedHandler.CreateUserErrorEmbed("Could not find user profile", "It seems you have no profile on this server, try sending a message (not a command) and then use this command again!");
@@ -48,7 +49,10 @@ namespace TharBot.Commands
                 return;
             }
             serverStats.Debuffs.StunDuration = rounds;
-            db.UpsertRecord("UserProfiles", Context.User.Id, userProfile);
+
+            var update = Builders<GameUser>.Update.Set(x => x.Servers, userProfile.Servers);
+            await db.UpsertUserAsync<GameUser>("UserProfiles", userProfile.UserId, update);
+
             var embed = await EmbedHandler.CreateBasicEmbed("Stunned you!", $"Stunned you for {rounds} rounds.");
             await ReplyAsync(embed: embed);
         }
@@ -59,8 +63,7 @@ namespace TharBot.Commands
         [RequireOwner]
         public async Task HealMeAsync()
         {
-            await Task.Delay(2000);
-            var userProfile = db.LoadRecordById<GameUser>("UserProfiles", Context.User.Id);
+            var userProfile = await db.LoadRecordByIdAsync<GameUser>("UserProfiles", Context.User.Id);
             if (userProfile == null)
             {
                 var noServerProfEmbed = await EmbedHandler.CreateUserErrorEmbed("Could not find user profile", "It seems you have no profile on this server, try sending a message (not a command) and then use this command again!");
@@ -75,7 +78,10 @@ namespace TharBot.Commands
                 return;
             }
             serverStats.CurrentHP = serverStats.BaseHP;
-            db.UpsertRecord("UserProfiles", Context.User.Id, userProfile);
+
+            var update = Builders<GameUser>.Update.Set(x => x.Servers, userProfile.Servers);
+            await db.UpsertUserAsync<GameUser>("UserProfiles", userProfile.UserId, update);
+
             var embed = await EmbedHandler.CreateBasicEmbed("Healed you!", "Returned you to full base health!");
             await ReplyAsync(embed: embed);
         }

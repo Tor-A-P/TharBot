@@ -4,6 +4,7 @@ using Discord.Commands;
 using Discord.WebSocket;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using MongoDB.Driver;
 using System.Reflection;
 using TharBot.DBModels;
 
@@ -29,16 +30,17 @@ namespace TharBot.Handlers
         private async Task EXPCoinOnMessage(SocketMessage socketMessage)
         {
             if (socketMessage is not SocketUserMessage message) return;
-            var existingBan = db.LoadRecordById<BannedUser>("UserBanlist", socketMessage.Author.Id);
+            var existingBan = await db.LoadRecordByIdAsync<BannedUser>("UserBanlist", socketMessage.Author.Id);
             if (existingBan != null) return;
             var forGuildId = socketMessage.Channel as SocketGuildChannel;
-            var serverSettings = db.LoadRecordById<ServerSpecifics>("ServerSpecifics", forGuildId.Guild.Id);
+            var serverSettings = await db.LoadRecordByIdAsync<ServerSpecifics>("ServerSpecifics", forGuildId.Guild.Id);
 
             if (serverSettings == null)
             {
                 serverSettings = new ServerSpecifics
                 {
                     ServerId = forGuildId.Guild.Id,
+                    Revision = 0,
                     BLChannelId = new List<ulong>(),
                     WLChannelId = new List<ulong>(),
                     GameBLChannelId = new List<ulong>(),
@@ -51,11 +53,11 @@ namespace TharBot.Handlers
                     Reminders = new List<Reminders>(),
                     ShowLevelUpMessage = true
                 };
-                db.InsertRecord("ServerSpecifics", serverSettings);
+                await db.InsertRecordAsync("ServerSpecifics", serverSettings);
             }
 
-            await Task.Delay(1000);
-            var existingUserProfile = db.LoadRecordById<GameUser>("UserProfiles", message.Author.Id);
+            await Task.Delay(500);
+            var existingUserProfile = await db.LoadRecordByIdAsync<GameUser>("UserProfiles", message.Author.Id);
             var showLevelUpMessage = serverSettings.ShowLevelUpMessage;
             
 
@@ -82,7 +84,8 @@ namespace TharBot.Handlers
                 {
                     UserId = message.Author.Id,
                     Servers = new List<GameServerStats>(),
-                    LastSeenUsername = message.Author.Username
+                    LastSeenUsername = message.Author.Username,
+                    Revision = 0
                 };
                 var newServerStats = new GameServerStats
                 {
@@ -114,7 +117,7 @@ namespace TharBot.Handlers
                 newServerStats.CurrentHP = newServerStats.BaseHP;
                 newServerStats.CurrentMP = newServerStats.BaseMP;
                 newProfile.Servers.Add(newServerStats);
-                db.InsertRecord("UserProfiles", newProfile);
+                await db.InsertRecordAsync("UserProfiles", newProfile);
             }
             else
             {
@@ -194,8 +197,10 @@ namespace TharBot.Handlers
                         }
                     }
                 }
-                existingUserProfile.LastSeenUsername = message.Author.Username;
-                db.UpsertRecord("UserProfiles", message.Author.Id, existingUserProfile);
+                var update = Builders<GameUser>.Update
+                    .Set(x => x.Servers, existingUserProfile.Servers)
+                    .Set(x => x.LastSeenUsername, message.Author.Username);
+                await db.UpsertUserAsync<GameUser>("UserProfiles", message.Author.Id, update);
             }
         }
     }

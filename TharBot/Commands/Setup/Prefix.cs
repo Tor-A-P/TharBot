@@ -1,5 +1,6 @@
 ﻿using Discord.Commands;
 using Microsoft.Extensions.Configuration;
+using MongoDB.Driver;
 using TharBot.DBModels;
 using TharBot.Handlers;
 
@@ -25,7 +26,7 @@ namespace TharBot.Commands
         [RequireOwner(Group = "Permission")]
         public async Task PrefixAsync([Remainder] string? prefix = null)
         {
-            var serverSettings = db.LoadRecordById<ServerSpecifics>("ServerSpecifics", Context.Guild.Id);
+            var serverSettings = await db.LoadRecordByIdAsync<ServerSpecifics>("ServerSpecifics", Context.Guild.Id);
             string? currentPrefix;
 
             if (serverSettings.Prefix != null) currentPrefix = serverSettings.Prefix;
@@ -39,7 +40,8 @@ namespace TharBot.Commands
             else
             {
                 serverSettings.Prefix = prefix;
-                db.UpsertRecord("ServerSpecifics", Context.Guild.Id, serverSettings);
+                var update = Builders<ServerSpecifics>.Update.Set(x => x.Prefix, serverSettings.Prefix);
+                await db.UpsertServerAsync<ServerSpecifics>("ServerSpecifics", Context.Guild.Id, update);
                
                 var embed = await EmbedHandler.CreateBasicEmbed("Prefix", $"Changed prefix for this server to \"{serverSettings.Prefix}\"");
                 await ReplyAsync(embed: embed);

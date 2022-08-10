@@ -1,5 +1,6 @@
 ﻿using Discord.Commands;
 using Microsoft.Extensions.Configuration;
+using MongoDB.Driver;
 using TharBot.DBModels;
 using TharBot.Handlers;
 
@@ -27,7 +28,7 @@ namespace TharBot.Commands.Game
         {
             try
             {
-                var serverSettings = db.LoadRecordById<ServerSpecifics>("ServerSpecifics", Context.Guild.Id);
+                var serverSettings = await db.LoadRecordByIdAsync<ServerSpecifics>("ServerSpecifics", Context.Guild.Id);
                 if (serverSettings.GameWLChannelId != null)
                 {
                     if (serverSettings.GameWLChannelId.Any())
@@ -44,7 +45,7 @@ namespace TharBot.Commands.Game
                     }
                 }
 
-                var userProfile = db.LoadRecordById<GameUser>("UserProfiles", Context.User.Id);
+                var userProfile = await db.LoadRecordByIdAsync<GameUser>("UserProfiles", Context.User.Id);
                 if (userProfile == null)
                 {
                     var noServerProfEmbed = await EmbedHandler.CreateUserErrorEmbed("Could not find user profile", "It seems you have no profile on this server, try sending a message (not a command) and then use this command again!");
@@ -60,14 +61,14 @@ namespace TharBot.Commands.Game
                     }
                     else
                     {
-                        if (serverStats.LastRespec + TimeSpan.FromHours(24) > DateTime.UtcNow)
-                        {
-                            var cooldownTime = serverStats.LastRespec.Subtract(DateTime.UtcNow) + TimeSpan.FromHours(24);
-                            var respecOnCDEmbed = await EmbedHandler.CreateUserErrorEmbed("Respec command on cooldown",
-                                $"You used the respec command too recently, please wait {cooldownTime.Hours} hours, {cooldownTime.Minutes} minutes and {cooldownTime.Seconds} seconds before doing a respec!");
-                            await ReplyAsync(embed: respecOnCDEmbed);
-                            return;
-                        }
+                        //if (serverStats.LastRespec + TimeSpan.FromHours(24) > DateTime.UtcNow)
+                        //{
+                        //    var cooldownTime = serverStats.LastRespec.Subtract(DateTime.UtcNow) + TimeSpan.FromHours(24);
+                        //    var respecOnCDEmbed = await EmbedHandler.CreateUserErrorEmbed("Respec command on cooldown",
+                        //        $"You used the respec command too recently, please wait {cooldownTime.Hours} hours, {cooldownTime.Minutes} minutes and {cooldownTime.Seconds} seconds before doing a respec!");
+                        //    await ReplyAsync(embed: respecOnCDEmbed);
+                        //    return;
+                        //}
 
                         var totalRespecPoints = strength + dexterity + intelligence + constitution + wisdom + luck;
                         if (totalRespecPoints > serverStats.AttributePoints)
@@ -93,7 +94,8 @@ namespace TharBot.Commands.Game
                         serverStats.CurrentHP += GameServerStats.ConstitutionHPBonus * constitution;
                         if (serverStats.CurrentHP > serverStats.BaseHP) serverStats.CurrentHP = serverStats.BaseHP;
 
-                        db.UpsertRecord("UserProfiles", userProfile.UserId, userProfile);
+                        var update = Builders<GameUser>.Update.Set(x => x.Servers, userProfile.Servers);
+                        await db.UpsertUserAsync<GameUser>("UserProfiles", userProfile.UserId, update);
 
                         string? currentPrefix;
 

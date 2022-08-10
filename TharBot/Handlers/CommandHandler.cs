@@ -46,7 +46,7 @@ namespace TharBot.Handlers
                 return;
             }
 
-            var serverSettings = db.LoadRecordById<ServerSpecifics>("ServerSpecifics", commandContext.Guild.Id);
+            var serverSettings = await db.LoadRecordByIdAsync<ServerSpecifics>("ServerSpecifics", commandContext.Guild.Id);
             string? prefix;
             if (serverSettings.Prefix != null) prefix = serverSettings.Prefix;
             else prefix = _configuration["Prefix"];
@@ -79,11 +79,11 @@ namespace TharBot.Handlers
         private async Task OnMessageReceived(SocketMessage socketMessage)
         {
             if (socketMessage is not SocketUserMessage message) return;
-            var existingBan = db.LoadRecordById<BannedUser>("UserBanlist", socketMessage.Author.Id);
+            var existingBan = await db.LoadRecordByIdAsync<BannedUser>("UserBanlist", socketMessage.Author.Id);
             if (existingBan != null) return;
             var forGuildId = socketMessage.Channel as SocketGuildChannel;
 
-            var serverSettings = db.LoadRecordById<ServerSpecifics>("ServerSpecifics", forGuildId.Guild.Id);
+            var serverSettings = await db.LoadRecordByIdAsync<ServerSpecifics>("ServerSpecifics", forGuildId.Guild.Id);
             string? prefix;
             if (serverSettings == null) return;
             if (serverSettings.Prefix != null) prefix = serverSettings.Prefix;

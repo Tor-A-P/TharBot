@@ -1,6 +1,7 @@
 ﻿using Discord;
 using Discord.Commands;
 using Microsoft.Extensions.Configuration;
+using MongoDB.Driver;
 using TharBot.DBModels;
 using TharBot.Handlers;
 
@@ -29,7 +30,7 @@ namespace TharBot.Commands
         {
             try
             {
-                var serverSettings = db.LoadRecordById<ServerSpecifics>("ServerSpecifics", Context.Guild.Id);
+                var serverSettings = await db.LoadRecordByIdAsync<ServerSpecifics>("ServerSpecifics", Context.Guild.Id);
                 string? prefix;
                 if (serverSettings.Prefix != null) prefix = serverSettings.Prefix;
                 else prefix = _config["Prefix"];
@@ -80,7 +81,8 @@ namespace TharBot.Commands
                     {
                         { cmdName, output }
                     };
-                    db.UpsertRecord("ServerSpecifics", Context.Guild.Id, serverSettings);
+                    var update = Builders<ServerSpecifics>.Update.Set(x => x.Memes, serverSettings.Memes);
+                    await db.UpsertServerAsync<ServerSpecifics>("ServerSpecifics", Context.Guild.Id, update);
 
                     var embed = await EmbedHandler.CreateBasicEmbed($"Command {cmdName} created!", $"Type {prefix}{cmdName} to use it.");
                     await ReplyAsync(embed: embed);
@@ -93,7 +95,8 @@ namespace TharBot.Commands
                 else
                 {
                     serverSettings.Memes.Add(cmdName, output);
-                    db.UpsertRecord("ServerSpecifics", Context.Guild.Id, serverSettings);
+                    var update = Builders<ServerSpecifics>.Update.Set(x => x.Memes, serverSettings.Memes);
+                    await db.UpsertServerAsync<ServerSpecifics>("ServerSpecifics", Context.Guild.Id, update);
 
                     var embed = await EmbedHandler.CreateBasicEmbed($"Command {cmdName} created!", $"Type {prefix}{cmdName} to use it.");
                     await ReplyAsync(embed: embed);

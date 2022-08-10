@@ -25,7 +25,7 @@ namespace TharBot.Commands
         {
             try
             {
-                var serverSettings = db.LoadRecordById<ServerSpecifics>("ServerSpecifics", Context.Guild.Id);
+                var serverSettings = await db.LoadRecordByIdAsync<ServerSpecifics>("ServerSpecifics", Context.Guild.Id);
                 if (serverSettings.GameWLChannelId != null)
                 {
                     if (serverSettings.GameWLChannelId.Any())
@@ -43,7 +43,7 @@ namespace TharBot.Commands
                 }
 
                 if (user == null) user = Context.User;
-                var userProfile = db.LoadRecordById<GameUser>("UserProfiles", user.Id);
+                var userProfile = await db.LoadRecordByIdAsync<GameUser>("UserProfiles", user.Id);
                 if (userProfile == null)
                 {
                     if (user == Context.User)
@@ -57,7 +57,8 @@ namespace TharBot.Commands
                         userProfile = new GameUser
                         {
                             UserId = user.Id,
-                            Servers = new List<GameServerStats>()
+                            Servers = new List<GameServerStats>(),
+                            Revision = 0
                         };
                     }
                     
@@ -104,7 +105,7 @@ namespace TharBot.Commands
                         serverStats.CurrentHP = serverStats.BaseHP;
                         serverStats.CurrentMP = serverStats.BaseMP;
                         userProfile.Servers.Add(serverStats);
-                        db.InsertRecord("UserProfiles", userProfile);
+                        await db.InsertRecordAsync("UserProfiles", userProfile);
                     }
                 }
 

@@ -2,6 +2,7 @@
 using Discord.Commands;
 using Discord.WebSocket;
 using Microsoft.Extensions.Configuration;
+using MongoDB.Driver;
 using TharBot.DBModels;
 using TharBot.Handlers;
 
@@ -26,7 +27,7 @@ namespace TharBot.Commands
         {
             try
             {
-                var serverSettings = db.LoadRecordById<ServerSpecifics>("ServerSpecifics", Context.Guild.Id);
+                var serverSettings = await db.LoadRecordByIdAsync<ServerSpecifics>("ServerSpecifics", Context.Guild.Id);
                 if (serverSettings.GameWLChannelId != null)
                 {
                     if (serverSettings.GameWLChannelId.Any())
@@ -43,7 +44,7 @@ namespace TharBot.Commands
                     }
                 }
 
-                var userProfile = db.LoadRecordById<GameUser>("UserProfiles", Context.User.Id);
+                var userProfile = await db.LoadRecordByIdAsync<GameUser>("UserProfiles", Context.User.Id);
                 if (userProfile == null)
                 {
                     var noServerProfEmbed = await EmbedHandler.CreateUserErrorEmbed("Could not find user profile", "It seems you have no profile on this server, try sending a message (not a command) and then use this command again!");
@@ -82,17 +83,18 @@ namespace TharBot.Commands
                         }
 
                         Random random = new();
-                        var monsterList = db.LoadRecords<GameMonster>("MonsterList");
+                        var monsterList = await db.LoadRecordsAsync<GameMonster>("MonsterList");
                         GameMonster? monster = null;
                         if (enemy != null)
                         {
-                            var enemyProfile = db.LoadRecordById<GameUser>("UserProfiles", enemy.Id);
+                            var enemyProfile = await db.LoadRecordByIdAsync<GameUser>("UserProfiles", enemy.Id);
                             if (enemyProfile == null)
                             {
                                 enemyProfile = new GameUser
                                 {
                                     UserId = enemy.Id,
-                                    Servers = new List<GameServerStats>()
+                                    Servers = new List<GameServerStats>(),
+                                    Revision = 0
                                 };
                             }
                             if (enemyProfile.Servers == null) enemyProfile.Servers = new List<GameServerStats>();
@@ -206,10 +208,11 @@ namespace TharBot.Commands
                             ChannelId = Context.Channel.Id,
                             Turns = new List<string>()
                         };
-                        db.InsertRecord("ActiveFights", gameFight);
+                        await db.InsertRecordAsync("ActiveFights", gameFight);
                         serverStats.FightInProgress = true;
                         serverStats.FightsThisHour++;
-                        db.UpsertRecord("UserProfiles", Context.User.Id, userProfile);
+                        var update = Builders<GameUser>.Update.Set(x => x.Servers, userProfile.Servers);
+                        await db.UpsertUserAsync<GameUser>("UserProfiles", userProfile.UserId, update);
                         await fight.AddReactionsAsync(emotes);
                     }
                 }

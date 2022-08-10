@@ -27,6 +27,7 @@ namespace TharBot.Handlers
             _lavaNode.OnLog += LogAsync;
         }
 
+
         private async Task OnClientReady()
         {
             if (!_lavaNode.IsConnected)

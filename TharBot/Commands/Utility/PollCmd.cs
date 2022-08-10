@@ -2,6 +2,7 @@
 using Discord.Commands;
 using Discord.WebSocket;
 using Microsoft.Extensions.Configuration;
+using MongoDB.Driver;
 using TharBot.DBModels;
 using TharBot.Handlers;
 
@@ -67,7 +68,7 @@ namespace TharBot.Commands
 
                 var poll = await ReplyAsync(embed: embed);
 
-                var serverSpecifics = db.LoadRecordById<ServerSpecifics>("ServerSpecifics", Context.Guild.Id);
+                var serverSpecifics = await db.LoadRecordByIdAsync<ServerSpecifics>("ServerSpecifics", Context.Guild.Id);
                 if (serverSpecifics.Polls != null)
                 {
                     var activePoll = serverSpecifics.Polls.Where(x => x.MessageId == poll.Id).FirstOrDefault();
@@ -95,80 +96,13 @@ namespace TharBot.Commands
                         NumOptions = options.Length
                     };
                     serverSpecifics.Polls.Add(newPoll);
-                    db.UpsertRecord("ServerSpecifics", Context.Guild.Id, serverSpecifics);
+                    var update = Builders<ServerSpecifics>.Update.Set(x => x.Polls, serverSpecifics.Polls);
+                    await db.UpsertServerAsync<ServerSpecifics>("ServerSpecifics", Context.Guild.Id, update);
 
                     for (int i = 0; i < options.Length; i++)
                     {
                         await poll.AddReactionAsync(emojis[i]);
                     }
-
-                    //await Task.Delay(duration * 60000);
-
-                    //var movePoll = db.LoadRecordById<Poll>("ActivePolls", newPoll.MessageId);
-                    //db.InsertRecord("InactivePolls", movePoll);
-
-                    //int[] resultsCount =
-                    //{
-                    //    0, 0, 0, 0, 0, 0, 0, 0, 0, 0
-                    //    };
-
-                    //foreach (var vote in movePoll.Responses)
-                    //{
-                    //    switch (vote.Vote)
-                    //    {
-                    //        case "1️⃣":
-                    //            resultsCount[0]++;
-                    //            break;
-                    //        case "2️⃣":
-                    //            resultsCount[1]++;
-                    //            break;
-                    //        case "3️⃣":
-                    //            resultsCount[2]++;
-                    //            break;
-                    //        case "4️⃣":
-                    //            resultsCount[3]++;
-                    //            break;
-                    //        case "5️⃣":
-                    //            resultsCount[4]++;
-                    //            break;
-                    //        case "6️⃣":
-                    //            resultsCount[5]++;
-                    //            break;
-                    //        case "7️⃣":
-                    //            resultsCount[6]++;
-                    //            break;
-                    //        case "8️⃣":
-                    //            resultsCount[7]++;
-                    //            break;
-                    //        case "9️⃣":
-                    //            resultsCount[8]++;
-                    //            break;
-                    //        case "🔟":
-                    //            resultsCount[9]++;
-                    //            break;
-                    //        default:
-                    //            break;
-                    //    }
-                    //}
-
-                    //var resultsEmbed = await EmbedHandler.CreateBasicEmbedBuilder("Results from poll:");
-                    //for (int i = 0; i < options.Length; i++)
-                    //{
-                    //    resultsEmbed = resultsEmbed
-                    //                   .AddField($"{emojis[i]} votes:", resultsCount[i]);
-                    //}
-
-                    //var winner = embed.Description.Split('\n', StringSplitOptions.RemoveEmptyEntries);
-                    //int highestCount = resultsCount.Max();
-                    //int winnerNum = Array.IndexOf(resultsCount, highestCount) + 1;
-
-                    //resultsEmbed = resultsEmbed.AddField("AND THE WINNER IS", $"With {highestCount} votes,\n" +
-                    //    $"{winner[winnerNum]}! 🎉")
-                    //               .WithUrl($"https://discord.com/channels/{Context.Guild.Id}/{Context.Channel.Id}/{poll.Id}");
-
-                    //await poll.Channel.SendMessageAsync(embed: resultsEmbed.Build());
-
-                    //db.DeleteRecord<Poll>("ActivePolls", newPoll.MessageId);
                 }
                 catch (Exception ex)
                 {

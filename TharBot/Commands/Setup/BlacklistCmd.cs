@@ -1,5 +1,6 @@
 ﻿using Discord.Commands;
 using Microsoft.Extensions.Configuration;
+using MongoDB.Driver;
 using TharBot.DBModels;
 using TharBot.Handlers;
 
@@ -43,7 +44,7 @@ namespace TharBot.Commands
             {
                 if (type == "")
                 {
-                    var serverSettings = db.LoadRecordById<ServerSpecifics>("ServerSpecifics", Context.Guild.Id);
+                    var serverSettings = await db.LoadRecordByIdAsync<ServerSpecifics>("ServerSpecifics", Context.Guild.Id);
                     var existingRec = serverSettings.BLChannelId;
 
                     if (existingRec == null)
@@ -81,7 +82,8 @@ namespace TharBot.Commands
                         else if (flag.ToLower() == "clear")
                         {
                             existingRec.Clear();
-                            db.UpsertRecord("ServerSpecifics", Context.Guild.Id, serverSettings);
+                            var update = Builders<ServerSpecifics>.Update.Set(x => x.BLChannelId, serverSettings.BLChannelId);
+                            await db.UpsertServerAsync<ServerSpecifics>("ServerSpecifics", Context.Guild.Id, update);
 
                             var BLClearEmbed = await EmbedHandler.CreateBasicEmbed("Blacklist cleared!", $"Cleared blacklist for {Context.Guild.Name}");
                             await ReplyAsync(embed: BLClearEmbed);
@@ -90,7 +92,7 @@ namespace TharBot.Commands
                 }
                 else
                 {
-                    var serverSettings = db.LoadRecordById<ServerSpecifics>("ServerSpecifics", Context.Guild.Id);
+                    var serverSettings = await db.LoadRecordByIdAsync<ServerSpecifics>("ServerSpecifics", Context.Guild.Id);
                     var existingRec = serverSettings.GameBLChannelId;
 
                     if (existingRec == null)
@@ -128,7 +130,8 @@ namespace TharBot.Commands
                         else if (flag.ToLower() == "clear")
                         {
                             existingRec.Clear();
-                            db.UpsertRecord("ServerSpecifics", Context.Guild.Id, serverSettings);
+                            var update = Builders<ServerSpecifics>.Update.Set(x => x.GameBLChannelId, serverSettings.GameBLChannelId);
+                            await db.UpsertServerAsync<ServerSpecifics>("ServerSpecifics", Context.Guild.Id, update);
 
                             var GameBLClearEmbed = await EmbedHandler.CreateBasicEmbed("Blacklist for games cleared!", $"Cleared game command blacklist for {Context.Guild.Name}");
                             await ReplyAsync(embed: GameBLClearEmbed);

@@ -2,6 +2,7 @@
 using TharBot.Handlers;
 using TharBot.DBModels;
 using Microsoft.Extensions.Configuration;
+using MongoDB.Driver;
 
 namespace TharBot.Commands
 {
@@ -24,7 +25,7 @@ namespace TharBot.Commands
         [RequireOwner(Group = "Permission")]
         public async Task PcResultsChannelAsync(ulong channelId = 0)
         {
-            var serverSettings = db.LoadRecordById<ServerSpecifics>("ServerSpecifics", Context.Guild.Id);
+            var serverSettings = await db.LoadRecordByIdAsync<ServerSpecifics>("ServerSpecifics", Context.Guild.Id);
 
             if (channelId == 0)
             {
@@ -32,7 +33,8 @@ namespace TharBot.Commands
             }
 
             serverSettings.PCResultsChannel = channelId;
-            db.UpsertRecord("ServerSpecifics", Context.Guild.Id, serverSettings);
+            var update = Builders<ServerSpecifics>.Update.Set(x => x.PCResultsChannel, serverSettings.PCResultsChannel);
+            await db.UpsertServerAsync<ServerSpecifics>("ServerSpecifics", Context.Guild.Id, update);
 
             var embed = await EmbedHandler.CreateBasicEmbed("Pulsecheck Channel set!", 
                 $"The pulsecheck command will now report its results in #{Context.Client.GetChannel(channelId)}!");

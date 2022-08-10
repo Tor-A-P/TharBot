@@ -1,5 +1,6 @@
 ﻿using Discord.Commands;
 using Microsoft.Extensions.Configuration;
+using MongoDB.Driver;
 using TharBot.DBModels;
 using TharBot.Handlers;
 
@@ -30,7 +31,7 @@ namespace TharBot.Commands
             {
                 if (channelId == 0) channelId = Context.Channel.Id;
 
-                var serverSettings = db.LoadRecordById<ServerSpecifics>("ServerSpecifics", Context.Guild.Id);
+                var serverSettings = await db.LoadRecordByIdAsync<ServerSpecifics>("ServerSpecifics", Context.Guild.Id);
 
                 if (serverSettings.BLChannelId != null)
                 {
@@ -47,21 +48,24 @@ namespace TharBot.Commands
                 {
                     var channelIdList = new List<ulong> { channelId };
                     serverSettings.WLChannelId = channelIdList;
-                    db.UpsertRecord("ServerSpecifics", Context.Guild.Id, serverSettings);
+                    var update = Builders<ServerSpecifics>.Update.Set(x => x.WLChannelId, serverSettings.WLChannelId);
+                    await db.UpsertServerAsync<ServerSpecifics>("ServerSpecifics", Context.Guild.Id, update);
                     var embed = await EmbedHandler.CreateBasicEmbed("Channel whitelisted", $"Whitelisted channel #{Context.Client.GetChannel(channelId)}.");
                     await ReplyAsync(embed: embed);
                 }
                 else if (serverSettings.WLChannelId.Contains(channelId))
                 {
                     serverSettings.WLChannelId.Remove(channelId);
-                    db.UpsertRecord("ServerSpecifics", Context.Guild.Id, serverSettings);
+                    var update = Builders<ServerSpecifics>.Update.Set(x => x.WLChannelId, serverSettings.WLChannelId);
+                    await db.UpsertServerAsync<ServerSpecifics>("ServerSpecifics", Context.Guild.Id, update);
                     var embed = await EmbedHandler.CreateBasicEmbed("Channel removed from whitelist.", $"Removed channel #{Context.Client.GetChannel(channelId)} from the whitelist.");
                     await ReplyAsync(embed: embed);
                 }
                 else
                 {
                     serverSettings.WLChannelId.Add(channelId);
-                    db.UpsertRecord("ServerSpecifics", Context.Guild.Id, serverSettings);
+                    var update = Builders<ServerSpecifics>.Update.Set(x => x.WLChannelId, serverSettings.WLChannelId);
+                    await db.UpsertServerAsync<ServerSpecifics>("ServerSpecifics", Context.Guild.Id, update);
                     var embed = await EmbedHandler.CreateBasicEmbed("Channel whitelisted", $"Whitelisted channel #{Context.Client.GetChannel(channelId)}.");
                     await ReplyAsync(embed: embed);
                 }
