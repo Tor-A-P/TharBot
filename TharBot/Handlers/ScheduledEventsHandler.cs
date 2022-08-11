@@ -361,24 +361,29 @@ namespace TharBot.Handlers
             {
                 foreach (var serverStats in userProfile.Servers)
                 {
-                    var user = await Client.GetUserAsync(userProfile.UserId) as SocketGuildUser;
-                    if (user != null)
+                    var guild = Client.GetGuild(serverStats.ServerId);
+                    if (guild != null)
                     {
-                        if (user.VoiceChannel != null)
+                        var user = guild.GetUser(userProfile.UserId);
+                        if (user != null)
                         {
-                            serverStats.Exp += random.Next(8, 13);
-                            serverStats.TharCoins += 10;
-
-                            if (serverStats.Exp >= serverStats.ExpToLevel)
+                            if (user.VoiceChannel != null)
                             {
-                                serverStats.Exp -= serverStats.ExpToLevel;
-                                serverStats.Level++;
-                                serverStats.CurrentHP = serverStats.BaseHP;
-                                serverStats.CurrentMP = serverStats.BaseMP;
-                                serverStats.AttributePoints += GameServerStats.AttributePointsPerLevel;
+                                serverStats.Exp += random.Next(8, 13);
+                                serverStats.TharCoins += 10;
+
+                                if (serverStats.Exp >= serverStats.ExpToLevel)
+                                {
+                                    serverStats.Exp -= serverStats.ExpToLevel;
+                                    serverStats.Level++;
+                                    serverStats.CurrentHP = serverStats.BaseHP;
+                                    serverStats.CurrentMP = serverStats.BaseMP;
+                                    serverStats.AttributePoints += GameServerStats.AttributePointsPerLevel;
+                                }
                             }
                         }
                     }
+                    
                     
                     var percentageHealthRegen = (serverStats.Attributes.Constitution * GameServerStats.ConstitutionHPRegenBonus) + 5;
                     var percentageManaRegen = (serverStats.Attributes.Wisdom * GameServerStats.WisdomMPRegenBonus) + 5;

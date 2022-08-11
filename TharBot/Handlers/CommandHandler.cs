@@ -127,7 +127,7 @@ namespace TharBot.Handlers
             await _service.ExecuteAsync(context, argPos, _provider);
         }
 
-        private async Task OnClientReady()
+        private async Task  OnClientReady()
         {
         }
 
