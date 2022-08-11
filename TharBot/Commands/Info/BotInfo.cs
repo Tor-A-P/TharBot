@@ -22,16 +22,15 @@ namespace TharBot.Commands
         {
             var botClient = Context.Client;
             var owner = _client.GetUser(212161497256689665);
-            var guild = _client.GetGuild(Context.Guild.Id);
-            var botUser = guild.GetUser(Context.Client.CurrentUser.Id);
+            var botUser = Context.Guild.GetUser(Context.Client.CurrentUser.Id);
             
 
             var embedBuilder = await EmbedHandler.CreateBasicEmbedBuilder("Info about TharBot");
 
             var embed = embedBuilder.AddField("Author", $"{owner.Mention}", true)
                 .AddField("Active Guilds", botClient.Guilds.Count, true)
-                .AddField("Created at", TimestampTag.FromDateTimeOffset(botClient.CurrentUser.CreatedAt))
-                .AddField("Joined at", TimestampTag.FromDateTimeOffset((DateTimeOffset)botUser.JoinedAt))
+                .AddField("Created on", TimestampTag.FromDateTimeOffset(botClient.CurrentUser.CreatedAt))
+                .AddField("Joined on", TimestampTag.FromDateTimeOffset((DateTimeOffset)botUser.JoinedAt))
                 .AddField("Source code", "https://github.com/Tor-A-P/TharBot")
                 .WithThumbnailUrl(botClient.CurrentUser.GetAvatarUrl(Discord.ImageFormat.Auto, 2048) ?? botClient.CurrentUser.GetDefaultAvatarUrl())
                 .Build();
