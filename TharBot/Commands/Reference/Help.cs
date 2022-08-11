@@ -56,6 +56,7 @@ namespace TharBot.Commands
                 embedBuilder.AddField("Music", PopulateCategory(commands, "Music"));
                 embedBuilder.AddField("Reference", PopulateCategory(commands, "Reference"));
                 embedBuilder.AddField("Utility", PopulateCategory(commands, "Utility"));
+                embedBuilder.AddField("Anime Reactions", PopulateCategory(commands, "Anime Reactions"));
                 embedBuilder.AddField("Admin", PopulateCategory(commands, "Admin"));
                 embedBuilder.AddField("Setup (requires manage channels permission)", PopulateCategory(commands, "Setup"));
 
