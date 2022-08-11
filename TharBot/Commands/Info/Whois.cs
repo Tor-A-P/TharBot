@@ -1,4 +1,5 @@
-﻿using Discord.Commands;
+﻿using Discord;
+using Discord.Commands;
 using Discord.WebSocket;
 using TharBot.Handlers;
 
@@ -24,12 +25,13 @@ namespace TharBot.Commands
                 }
                 if (roles != "") roles = roles.Remove(roles.Length - 2, 2);
                 else roles = "None";
+
                 var embedBuilder = await EmbedHandler.CreateBasicEmbedBuilder($"Info for {user.Username}#{user.Discriminator}");
 
                 var embed = embedBuilder.AddField("ID", user.Id, true)
                     .AddField("Nickname", user.DisplayName, true)
-                    .AddField("Account Created", user.CreatedAt.LocalDateTime.ToString("g"))
-                    .AddField("Join date", user?.JoinedAt?.LocalDateTime.ToString("g"))
+                    .AddField("Account Created", TimestampTag.FromDateTimeOffset(user.CreatedAt))
+                    .AddField("Join date", TimestampTag.FromDateTimeOffset((DateTimeOffset)user.JoinedAt))
                     .AddField("Number of guilds shared with TharBot", Context.User.MutualGuilds.Count)
                     .AddField("Roles", roles)
                     .WithThumbnailUrl(user.GetAvatarUrl(Discord.ImageFormat.Auto, 2048) ?? user.GetDefaultAvatarUrl())

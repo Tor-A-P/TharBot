@@ -1,4 +1,5 @@
-﻿using Discord.Commands;
+﻿using Discord;
+using Discord.Commands;
 using Discord.WebSocket;
 using TharBot.Handlers;
 
@@ -29,8 +30,8 @@ namespace TharBot.Commands
 
             var embed = embedBuilder.AddField("Author", $"{owner.Mention}", true)
                 .AddField("Active Guilds", botClient.Guilds.Count, true)
-                .AddField("Created at", botClient.CurrentUser.CreatedAt.LocalDateTime.ToString("g"))
-                .AddField("Joined at", botUser?.JoinedAt?.LocalDateTime.ToString("g"))
+                .AddField("Created at", TimestampTag.FromDateTimeOffset(botClient.CurrentUser.CreatedAt))
+                .AddField("Joined at", TimestampTag.FromDateTimeOffset((DateTimeOffset)botUser.JoinedAt))
                 .AddField("Source code", "https://github.com/Tor-A-P/TharBot")
                 .WithThumbnailUrl(botClient.CurrentUser.GetAvatarUrl(Discord.ImageFormat.Auto, 2048) ?? botClient.CurrentUser.GetDefaultAvatarUrl())
                 .Build();
