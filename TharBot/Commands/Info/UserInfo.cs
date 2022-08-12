@@ -7,8 +7,8 @@ namespace TharBot.Commands
 {
     public class Whois : ModuleBase<SocketCommandContext>
     {
-        [Command("Whois")]
-        [Alias("userinfo")]
+        [Command("UserInfo")]
+        [Alias("whois")]
         [Summary("Shows information about a mentioned user. If no user specified, shows information about current user.\n" +
                 "**USAGE:** th.whois, th.whois [@USER_MENTION]")]
         [Remarks("Info")]
@@ -18,10 +18,10 @@ namespace TharBot.Commands
             {
                 if (user == null) user = Context.Guild.GetUser(Context.User.Id);
                 var roles = "";
-                foreach (var role in user.Roles)
+                foreach (var role in user.Roles.OrderByDescending(x => x.Position))
                 {
                     if (role.Name == "@everyone") continue;
-                    roles += role + ", ";
+                    roles += role.Mention + ", ";
                 }
                 if (roles != "") roles = roles.Remove(roles.Length - 2, 2);
                 else roles = "None";
