@@ -24,6 +24,7 @@ namespace TharBot.Handlers
         public readonly static Emote Spells = Emote.Parse("<:spells:1004378179781263420>");
         public readonly static Emote DoT = Emote.Parse("<:Bleed:1003988953172545706>");
         public readonly static Emote HoT = Emote.Parse("<:Healing:1003988966409764914>");
+        public readonly static Emote Stunned = Emote.Parse("<:Stunned:1007560858609651713>");
         public readonly static Emote Blank = Emote.Parse("<:__:995647072323784775>");
         public readonly static Emote BoxDownRight = Emote.Parse("<:slotdr:995647087427469432>");
         public readonly static Emote BoxLeftRight = Emote.Parse("<:slotlr:995647156499267665>");

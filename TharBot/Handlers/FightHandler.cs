@@ -131,7 +131,7 @@ namespace TharBot.Handlers
                             return;
                         }
                     }
-                    else turnText += $"{user.Username} is stunned for {serverStats.Debuffs.StunDuration} turn(s), and cannot take action!\n";
+                    else turnText += $"{EmoteHandler.Stunned}{user.Username} is stunned for {serverStats.Debuffs.StunDuration} turn(s), and cannot take action!{EmoteHandler.Stunned}\n";
 
                     var enemyTurn = await EnemyTurn(fight, turnText, serverStats, user);
                     fight = enemyTurn.fight;
@@ -222,8 +222,19 @@ namespace TharBot.Handlers
             if (fight.Enemy.Debuffs.StunDuration <= 0)
             {
                 userProfile.CurrentHP -= monsterDamage;
-
-                if (monsterCrit == true) turnText += $"{EmoteHandler.Crit}Critical hit! {fight.Enemy.Name} deals {monsterDamage} damage to {user.Username}!{EmoteHandler.Crit}\n";
+                if (fight.Enemy.Name == "Ogre")
+                {
+                    var stunRNG = random.Next(1, 101);
+                    if (stunRNG <= 5)
+                    {
+                        turnText += $"{EmoteHandler.Stunned}The shockwave from the Ogre's massive club stuns {user.Username}!{EmoteHandler.Stunned}\n";
+                        userProfile.Debuffs.StunDuration = 2;
+                    }
+                }
+                if (monsterCrit == true)
+                {
+                    turnText += $"{EmoteHandler.Crit}Critical hit! {fight.Enemy.Name} deals {monsterDamage} damage to {user.Username}!{EmoteHandler.Crit}\n";
+                }
                 else turnText += $"{EmoteHandler.Attack}{fight.Enemy.Name} deals {monsterDamage} damage to {user.Username}!{EmoteHandler.Attack}\n";
             }
             else turnText += $"{fight.Enemy.Name} is stunned for {fight.Enemy.Debuffs.StunDuration} turn(s), and cannot take action!\n";
