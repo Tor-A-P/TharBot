@@ -101,9 +101,10 @@ namespace TharBot.Handlers
             if (fight.Turns != null)
             {
                 var turns = fight.Turns.TakeLast(5);
-                var i = turns.Count() - 1;
+                var i = turns.Count();
                 foreach (var turn in turns)
                 {
+                    i--;
                     if (turn.Contains("wins the fight"))
                     {
                         embed.AddField("Fight ended!", turn);
@@ -112,7 +113,6 @@ namespace TharBot.Handlers
                     {
                         embed.AddField($"Turn {fight.TurnNumber - i}", turn);
                     }
-                    i--;
                 }
             }
 

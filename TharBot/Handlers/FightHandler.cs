@@ -139,6 +139,7 @@ namespace TharBot.Handlers
 
                     if (serverStats.CurrentHP <= 0)
                     {
+                        turnText = "";
                         turnText += $"{user.Username} has passed out! {fight.Enemy.Name} wins the fight!";
                         fight.Turns.Add(turnText);
                         serverStats.CurrentHP = 0;
