@@ -70,12 +70,12 @@ namespace TharBot.Commands
                     }
                     else
                     {
-                        if (serverStats.GambaInProgress)
-                        {
-                            var embed = await EmbedHandler.CreateUserErrorEmbed("Gamble already in progress!", "You already have a running gamble, please wait until it finishes before starting a new one!");
-                            await ReplyAsync(embed: embed);
-                            return;
-                        }
+                        //if (serverStats.GambaInProgress)
+                        //{
+                        //    var embed = await EmbedHandler.CreateUserErrorEmbed("Gamble already in progress!", "You already have a running gamble, please wait until it finishes before starting a new one!");
+                        //    await ReplyAsync(embed: embed);
+                        //    return;
+                        //}
 
                         Emoji[] emojis =
                         {

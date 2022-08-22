@@ -96,6 +96,7 @@ namespace TharBot.Commands
                     foreach (var profile in sortedProfiles)
                     {
                         var user = await _client.GetUserAsync(profile.UserId);
+                        if (user == null) continue;
                         if (leaderBoardPos <= 15)
                         {
                             if (user.Id == Context.User.Id) nameFieldString += $"{leaderBoardPos}. {EmoteHandler.You}{user.Mention}\n";
@@ -117,6 +118,7 @@ namespace TharBot.Commands
                     foreach (var profile in sortedProfiles)
                     {
                         var user = await _client.GetUserAsync(profile.UserId);
+                        if (user == null) continue;
                         if (leaderBoardPos <= 15)
                         {
                             if (user.Id == Context.User.Id) nameFieldString += $"{leaderBoardPos}. {EmoteHandler.You}{user.Mention}\n";
@@ -138,6 +140,7 @@ namespace TharBot.Commands
                     foreach (var profile in sortedProfiles)
                     {
                         var user = await _client.GetUserAsync(profile.UserId);
+                        if (user == null) continue;
                         if (leaderBoardPos <= 15)
                         {
                             if (user.Id == Context.User.Id) nameFieldString += $"{leaderBoardPos}. {EmoteHandler.You}{user.Mention}\n";
@@ -159,6 +162,7 @@ namespace TharBot.Commands
                     foreach (var profile in sortedProfiles)
                     {
                         var user = await _client.GetUserAsync(profile.UserId);
+                        if (user == null) continue;
                         if (leaderBoardPos <= 15)
                         {
                             if (user.Id == Context.User.Id) nameFieldString += $"{leaderBoardPos}. {EmoteHandler.You}{user.Mention}\n";

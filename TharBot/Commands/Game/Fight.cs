@@ -75,12 +75,12 @@ namespace TharBot.Commands
                             return;
                         }
 
-                        if (serverStats.FightInProgress)
-                        {
-                            var embed = await EmbedHandler.CreateUserErrorEmbed("Fight already in progress", "You are already fighting another monster, finish that fight first! (Or wait 5 minutes for the fight to time out)");
-                            await ReplyAsync(embed: embed);
-                            return;
-                        }
+                        //if (serverStats.FightInProgress)
+                        //{
+                        //    var embed = await EmbedHandler.CreateUserErrorEmbed("Fight already in progress", "You are already fighting another monster, finish that fight first! (Or wait 5 minutes for the fight to time out)");
+                        //    await ReplyAsync(embed: embed);
+                        //    return;
+                        //}
 
                         Random random = new();
                         var monsterList = await db.LoadRecordsAsync<GameMonster>("MonsterList");

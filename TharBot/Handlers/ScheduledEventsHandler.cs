@@ -499,7 +499,7 @@ namespace TharBot.Handlers
                     var bot = guild.GetUser(_client.CurrentUser.Id);
                     var voiceChannel = bot.VoiceChannel;
 
-                    if (voiceChannel == null) return;
+                    if (voiceChannel == null) continue;
 
                     if (voiceChannel.ConnectedUsers.Count == 1)
                     {
