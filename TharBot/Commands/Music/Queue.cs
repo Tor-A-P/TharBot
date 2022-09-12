@@ -29,9 +29,19 @@ namespace TharBot.Commands
                 {
                     var player = _lavaNode.GetPlayer(Context.Guild);
                     var track = player.Track;
-                    var embed = await EmbedHandler.CreateMusicEmbedBuilder("Now Playing:", $"{track.Title} / {track.Duration:%h\\:mm\\:ss}\n{track.Url}", player, true, false);
+                    if (track == null)
+                    {
+                        var noQueueEmbed = await EmbedHandler.CreateUserErrorEmbed("Queue", "Could not acquire queue.\n" +
+                            "There's no songs in queue right now, add some with the play command!");
 
-                    await ReplyAsync(embed: embed.Build());
+                        await ReplyAsync(embed: noQueueEmbed);
+                    }
+                    else
+                    {
+                        var embed = await EmbedHandler.CreateMusicEmbedBuilder("Now Playing:", $"{track.Title} / {track.Duration:%h\\:mm\\:ss}\n{track.Url}", player, true, false);
+
+                        await ReplyAsync(embed: embed.Build());
+                    }
                 }
                 catch (Exception ex)
                 {

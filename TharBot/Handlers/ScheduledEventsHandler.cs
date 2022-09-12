@@ -35,12 +35,12 @@ namespace TharBot.Handlers
             timer25s.Elapsed += PollHandling;
             timer25s.Elapsed += ReminderHandling;
             timer25s.Elapsed += DailyPCHandling;
+            timer25s.Elapsed += StopMusic;
 
             timer60s.Enabled = true;
             timer60s.Elapsed += GameHandling;
             timer60s.Elapsed += FightOverHandling;
             timer60s.Elapsed += AttributeDialogCleanup;
-            timer60s.Elapsed += StopMusic;
         }
 
         public async void PollHandling(object? source, ElapsedEventArgs e)
@@ -496,31 +496,61 @@ namespace TharBot.Handlers
                 foreach (var server in serverSpecifics)
                 {
                     var guild = _client.GetGuild(server.ServerId);
+                    if (guild == null) continue;
+
                     var bot = guild.GetUser(_client.CurrentUser.Id);
+                    if (bot == null) continue;
+
                     var voiceChannel = bot.VoiceChannel;
 
-                    if (voiceChannel == null) continue;
+                    if (voiceChannel == null)
+                    {
+                        if (_lavaNode.HasPlayer(guild))
+                        {
+                            var player = _lavaNode.GetPlayer(guild);
+
+                            if (player.PlayerState is PlayerState.Playing)
+                            {
+                                player.Queue.Clear();
+                                await player.StopAsync();
+                                await _lavaNode.LeaveAsync(player.VoiceChannel);
+
+                                var embed = await EmbedHandler.CreateBasicEmbed("Stopped player", "Wow, kicking me out while I was playing music for you, extremely rude 😡");
+                                var channel = await _client.GetChannelAsync(server.LastChannelUsedId) as IMessageChannel;
+                                await channel.SendMessageAsync(embed: embed);
+                            }
+                            else
+                            {
+                                await player.StopAsync();
+                                await _lavaNode.LeaveAsync(player.VoiceChannel);
+                            }
+                        }
+                        continue;
+                    }
 
                     if (voiceChannel.ConnectedUsers.Count == 1)
                     {
-                        var player = _lavaNode.GetPlayer(guild);
-
-                        if (player.PlayerState is PlayerState.Playing)
+                        if (_lavaNode.HasPlayer(guild))
                         {
-                            player.Queue.Clear();
-                            await player.StopAsync();
+                            var player = _lavaNode.GetPlayer(guild);
 
-                            await _lavaNode.LeaveAsync(voiceChannel);
-                        }
-                        else
-                        {
-                            await player.StopAsync();
-                            await _lavaNode.LeaveAsync(voiceChannel);
-                        }
+                            if (player.PlayerState is PlayerState.Playing)
+                            {
+                                player.Queue.Clear();
+                                await player.StopAsync();
+                                
+                                await _lavaNode.LeaveAsync(voiceChannel);
+                            }
+                            else
+                            {
+                                await player.StopAsync();
+                                await _lavaNode.LeaveAsync(voiceChannel);
+                            }
 
-                        var embed = await EmbedHandler.CreateBasicEmbed("Left voice chat", "I'm not gonna play music for only myself! >:(");
-                        var channel = await _client.GetChannelAsync(server.LastChannelUsedId) as IMessageChannel;
-                        await channel.SendMessageAsync(embed: embed);
+                            var embed = await EmbedHandler.CreateBasicEmbed("Left voice chat and stopped player", "I'm not gonna play music for only myself! >:(");
+                            var channel = await _client.GetChannelAsync(server.LastChannelUsedId) as IMessageChannel;
+                            await channel.SendMessageAsync(embed: embed);
+                        }
                     }
                 }
             }

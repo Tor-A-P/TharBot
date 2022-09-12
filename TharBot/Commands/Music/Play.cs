@@ -23,7 +23,7 @@ namespace TharBot.Commands
         public async Task PlayAsync([Remainder] string search)
         {
             var commandUser = Context.User as SocketGuildUser;
-            var bot = await Context.Channel.GetUserAsync(Context.Client.CurrentUser.Id) as SocketGuildUser;
+            var bot = Context.Guild.GetUser(Context.Client.CurrentUser.Id);
 
             if (commandUser.VoiceChannel == null)
             {
@@ -38,7 +38,6 @@ namespace TharBot.Commands
                 {
                     await _lavaNode.JoinAsync(commandUser.VoiceChannel, Context.Channel as ITextChannel);
                     await ReplyAsync($"Joined {commandUser.VoiceChannel.Name}!");
-                    await Task.Delay(500);
                 }
                 catch (Exception ex)
                 {
@@ -55,6 +54,7 @@ namespace TharBot.Commands
                     {
                         try
                         {
+                            //await _lavaNode.LeaveAsync(commandUser.VoiceChannel);
                             await _lavaNode.JoinAsync(commandUser.VoiceChannel, Context.Channel as ITextChannel);
                             await ReplyAsync($"Joined {commandUser.VoiceChannel.Name}!");
                         }
