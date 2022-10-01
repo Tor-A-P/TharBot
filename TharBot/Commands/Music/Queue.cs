@@ -12,7 +12,7 @@ namespace TharBot.Commands
             => _lavaNode = lavaNode;
 
         [Command("Queue")]
-        [Alias("List")]
+        [Alias("Now", "Nowplaying", "np")]
         [Summary("Shows the current music queue.\n" +
             "**USAGE:** th.queue")]
         public async Task QueueAsync()
@@ -38,7 +38,7 @@ namespace TharBot.Commands
                     }
                     else
                     {
-                        var embed = await EmbedHandler.CreateMusicEmbedBuilder("Now Playing:", $"{track.Title} / {track.Duration:%h\\:mm\\:ss}\n{track.Url}", player, true, false);
+                        var embed = await EmbedHandler.CreateMusicEmbedBuilder("Now Playing:", $"{track.Title} - {track.Duration:%h\\:mm\\:ss} / {track.Position:%h\\:mm\\:ss}\n{track.Url}", player, true, false);
 
                         await ReplyAsync(embed: embed.Build());
                     }
