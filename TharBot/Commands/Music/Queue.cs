@@ -38,7 +38,7 @@ namespace TharBot.Commands
                     }
                     else
                     {
-                        var embed = await EmbedHandler.CreateMusicEmbedBuilder("Now Playing:", $"{track.Title} - {track.Duration:%h\\:mm\\:ss} / {track.Position:%h\\:mm\\:ss}\n{track.Url}", player, true, false);
+                        var embed = await EmbedHandler.CreateMusicEmbedBuilder("Now Playing:", $"{track.Title} - {track.Position:%h\\:mm\\:ss} / {track.Duration:%h\\:mm\\:ss}\n{track.Url}", player, true, false);
 
                         await ReplyAsync(embed: embed.Build());
                     }
