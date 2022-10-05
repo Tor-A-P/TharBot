@@ -1,10 +1,10 @@
 ﻿using Discord;
 using Discord.Commands;
-using Victoria;
-using Victoria.Responses.Search;
-using Victoria.Enums;
-using TharBot.Handlers;
 using Discord.WebSocket;
+using TharBot.Handlers;
+using Victoria;
+using Victoria.Enums;
+using Victoria.Responses.Search;
 
 namespace TharBot.Commands
 {
@@ -24,6 +24,7 @@ namespace TharBot.Commands
         {
             var commandUser = Context.User as SocketGuildUser;
             var bot = Context.Guild.GetUser(Context.Client.CurrentUser.Id);
+            await Task.Delay(250);
 
             if (commandUser.VoiceChannel == null)
             {
@@ -31,7 +32,7 @@ namespace TharBot.Commands
                 await ReplyAsync(embed: notVCEmbed);
                 return;
             }
-            
+
             if (!_lavaNode.HasPlayer(Context.Guild))
             {
                 try
@@ -48,29 +49,31 @@ namespace TharBot.Commands
             }
             else
             {
+                if (bot.VoiceChannel == null)
+                {
+                    try
+                    {
+                        var player = _lavaNode.GetPlayer(Context.Guild);
+                        await _lavaNode.LeaveAsync(player.VoiceChannel);
+                        await _lavaNode.JoinAsync(commandUser.VoiceChannel, Context.Channel as ITextChannel);
+                        await ReplyAsync($"Joined {commandUser.VoiceChannel.Name}!");
+                    }
+                    catch (Exception ex)
+                    {
+                        var exEmbed = await EmbedHandler.CreateErrorEmbed("Play", ex.Message);
+                        await ReplyAsync(embed: exEmbed);
+                        await LoggingHandler.LogCriticalAsync("COMND: Play", null, ex);
+                    }
+                }
+
+                bot = Context.Guild.GetUser(Context.Client.CurrentUser.Id);
+                await Task.Delay(500);
+
                 if (commandUser.VoiceChannel != bot.VoiceChannel)
                 {
-                    if (bot.VoiceChannel == null)
-                    {
-                        try
-                        {
-                            //await _lavaNode.LeaveAsync(commandUser.VoiceChannel);
-                            await _lavaNode.JoinAsync(commandUser.VoiceChannel, Context.Channel as ITextChannel);
-                            await ReplyAsync($"Joined {commandUser.VoiceChannel.Name}!");
-                        }
-                        catch (Exception ex)
-                        {
-                            var exEmbed = await EmbedHandler.CreateErrorEmbed("Play", ex.Message);
-                            await ReplyAsync(embed: exEmbed);
-                            await LoggingHandler.LogCriticalAsync("COMND: Play", null, ex);
-                        }
-                    }
-                    else
-                    {
-                        var wrongVCEmbed = await EmbedHandler.CreateUserErrorEmbed("Play", "You must be connected to the same voice channel as the bot!");
-                        await ReplyAsync(embed: wrongVCEmbed);
-                        return;
-                    }
+                    var wrongVCEmbed = await EmbedHandler.CreateUserErrorEmbed("Play", "You must be connected to the same voice channel as the bot!");
+                    await ReplyAsync(embed: wrongVCEmbed);
+                    return;
                 }
             }
 
@@ -107,7 +110,7 @@ namespace TharBot.Commands
                     {
                         player.Queue.Enqueue(track);
 
-                        var embedBuilder = await EmbedHandler.CreateMusicEmbedBuilder("Added to queue:", $"{track.Title} / {track.Duration:%h\\:mm\\:ss}\n{ track.Url}", player);
+                        var embedBuilder = await EmbedHandler.CreateMusicEmbedBuilder("Added to queue:", $"{track.Title} / {track.Duration:%h\\:mm\\:ss}\n{track.Url}", player);
 
                         embedBuilder = embedBuilder
                             .WithThumbnailUrl(await track.FetchArtworkAsync());

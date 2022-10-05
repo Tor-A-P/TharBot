@@ -503,30 +503,7 @@ namespace TharBot.Handlers
 
                     var voiceChannel = bot.VoiceChannel;
 
-                    if (voiceChannel == null)
-                    {
-                        if (_lavaNode.HasPlayer(guild))
-                        {
-                            var player = _lavaNode.GetPlayer(guild);
-
-                            if (player.PlayerState is PlayerState.Playing)
-                            {
-                                player.Queue.Clear();
-                                await player.StopAsync();
-                                await _lavaNode.LeaveAsync(player.VoiceChannel);
-
-                                var embed = await EmbedHandler.CreateBasicEmbed("Stopped player", "Wow, kicking me out while I was playing music for you, extremely rude 😡");
-                                var channel = await _client.GetChannelAsync(server.LastChannelUsedId) as IMessageChannel;
-                                await channel.SendMessageAsync(embed: embed);
-                            }
-                            else
-                            {
-                                await player.StopAsync();
-                                await _lavaNode.LeaveAsync(player.VoiceChannel);
-                            }
-                        }
-                        continue;
-                    }
+                    if (voiceChannel == null) continue;
 
                     if (voiceChannel.ConnectedUsers.Count == 1)
                     {
@@ -538,7 +515,7 @@ namespace TharBot.Handlers
                             {
                                 player.Queue.Clear();
                                 await player.StopAsync();
-                                
+
                                 await _lavaNode.LeaveAsync(voiceChannel);
                             }
                             else
