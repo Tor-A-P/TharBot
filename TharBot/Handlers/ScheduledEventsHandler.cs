@@ -46,6 +46,7 @@ namespace TharBot.Handlers
         public async void PollHandling(object? source, ElapsedEventArgs e)
         {
             var serverSpecifics = await db.LoadRecordsAsync<ServerSpecifics>("ServerSpecifics");
+            if (serverSpecifics == null) return;
 
             foreach (var server in serverSpecifics)
             {
@@ -228,6 +229,7 @@ namespace TharBot.Handlers
         public async void RemovePoll(ServerSpecifics? server, Poll? poll)
         {
             server = await db.LoadRecordByIdAsync<ServerSpecifics>("ServerSpecifics", server.ServerId);
+            if (server == null) return;
             poll = server.Polls.Where(x => x.MessageId == poll.MessageId).FirstOrDefault();
             server.Polls.Remove(poll);
             var update = Builders<ServerSpecifics>.Update.Set(x => x.Polls, server.Polls);
@@ -239,6 +241,7 @@ namespace TharBot.Handlers
             try
             {
                 var serverSpecifics = await db.LoadRecordsAsync<ServerSpecifics>("ServerSpecifics");
+                if (serverSpecifics == null) return;
 
                 foreach (var server in serverSpecifics)
                 {
@@ -264,6 +267,7 @@ namespace TharBot.Handlers
         public async void RemoveReminder(ServerSpecifics? server, Reminders? reminder)
         {
             server = await db.LoadRecordByIdAsync<ServerSpecifics>("ServerSpecifics", server.ServerId);
+            if (server == null) return;
             reminder = server.Reminders.Where(x => x.Id == reminder.Id).FirstOrDefault();
             server.Reminders.Remove(reminder);
             var update = Builders<ServerSpecifics>.Update.Set(x => x.Reminders, server.Reminders);
@@ -273,6 +277,7 @@ namespace TharBot.Handlers
         public async void DailyPCHandling(object? source, ElapsedEventArgs e)
         {
             var serverSpecifics = await db.LoadRecordsAsync<ServerSpecifics>("ServerSpecifics");
+            if (serverSpecifics == null) return;
             foreach (var server in serverSpecifics)
             {
                 if (server.DailyPC == null) return;
@@ -400,6 +405,7 @@ namespace TharBot.Handlers
         public async void FightOverHandling(object? source, ElapsedEventArgs e)
         {
             var activeFights = await db.LoadRecordsAsync<GameFight>("ActiveFights");
+            if (activeFights == null) return;
 
             foreach (var fight in activeFights)
             {
@@ -443,6 +449,7 @@ namespace TharBot.Handlers
             try
             {
                 var serverSpecifics = await db.LoadRecordsAsync<ServerSpecifics>("ServerSpecifics");
+                if (serverSpecifics == null) return;
 
                 foreach (var server in serverSpecifics)
                 {
@@ -482,6 +489,7 @@ namespace TharBot.Handlers
         public async void RemoveAttributeDialog(ServerSpecifics? server, GameAttributeDialog? attributeDialog)
         {
             server = await db.LoadRecordByIdAsync<ServerSpecifics>("ServerSpecifics", server.ServerId);
+            if (server == null) return;
             attributeDialog = server.AttributeDialogs.Where(x => x.MessageId == attributeDialog.MessageId).FirstOrDefault();
             server.AttributeDialogs.Remove(attributeDialog);
             var update = Builders<ServerSpecifics>.Update.Set(x => x.AttributeDialogs, server.AttributeDialogs);
@@ -493,6 +501,7 @@ namespace TharBot.Handlers
             try
             {
                 var serverSpecifics = await db.LoadRecordsAsync<ServerSpecifics>("ServerSpecifics");
+                if (serverSpecifics == null) return;
                 foreach (var server in serverSpecifics)
                 {
                     var guild = _client.GetGuild(server.ServerId);

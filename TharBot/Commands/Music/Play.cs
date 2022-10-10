@@ -51,18 +51,23 @@ namespace TharBot.Commands
             {
                 if (bot.VoiceChannel == null)
                 {
-                    try
+                    bot = Context.Guild.GetUser(Context.Client.CurrentUser.Id);
+                    await Task.Delay(500);
+                    if (bot.VoiceChannel == null)
                     {
-                        var player = _lavaNode.GetPlayer(Context.Guild);
-                        await _lavaNode.LeaveAsync(player.VoiceChannel);
-                        await _lavaNode.JoinAsync(commandUser.VoiceChannel, Context.Channel as ITextChannel);
-                        await ReplyAsync($"Joined {commandUser.VoiceChannel.Name}!");
-                    }
-                    catch (Exception ex)
-                    {
-                        var exEmbed = await EmbedHandler.CreateErrorEmbed("Play", ex.Message);
-                        await ReplyAsync(embed: exEmbed);
-                        await LoggingHandler.LogCriticalAsync("COMND: Play", null, ex);
+                        try
+                        {
+                            var player = _lavaNode.GetPlayer(Context.Guild);
+                            await _lavaNode.LeaveAsync(player.VoiceChannel);
+                            await _lavaNode.JoinAsync(commandUser.VoiceChannel, Context.Channel as ITextChannel);
+                            await ReplyAsync($"Joined {commandUser.VoiceChannel.Name}!");
+                        }
+                        catch (Exception ex)
+                        {
+                            var exEmbed = await EmbedHandler.CreateErrorEmbed("Play", ex.Message);
+                            await ReplyAsync(embed: exEmbed);
+                            await LoggingHandler.LogCriticalAsync("COMND: Play", null, ex);
+                        }
                     }
                 }
 
