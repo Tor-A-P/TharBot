@@ -32,6 +32,8 @@ namespace TharBot.Commands
         [RequireOwner(Group = "Permission")]
         public async Task DailyPulseCheckAsync(string time = "", int duration = 360, bool ping = false, bool weekends = false)
         {
+            if (Context.User.IsBot) return;
+
             try
             {
                 var serverSpecifics = await db.LoadRecordByIdAsync<ServerSpecifics>("ServerSpecifics", Context.Guild.Id);

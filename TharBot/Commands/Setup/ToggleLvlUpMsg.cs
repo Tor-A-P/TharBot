@@ -23,6 +23,8 @@ namespace TharBot.Commands
         [RequireOwner(Group = "Permission")]
         public async Task ToggleLvlUpMsgAsync()
         {
+            if (Context.User.IsBot) return;
+
             var serverSpecifics = await db.LoadRecordByIdAsync<ServerSpecifics>("ServerSpecifics", Context.Guild.Id);
             if (serverSpecifics == null)
             {

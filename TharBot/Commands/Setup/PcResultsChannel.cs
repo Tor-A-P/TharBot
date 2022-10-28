@@ -25,6 +25,8 @@ namespace TharBot.Commands
         [RequireOwner(Group = "Permission")]
         public async Task PcResultsChannelAsync(ulong channelId = 0)
         {
+            if (Context.User.IsBot) return;
+
             var serverSettings = await db.LoadRecordByIdAsync<ServerSpecifics>("ServerSpecifics", Context.Guild.Id);
 
             if (channelId == 0)

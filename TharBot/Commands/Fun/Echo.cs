@@ -10,6 +10,11 @@ namespace TharBot.Commands
                 "**USAGE:** th.say [MESSAGE]\n" +
                 "**EXAMPLE:** th.say I can make the bot say naughty things!")]
         [Remarks("Fun")]
-        public async Task SayAsync([Remainder] string echo) => await ReplyAsync(echo);
+        public async Task SayAsync([Remainder] string echo)
+        {
+            //if (Context.User.IsBot) return;
+
+            await ReplyAsync(echo);
+        }
     }
 }

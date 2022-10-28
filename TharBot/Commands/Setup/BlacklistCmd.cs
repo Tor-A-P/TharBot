@@ -27,6 +27,8 @@ namespace TharBot.Commands
         [RequireOwner(Group = "Permission")]
         public async Task BlacklistAsync(string flag = "show", string type = "")
         {
+            if (Context.User.IsBot) return;
+
             if (flag.ToLower() != "show" && flag.ToLower() != "clear")
             {
                 var wrongFlagEmbed = await EmbedHandler.CreateUserErrorEmbed("Blacklist", "Please specify either \"clear\" or \"show\" after the command, or leave it blank to default to showing the blacklist.");

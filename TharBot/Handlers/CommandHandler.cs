@@ -68,6 +68,7 @@ namespace TharBot.Handlers
             
             if (result.Error == CommandError.UnknownCommand)
             {
+                if (commandContext.User.IsBot) return;
                 if (commandContext.User.Id == Client.CurrentUser.Id) return;
                 var memeList = serverSettings.Memes;
                 if (memeList != null)

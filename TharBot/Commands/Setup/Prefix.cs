@@ -26,6 +26,8 @@ namespace TharBot.Commands
         [RequireOwner(Group = "Permission")]
         public async Task PrefixAsync([Remainder] string? prefix = null)
         {
+            if (Context.User.IsBot) return;
+
             var serverSettings = await db.LoadRecordByIdAsync<ServerSpecifics>("ServerSpecifics", Context.Guild.Id);
             string? currentPrefix;
 

@@ -16,6 +16,8 @@ namespace TharBot.Commands
         [RequireOwner(Group = "Permission")]
         public async Task KickMemberAsync(IGuildUser? user = null, string? reason = null)
         {
+            if (Context.User.IsBot) return;
+
             if (user == null)
             {
                 var noUserEmbed = await EmbedHandler.CreateUserErrorEmbed("Kick", "No user specified, please mention a user to kick!");

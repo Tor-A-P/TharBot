@@ -17,6 +17,8 @@ namespace TharBot.Commands
         [RequireOwner(Group = "Permission")]
         public async Task BanMemberAsync(IGuildUser? user = null, string? reason = null)
         {
+            if (Context.User.IsBot) return;
+
             if (user == null)
             {
                 var noUserEmbed = await EmbedHandler.CreateUserErrorEmbed("Ban", "No user specified, please mention a user to ban!");

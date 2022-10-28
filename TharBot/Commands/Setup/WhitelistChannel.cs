@@ -27,6 +27,8 @@ namespace TharBot.Commands
         [RequireOwner(Group = "Permission")]
         public async Task WhitelistChannelAsync(ulong channelId = 0)
         {
+            if (Context.User.IsBot) return;
+
             try
             {
                 if (channelId == 0) channelId = Context.Channel.Id;
