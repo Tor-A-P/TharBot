@@ -73,12 +73,12 @@ namespace TharBot.Commands
                     $"Pollution data for {geocode[0].Name}, {geocode[0].Country} :flag_{geocode[0].Country.ToLower()}:");
 
                 var embed = embedBuilder.AddField("Air Quality:", airQuality)
-                    .AddField("Carbon monoxide (CO)", pollution.List[0].Components["co"].ToString("0.###") + "μg/m3", true)
-                    .AddField("Nitrogen monoxide (NO)", pollution.List[0].Components["no"].ToString("0.###") + "μg/m3", true)
-                    .AddField("Nitrogen dioxide (NO₂)", pollution.List[0].Components["no2"].ToString("0.###") + "μg/m3", true)
-                    .AddField("Ozone (O₃)", pollution.List[0].Components["o3"].ToString("0.###") + "μg/m3", true)
-                    .AddField("Sulphur dioxide (SO₂)", pollution.List[0].Components["so2"].ToString("0.###") + "μg/m3", true)
-                    .AddField("Ammonia (NH₃)", pollution.List[0].Components["nh3"].ToString("0.###") + "μg/m3", true)
+                    .AddField("Carbon monoxide (CO)", pollution.List[0].Components["co"].ToString("0.###") + " μg/m³", true)
+                    .AddField("Nitrogen monoxide (NO)", pollution.List[0].Components["no"].ToString("0.###") + " μg/m³", true)
+                    .AddField("Nitrogen dioxide (NO₂)", pollution.List[0].Components["no2"].ToString("0.###") + " μg/m³", true)
+                    .AddField("Ozone (O₃)", pollution.List[0].Components["o3"].ToString("0.###") + " μg/m³", true)
+                    .AddField("Sulphur dioxide (SO₂)", pollution.List[0].Components["so2"].ToString("0.###") + " μg/m³", true)
+                    .AddField("Ammonia (NH₃)", pollution.List[0].Components["nh3"].ToString("0.###") + " μg/m³", true)
                     .WithCurrentTimestamp()
                     .Build();
 
