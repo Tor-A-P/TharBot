@@ -357,90 +357,107 @@ namespace TharBot.Handlers
 
         public async void GameHandling(object? source, ElapsedEventArgs e)
         {
-            var userProfiles = await db.LoadRecordsAsync<GameUser>("UserProfiles");
-            Random random = new();
-
-            if (userProfiles == null) return;
-
-            foreach (var userProfile in userProfiles)
+            try
             {
-                foreach (var serverStats in userProfile.Servers)
-                {
-                    var guild = Client.GetGuild(serverStats.ServerId);
-                    if (guild != null)
-                    {
-                        var user = guild.GetUser(userProfile.UserId);
-                        if (user != null)
-                        {
-                            if (user.VoiceChannel != null)
-                            {
-                                serverStats.Exp += random.Next(8, 13);
-                                serverStats.TharCoins += 10;
+                var userProfiles = await db.LoadRecordsAsync<GameUser>("UserProfiles");
+                Random random = new();
 
-                                if (serverStats.Exp >= serverStats.ExpToLevel)
+                if (userProfiles == null) return;
+
+                foreach (var userProfile in userProfiles)
+                {
+                    foreach (var serverStats in userProfile.Servers)
+                    {
+                        var guild = Client.GetGuild(serverStats.ServerId);
+                        if (guild != null)
+                        {
+                            var user = guild.GetUser(userProfile.UserId);
+                            if (user != null)
+                            {
+                                if (user.VoiceChannel != null)
                                 {
-                                    serverStats.Exp -= serverStats.ExpToLevel;
-                                    serverStats.Level++;
-                                    serverStats.CurrentHP = serverStats.BaseHP;
-                                    serverStats.CurrentMP = serverStats.BaseMP;
-                                    serverStats.AttributePoints += GameServerStats.AttributePointsPerLevel;
+                                    serverStats.Exp += random.Next(8, 13);
+                                    serverStats.TharCoins += 10;
+
+                                    if (serverStats.Exp >= serverStats.ExpToLevel)
+                                    {
+                                        serverStats.Exp -= serverStats.ExpToLevel;
+                                        serverStats.Level++;
+                                        serverStats.CurrentHP = serverStats.BaseHP;
+                                        serverStats.CurrentMP = serverStats.BaseMP;
+                                        serverStats.AttributePoints += GameServerStats.AttributePointsPerLevel;
+                                    }
                                 }
                             }
                         }
+
+
+                        var percentageHealthRegen = (serverStats.Attributes.Constitution * GameServerStats.ConstitutionHPRegenBonus) + 5;
+                        var percentageManaRegen = (serverStats.Attributes.Wisdom * GameServerStats.WisdomMPRegenBonus) + 5;
+                        serverStats.CurrentHP += Math.Floor(serverStats.BaseHP / 100 * percentageHealthRegen);
+                        serverStats.CurrentMP += Math.Floor(serverStats.BaseMP / 100 * percentageManaRegen);
+                        if (serverStats.CurrentHP > serverStats.BaseHP) serverStats.CurrentHP = serverStats.BaseHP;
+                        if (serverStats.CurrentMP > serverStats.BaseMP) serverStats.CurrentMP = serverStats.BaseMP;
                     }
-                    
-                    
-                    var percentageHealthRegen = (serverStats.Attributes.Constitution * GameServerStats.ConstitutionHPRegenBonus) + 5;
-                    var percentageManaRegen = (serverStats.Attributes.Wisdom * GameServerStats.WisdomMPRegenBonus) + 5;
-                    serverStats.CurrentHP += Math.Floor(serverStats.BaseHP / 100 * percentageHealthRegen);
-                    serverStats.CurrentMP += Math.Floor(serverStats.BaseMP / 100 * percentageManaRegen);
-                    if (serverStats.CurrentHP > serverStats.BaseHP) serverStats.CurrentHP = serverStats.BaseHP;
-                    if (serverStats.CurrentMP > serverStats.BaseMP) serverStats.CurrentMP = serverStats.BaseMP;
+                    var update = Builders<GameUser>.Update.Set(x => x.Servers, userProfile.Servers);
+                    await db.UpdateUserAsync<GameUser>("UserProfiles", userProfile.UserId, update);
                 }
-                var update = Builders<GameUser>.Update.Set(x => x.Servers, userProfile.Servers);
-                await db.UpdateUserAsync<GameUser>("UserProfiles", userProfile.UserId, update);
             }
+            catch (Exception ex)
+            {
+                await LoggingHandler.LogCriticalAsync("Bot", null, ex);
+                return;
+            }
+            
         }
 
         public async void FightOverHandling(object? source, ElapsedEventArgs e)
         {
-            var activeFights = await db.LoadRecordsAsync<GameFight>("ActiveFights");
-            if (activeFights == null) return;
-
-            foreach (var fight in activeFights)
+            try
             {
-                if (fight.LastMoveTime + GameFight.LifeTime < DateTime.UtcNow)
+                var activeFights = await db.LoadRecordsAsync<GameFight>("ActiveFights");
+                if (activeFights == null) return;
+
+                foreach (var fight in activeFights)
                 {
-                    if (await Client.GetChannelAsync(fight.ChannelId) is IMessageChannel chn)
+                    if (fight.LastMoveTime + GameFight.LifeTime < DateTime.UtcNow)
                     {
-                        if (await chn.GetMessageAsync(fight.MessageId) is IUserMessage msg)
+                        if (await Client.GetChannelAsync(fight.ChannelId) is IMessageChannel chn)
                         {
-                            var embed = msg.Embeds.FirstOrDefault();
-                            if (embed != null)
+                            if (await chn.GetMessageAsync(fight.MessageId) is IUserMessage msg)
                             {
-                                var userProfile = await db.LoadRecordByIdAsync<GameUser>("UserProfiles", fight.UserId);
-                                var serverStats = userProfile.Servers.Where(x => x.ServerId == fight.ServerId).FirstOrDefault();
-                                var user = await Client.GetUserAsync(fight.UserId);
-                                var builder = embed.ToEmbedBuilder();
-                                builder.AddField($"{user.Username} ran away from the battle!", "Nobody wins this battle.");
-                                await msg.ModifyAsync(x => x.Embed = builder.Build());
-                                await msg.RemoveAllReactionsAsync();
-                                serverStats.FightInProgress = false;
-                                serverStats.Debuffs = new GameDebuffs
+                                var embed = msg.Embeds.FirstOrDefault();
+                                if (embed != null)
                                 {
-                                    StunDuration = 0,
-                                    HoTDuration = 0,
-                                    HoTStrength = 0,
-                                    DoTDuration = 0,
-                                    DoTStrength = 0
-                                };
-                                await db.DeleteRecordAsync<GameFight>("ActiveFights", fight.MessageId);
-                                var update = Builders<GameUser>.Update.Set(x => x.Servers, userProfile.Servers);
-                                await db.UpdateUserAsync<GameUser>("UserProfiles", userProfile.UserId, update);
+                                    var userProfile = await db.LoadRecordByIdAsync<GameUser>("UserProfiles", fight.UserId);
+                                    var serverStats = userProfile.Servers.Where(x => x.ServerId == fight.ServerId).FirstOrDefault();
+                                    var user = await Client.GetUserAsync(fight.UserId);
+                                    var builder = embed.ToEmbedBuilder();
+                                    builder.AddField($"{user.Username} ran away from the battle!", "Nobody wins this battle.");
+                                    await msg.ModifyAsync(x => x.Embed = builder.Build());
+                                    await msg.RemoveAllReactionsAsync();
+                                    serverStats.FightInProgress = false;
+                                    serverStats.Debuffs = new GameDebuffs
+                                    {
+                                        StunDuration = 0,
+                                        HoTDuration = 0,
+                                        HoTStrength = 0,
+                                        DoTDuration = 0,
+                                        DoTStrength = 0
+                                    };
+                                    await db.DeleteRecordAsync<GameFight>("ActiveFights", fight.MessageId);
+                                    var update = Builders<GameUser>.Update.Set(x => x.Servers, userProfile.Servers);
+                                    await db.UpdateUserAsync<GameUser>("UserProfiles", userProfile.UserId, update);
+                                }
                             }
                         }
                     }
                 }
+            }
+            catch (Exception ex)
+            {
+                await LoggingHandler.LogCriticalAsync("Bot", null, ex);
+                return;
             }
         }
 

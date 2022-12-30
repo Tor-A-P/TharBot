@@ -24,6 +24,7 @@ namespace TharBot.Commands.Owner
             //var guild = _client.GetGuild(guildId);
             //var channel = guild.GetChannel(channelId) as IMessageChannel;
             var channel = _client.GetChannel(channelId) as IMessageChannel;
+            if (channel == null) return;
 
             try
             {
