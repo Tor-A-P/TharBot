@@ -9,13 +9,11 @@ namespace TharBot.Commands
     {
         private readonly IHttpClientFactory _httpClientFactory;
         private readonly IConfiguration _configuration;
-        private readonly string _weatherAPI;
 
         public Pollution(IHttpClientFactory httpClientFactory, IConfiguration config)
         {
             _httpClientFactory = httpClientFactory;
             _configuration = config;
-            _weatherAPI = _configuration["WeatherAPI"];
         }
 
         [Command("Pollution")]
@@ -28,7 +26,7 @@ namespace TharBot.Commands
         {
             try
             {
-                var weatherAPIKey = _weatherAPI;
+                var weatherAPIKey = _configuration["WeatherAPI"];
                 var httpClient = _httpClientFactory.CreateClient();
                 var responseGeo = await httpClient.GetStringAsync($"http://api.openweathermap.org/geo/1.0/direct?q={location}&limit=1&appid={weatherAPIKey}");
                 var geocode = Geocode.FromJson(responseGeo);
@@ -47,7 +45,7 @@ namespace TharBot.Commands
                 var responsePollution = await httpClient.GetStringAsync(
                    $"https://api.openweathermap.org/data/2.5/air_pollution?lat={geocode[0].Lat}&lon={geocode[0].Lon}&units=metric&appid={weatherAPIKey}");
                 var pollution = PollutionResult.FromJson(responsePollution);
-                string airQuality = "";
+                string airQuality = "Unknown";
 
                 switch (pollution.List[0].Main.Aqi)
                 {
@@ -72,17 +70,16 @@ namespace TharBot.Commands
                 var embedBuilder = await EmbedHandler.CreateBasicEmbedBuilder(
                     $"Pollution data for {geocode[0].Name}, {geocode[0].Country} :flag_{geocode[0].Country.ToLower()}:");
 
-                var embed = embedBuilder.AddField("Air Quality:", airQuality)
+                embedBuilder = embedBuilder.AddField("Air Quality:", airQuality)
                     .AddField("Carbon monoxide (CO)", pollution.List[0].Components["co"].ToString("0.###") + " μg/m³", true)
                     .AddField("Nitrogen monoxide (NO)", pollution.List[0].Components["no"].ToString("0.###") + " μg/m³", true)
                     .AddField("Nitrogen dioxide (NO₂)", pollution.List[0].Components["no2"].ToString("0.###") + " μg/m³", true)
                     .AddField("Ozone (O₃)", pollution.List[0].Components["o3"].ToString("0.###") + " μg/m³", true)
                     .AddField("Sulphur dioxide (SO₂)", pollution.List[0].Components["so2"].ToString("0.###") + " μg/m³", true)
                     .AddField("Ammonia (NH₃)", pollution.List[0].Components["nh3"].ToString("0.###") + " μg/m³", true)
-                    .WithCurrentTimestamp()
-                    .Build();
+                    .WithCurrentTimestamp();
 
-                await ReplyAsync(embed: embed);
+                await ReplyAsync(embed: embedBuilder.Build());
             }
             catch (Exception ex)
             {

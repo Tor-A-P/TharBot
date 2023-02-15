@@ -15,6 +15,7 @@ namespace TharBot.Handlers
     {
         private static readonly System.Timers.Timer timer25s = new(25000);
         private static readonly System.Timers.Timer timer60s = new(60000);
+        private static readonly System.Timers.Timer timer300s = new(300000);
         private readonly DiscordSocketClient _client;
         private readonly IConfiguration _configuration;
         private readonly MongoCRUDHandler db;
@@ -41,6 +42,8 @@ namespace TharBot.Handlers
             timer60s.Elapsed += GameHandling;
             timer60s.Elapsed += FightOverHandling;
             timer60s.Elapsed += AttributeDialogCleanup;
+
+            timer300s.Elapsed += AvatarChanging;
         }
 
         public async void PollHandling(object? source, ElapsedEventArgs e)
@@ -561,6 +564,22 @@ namespace TharBot.Handlers
             {
                 await LoggingHandler.LogCriticalAsync("bot", null, ex);
             }
+        }
+
+        public async void AvatarChanging(object? source, ElapsedEventArgs e)
+        {
+            try
+            {
+                Random random = new();
+                var fileStream = new FileStream(Directory.GetCurrentDirectory() + "/Avatars/Avatar" + random.Next(1, 4) + ".png", FileMode.Open);
+                var image = new Image(fileStream);
+                await Client.CurrentUser.ModifyAsync(u => u.Avatar = image);
+            }
+            catch (Exception ex)
+            {
+                await LoggingHandler.LogCriticalAsync("bot", null, ex);
+            }
+            
         }
     }
 }
