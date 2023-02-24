@@ -43,6 +43,7 @@ namespace TharBot.Handlers
             timer60s.Elapsed += FightOverHandling;
             timer60s.Elapsed += AttributeDialogCleanup;
 
+            timer300s.Enabled = true;
             timer300s.Elapsed += AvatarChanging;
         }
 
@@ -571,7 +572,7 @@ namespace TharBot.Handlers
             try
             {
                 Random random = new();
-                var fileStream = new FileStream(Directory.GetCurrentDirectory() + "/Avatars/Avatar" + random.Next(1, 4) + ".png", FileMode.Open);
+                var fileStream = new FileStream(Directory.GetCurrentDirectory() + "/Avatars/Avatar" + random.Next(0, 5) + ".png", FileMode.Open);
                 var image = new Image(fileStream);
                 await Client.CurrentUser.ModifyAsync(u => u.Avatar = image);
             }
