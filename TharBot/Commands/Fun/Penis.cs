@@ -29,13 +29,14 @@ namespace TharBot.Commands.Fun
             var length = random.Next(1, 40);
             var lengthInch = length / 2.54;
 
-            if (target.Id == 966367996408905768)
-            {
-                await ReplyAsync($"{target.Mention}'s dick is too big to measure, it's over 9000 cm!");
-            }
-            else if (target == null || target == Context.User)
+
+            if (target == null || target == Context.User)
             {
                 await ReplyAsync($"{Context.User.Mention}, your dick is {length} cm ({lengthInch} inches)");
+            }
+            else if (target.Id == 966367996408905768)
+            {
+                await ReplyAsync($"{target.Mention}'s dick is too big to measure, it's over 9000 cm!");
             }
             else
             {
