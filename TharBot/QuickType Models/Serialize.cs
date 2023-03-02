@@ -10,11 +10,11 @@ public static class Serialize
     public static string ToJson(this WeatherResult self) => JsonConvert.SerializeObject(self, Converter.Settings);
     public static string ToJson(this Geocode[] self) => JsonConvert.SerializeObject(self, Converter.Settings);
     public static string ToJson(this Cat[] self) => JsonConvert.SerializeObject(self, Converter.Settings);
-    public static string ToJson(this PollutionResult self) => JsonConvert.SerializeObject(self, Converter.Settings);
     public static string ToJson(this UrbanResult self) => JsonConvert.SerializeObject(self, Converter.Settings);
     public static string ToJson(this DefineResult[] self) => JsonConvert.SerializeObject(self, Converter.Settings);
     public static string ToJson(this ImgurResult self) => JsonConvert.SerializeObject(self, Converter.Settings);
     public static string ToJson(this AnimeListResult self) => JsonConvert.SerializeObject(self, Converter.Settings);
     public static string ToJson(this AnimeResult self) => JsonConvert.SerializeObject(self, Converter.Settings);
     public static string ToJson(this AnimeReaction self) => JsonConvert.SerializeObject(self, QuickType.Converter.Settings);
+    public static string ToJson(this Aqi self) => JsonConvert.SerializeObject(self, QuickType.Converter.Settings);
 }

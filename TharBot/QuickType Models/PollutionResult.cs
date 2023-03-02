@@ -4,43 +4,179 @@
 //
 //    using QuickType;
 //
-//    var pollution = Pollution.FromJson(jsonString);
+//    var aqi = AQI.FromJson(jsonString);
 
 namespace QuickType
 {
+    using System;
     using System.Collections.Generic;
+
+    using System.Globalization;
     using Newtonsoft.Json;
+    using Newtonsoft.Json.Converters;
 
-    public partial class PollutionResult
+    public partial class Aqi
     {
-        [JsonProperty("coord")]
-        public JsonArrayAttribute Coord { get; set; }
+        [JsonProperty("status")]
+        public string Status { get; set; }
 
-        [JsonProperty("list")]
-        public List[] List { get; set; }
+        [JsonProperty("data")]
+        public Data Data { get; set; }
     }
 
-    public partial class List
-    {
-        [JsonProperty("dt")]
-        public long Dt { get; set; }
-
-        [JsonProperty("main")]
-        public Main Main { get; set; }
-
-        [JsonProperty("components")]
-        public Dictionary<string, double> Components { get; set; }
-    }
-
-    public partial class Main
+    public partial class Data
     {
         [JsonProperty("aqi")]
         public long Aqi { get; set; }
+
+        [JsonProperty("idx")]
+        public long Idx { get; set; }
+
+        [JsonProperty("attributions")]
+        public Attribution[] Attributions { get; set; }
+
+        [JsonProperty("city")]
+        public City City { get; set; }
+
+        [JsonProperty("dominentpol")]
+        public string Dominentpol { get; set; }
+
+        [JsonProperty("iaqi")]
+        public Iaqi Iaqi { get; set; }
+
+        [JsonProperty("time")]
+        public Time Time { get; set; }
+
+        [JsonProperty("forecast")]
+        public Forecast Forecast { get; set; }
+
+        [JsonProperty("debug")]
+        public Debug Debug { get; set; }
     }
 
-    public partial class PollutionResult
+    public partial class Attribution
     {
-        public static PollutionResult FromJson(string json) => JsonConvert.DeserializeObject<PollutionResult>(json, Converter.Settings);
+        [JsonProperty("url")]
+        public Uri Url { get; set; }
+
+        [JsonProperty("name")]
+        public string Name { get; set; }
+
+        [JsonProperty("logo", NullValueHandling = NullValueHandling.Ignore)]
+        public string Logo { get; set; }
     }
 
+    public partial class City
+    {
+        [JsonProperty("geo")]
+        public double[] Geo { get; set; }
+
+        [JsonProperty("name")]
+        public string Name { get; set; }
+
+        [JsonProperty("url")]
+        public Uri Url { get; set; }
+
+        [JsonProperty("location")]
+        public string Location { get; set; }
+    }
+
+    public partial class Debug
+    {
+        [JsonProperty("sync")]
+        public DateTimeOffset Sync { get; set; }
+    }
+
+    public partial class Forecast
+    {
+        [JsonProperty("daily")]
+        public Daily Daily { get; set; }
+    }
+
+    public partial class Daily
+    {
+        [JsonProperty("o3")]
+        public O3[] O3 { get; set; }
+
+        [JsonProperty("pm10")]
+        public O3[] Pm10 { get; set; }
+
+        [JsonProperty("pm25")]
+        public O3[] Pm25 { get; set; }
+    }
+
+    public partial class O3
+    {
+        [JsonProperty("avg")]
+        public long Avg { get; set; }
+
+        [JsonProperty("day")]
+        public DateTimeOffset Day { get; set; }
+
+        [JsonProperty("max")]
+        public long Max { get; set; }
+
+        [JsonProperty("min")]
+        public long Min { get; set; }
+    }
+
+    public partial class Iaqi
+    {
+        [JsonProperty("co")]
+        public Co Co { get; set; }
+
+        [JsonProperty("dew")]
+        public Co Dew { get; set; }
+
+        [JsonProperty("h")]
+        public Co H { get; set; }
+
+        [JsonProperty("o3")]
+        public Co O3 { get; set; }
+
+        [JsonProperty("p")]
+        public Co P { get; set; }
+
+        [JsonProperty("pm10")]
+        public Co Pm10 { get; set; }
+
+        [JsonProperty("r")]
+        public Co R { get; set; }
+
+        [JsonProperty("so2")]
+        public Co So2 { get; set; }
+
+        [JsonProperty("t")]
+        public Co T { get; set; }
+
+        [JsonProperty("w")]
+        public Co W { get; set; }
+    }
+
+    public partial class Co
+    {
+        [JsonProperty("v")]
+        public double V { get; set; }
+    }
+
+    public partial class Time
+    {
+        [JsonProperty("s")]
+        public DateTimeOffset S { get; set; }
+
+        [JsonProperty("tz")]
+        public string Tz { get; set; }
+
+        [JsonProperty("v")]
+        public long V { get; set; }
+
+        [JsonProperty("iso")]
+        public DateTimeOffset Iso { get; set; }
+    }
+
+    public partial class Aqi
+    {
+        public static Aqi FromJson(string json) => JsonConvert.DeserializeObject<Aqi>(json, QuickType.Converter.Settings);
+    }
 }
+
