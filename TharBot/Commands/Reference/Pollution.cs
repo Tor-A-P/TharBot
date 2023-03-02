@@ -9,11 +9,13 @@ namespace TharBot.Commands
     {
         private readonly IHttpClientFactory _httpClientFactory;
         private readonly IConfiguration _configuration;
+        private readonly string _weatherAPI;
 
         public Pollution(IHttpClientFactory httpClientFactory, IConfiguration config)
         {
             _httpClientFactory = httpClientFactory;
             _configuration = config;
+            _weatherAPI = _configuration["WeatherAPI"];
         }
 
         [Command("Pollution")]
@@ -26,54 +28,64 @@ namespace TharBot.Commands
         {
             try
             {
-                var pollutionAPIKey = _configuration["PollutionAPI"];
+                var weatherAPIKey = _weatherAPI;
                 var httpClient = _httpClientFactory.CreateClient();
-                var aqiResponse = await httpClient.GetStringAsync($"https://api.waqi.info/feed/{location}/?token={pollutionAPIKey}");
+                var responseGeo = await httpClient.GetStringAsync($"http://api.openweathermap.org/geo/1.0/direct?q={location}&limit=1&appid={weatherAPIKey}");
+                var geocode = Geocode.FromJson(responseGeo);
 
-                if (aqiResponse.Contains("\"status\":\"error\""))
+                try
                 {
-                    var errorText = aqiResponse.Substring(aqiResponse.LastIndexOf("\"data\":\""), aqiResponse.Length - aqiResponse.LastIndexOf("\"data\":\""));
-                    errorText = errorText.Remove(errorText.Length - 1);
-                    errorText = errorText.Remove(0, 7);
-
-                    if (errorText == "\"Unknown station\"")
-                    {
-                        var responseErrorEmbed = await EmbedHandler.CreateErrorEmbed("Pollution", $"Could not find a station for \"{location}\"");
-                        await ReplyAsync(embed: responseErrorEmbed);
-                        return;
-                    }
-                    else
-                    {
-                        var responseErrorEmbed = await EmbedHandler.CreateErrorEmbed("Pollution", $"The API returned the error: {errorText}");
-                        await ReplyAsync(embed: responseErrorEmbed);
-                        return;
-                    } 
+                    var exTest = geocode[0].Lat;
+                }
+                catch (Exception)
+                {
+                    var noResultEmbed = await EmbedHandler.CreateErrorEmbed("Pollution", $"Could not find a place called \"{location}\"!");
+                    await ReplyAsync(embed: noResultEmbed);
+                    return;
                 }
 
-                var aqi = Aqi.FromJson(aqiResponse);
-                var aqiString = "";
-                var aqiValue = aqi.Data.Aqi;
-                if (aqiValue < 50) { aqiString = "Good!"; }
-                else if (aqiValue >= 50 && aqiValue < 100) aqiString = "Moderate";
-                else if (aqiValue >= 100 && aqiValue < 150) aqiString = "Unhealthy for sensitive groups";
-                else if (aqiValue >= 150 && aqiValue < 200) aqiString = "Unhealthy";
-                else if (aqiValue >= 200 && aqiValue < 300) aqiString = "Very Unhealthy";
-                else aqiString = "Hazardous!";
+                var responsePollution = await httpClient.GetStringAsync(
+                   $"https://api.openweathermap.org/data/2.5/air_pollution?lat={geocode[0].Lat}&lon={geocode[0].Lon}&units=metric&appid={weatherAPIKey}");
+                var pollution = PollutionResult.FromJson(responsePollution);
+                string airQuality = "";
 
-                var embedBuilder = await EmbedHandler.CreateBasicEmbedBuilder($"Pollution values for \"{location}\"");
+                switch (pollution.List[0].Main.Aqi)
+                {
+                    case 1:
+                        airQuality = "Good";
+                        break;
+                    case 2:
+                        airQuality = "Fair";
+                        break;
+                    case 3:
+                        airQuality = "Moderate";
+                        break;
+                    case 4:
+                        airQuality = "Poor";
+                        break;
+                    case 5:
+                        airQuality = "Very Poor";
+                        break;
+                    default: break;
+                }
 
-                embedBuilder = embedBuilder.AddField("Air Quality Index:", $"{aqi.Data.Aqi} - {aqiString}");
-                if (aqi.Data.Iaqi.Pm25 != null) embedBuilder.AddField("PM₂.₅", aqi.Data.Iaqi.Pm25.V, true);
-                if (aqi.Data.Iaqi.Pm10 != null) embedBuilder.AddField("PM₁₀", aqi.Data.Iaqi.Pm10.V, true);
-                if (aqi.Data.Iaqi.O3 != null) embedBuilder.AddField("O₃", aqi.Data.Iaqi.O3.V, true);
-                if (aqi.Data.Iaqi.No2 != null) embedBuilder.AddField("NO₂", aqi.Data.Iaqi.No2.V, true);
-                if (aqi.Data.Iaqi.So2 != null) embedBuilder.AddField("SO₂", aqi.Data.Iaqi.So2.V, true);
-                if (aqi.Data.Iaqi.Co != null) embedBuilder.AddField("CO", aqi.Data.Iaqi.Co.V, true);
+                var embedBuilder = await EmbedHandler.CreateBasicEmbedBuilder(
+                    $"Pollution data for {geocode[0].Name}, {geocode[0].Country} :flag_{geocode[0].Country.ToLower()}:");
 
-                var embed = embedBuilder.WithCurrentTimestamp().Build();
+                var embed = embedBuilder.AddField("Air Quality:", airQuality, false)
+                    .AddField("Tiny particles (PM₂.₅)", pollution.List[0].Components["pm2_5"].ToString("0.###") + " μg/m³", true)
+                    .AddField("Small particles (PM₁₀)", pollution.List[0].Components["pm10"].ToString("0.###") + " μg/m³", true)
+                    .AddField("Carbon monoxide (CO)", pollution.List[0].Components["co"].ToString("0.###") + " μg/m³", true)
+                    //.AddField("Nitrogen monoxide (NO)", pollution.List[0].Components["no"].ToString("0.###") + " μg/m³", true)
+                    .AddField("Nitrogen dioxide (NO₂)", pollution.List[0].Components["no2"].ToString("0.###") + " μg/m³", true)
+                    .AddField("Ozone (O₃)", pollution.List[0].Components["o3"].ToString("0.###") + " μg/m³", true)
+                    .AddField("Sulphur dioxide (SO₂)", pollution.List[0].Components["so2"].ToString("0.###") + " μg/m³", true)
+                    //.AddField("Ammonia (NH₃)", pollution.List[0].Components["nh3"].ToString("0.###") + " μg/m³", true)
+                    .WithFooter("The important values here for health are generally the two PMs, the others are provided for fun")
+                    .WithCurrentTimestamp()
+                    .Build();
 
-                await ReplyAsync(embed:embed);
-
+                await ReplyAsync(embed: embed);
             }
             catch (Exception ex)
             {

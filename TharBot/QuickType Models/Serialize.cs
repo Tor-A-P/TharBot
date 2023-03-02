@@ -16,5 +16,5 @@ public static class Serialize
     public static string ToJson(this AnimeListResult self) => JsonConvert.SerializeObject(self, Converter.Settings);
     public static string ToJson(this AnimeResult self) => JsonConvert.SerializeObject(self, Converter.Settings);
     public static string ToJson(this AnimeReaction self) => JsonConvert.SerializeObject(self, QuickType.Converter.Settings);
-    public static string ToJson(this Aqi self) => JsonConvert.SerializeObject(self, QuickType.Converter.Settings);
+    public static string ToJson(this PollutionResult self) => JsonConvert.SerializeObject(self, Converter.Settings);
 }
