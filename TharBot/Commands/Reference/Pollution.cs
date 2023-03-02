@@ -63,12 +63,12 @@ namespace TharBot.Commands
                 var embedBuilder = await EmbedHandler.CreateBasicEmbedBuilder($"Pollution values for \"{location}\"");
 
                 embedBuilder = embedBuilder.AddField("Air Quality Index:", $"{aqi.Data.Aqi} - {aqiString}");
-                if (aqi.Data.Iaqi.Pm25 != null) embedBuilder.AddField("PM₂.₅", aqi.Data.Iaqi.Pm25, true);
-                if (aqi.Data.Iaqi.Pm10 != null) embedBuilder.AddField("PM₁₀", aqi.Data.Iaqi.Pm10, true);
-                if (aqi.Data.Iaqi.O3 != null) embedBuilder.AddField("O₃", aqi.Data.Iaqi.O3, true);
-                if (aqi.Data.Iaqi.No2 != null) embedBuilder.AddField("NO₂", aqi.Data.Iaqi.No2, true);
-                if (aqi.Data.Iaqi.So2 != null) embedBuilder.AddField("SO₂", aqi.Data.Iaqi.So2, true);
-                if (aqi.Data.Iaqi.Co != null) embedBuilder.AddField("CO", aqi.Data.Iaqi.Co, true);
+                if (aqi.Data.Iaqi.Pm25 != null) embedBuilder.AddField("PM₂.₅", aqi.Data.Iaqi.Pm25.V, true);
+                if (aqi.Data.Iaqi.Pm10 != null) embedBuilder.AddField("PM₁₀", aqi.Data.Iaqi.Pm10.V, true);
+                if (aqi.Data.Iaqi.O3 != null) embedBuilder.AddField("O₃", aqi.Data.Iaqi.O3.V, true);
+                if (aqi.Data.Iaqi.No2 != null) embedBuilder.AddField("NO₂", aqi.Data.Iaqi.No2.V, true);
+                if (aqi.Data.Iaqi.So2 != null) embedBuilder.AddField("SO₂", aqi.Data.Iaqi.So2.V, true);
+                if (aqi.Data.Iaqi.Co != null) embedBuilder.AddField("CO", aqi.Data.Iaqi.Co.V, true);
 
                 var embed = embedBuilder.WithCurrentTimestamp().Build();
 
