@@ -125,6 +125,26 @@ namespace TharBot.Handlers
             var argPos = 0;
             if (!message.HasStringPrefix(prefix, ref argPos)) return;
 
+            var messageString = message.ToString();
+            var isAllPrefix = false;
+            foreach (var c in messageString)
+            {
+                if (c == prefix[0])
+                {
+                    isAllPrefix = true;
+                }
+                else
+                {
+                    isAllPrefix = false;
+                    break;
+                }
+            }
+
+            if (isAllPrefix)
+            {
+                return;
+            }
+
             var context = new SocketCommandContext(_client, message);
             await _service.ExecuteAsync(context, argPos, _provider);
         }
