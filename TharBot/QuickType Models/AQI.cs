@@ -153,6 +153,12 @@ namespace QuickType
 
         [JsonProperty("w")]
         public Co W { get; set; }
+
+        [JsonProperty("no2")]
+        public Co No2 { get; set; }
+
+        [JsonProperty("pm25")]
+        public Co Pm25 { get; set; }
     }
 
     public partial class Co
