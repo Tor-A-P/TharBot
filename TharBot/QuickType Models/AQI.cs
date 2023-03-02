@@ -52,6 +52,8 @@ namespace QuickType
 
         [JsonProperty("debug")]
         public Debug Debug { get; set; }
+
+        public string DataString { get; set; }
     }
 
     public partial class Attribution

@@ -29,6 +29,27 @@ namespace TharBot.Commands
                 var weatherAPIKey = _configuration["WeatherAPI"];
                 var httpClient = _httpClientFactory.CreateClient();
                 var aqiResponse = await httpClient.GetStringAsync($"https://api.waqi.info/feed/{location}/?token=78d05a09b86fcd2ec6c1cd9519de2c26a5a4da5a");
+
+                if (aqiResponse.Contains("\"status\":\"error\""))
+                {
+                    var errorText = aqiResponse.Substring(aqiResponse.LastIndexOf("\"data\":\""), aqiResponse.Length - aqiResponse.LastIndexOf("\"data\":\""));
+                    errorText = errorText.Remove(errorText.Length - 1);
+                    errorText = errorText.Remove(0, 7);
+
+                    if (errorText == "\"Unknown station\"")
+                    {
+                        var responseErrorEmbed = await EmbedHandler.CreateErrorEmbed("Pollution", $"Could not find a station for \"{location}\"");
+                        await ReplyAsync(embed: responseErrorEmbed);
+                        return;
+                    }
+                    else
+                    {
+                        var responseErrorEmbed = await EmbedHandler.CreateErrorEmbed("Pollution", $"The API returned the error: {errorText}");
+                        await ReplyAsync(embed: responseErrorEmbed);
+                        return;
+                    } 
+                }
+
                 var aqi = Aqi.FromJson(aqiResponse);
 
                 await ReplyAsync(aqiResponse);
