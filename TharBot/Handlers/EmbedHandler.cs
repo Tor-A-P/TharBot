@@ -2,6 +2,7 @@
 using Discord.WebSocket;
 using TharBot.DBModels;
 using Victoria;
+using Victoria.Player;
 
 namespace TharBot.Handlers
 {
@@ -48,7 +49,7 @@ namespace TharBot.Handlers
             return embed;
         }
 
-        public static async Task<EmbedBuilder> CreateMusicEmbedBuilder(string title, string description, LavaPlayer player, bool includeQueue = true, bool current = true)
+        public static async Task<EmbedBuilder> CreateMusicEmbedBuilder(string title, string description, LavaPlayer<LavaTrack> player, bool includeQueue = true, bool current = true)
         {
             var embedBuilder = await Task.Run(async () => new EmbedBuilder()
             .WithTitle(title)
@@ -57,7 +58,7 @@ namespace TharBot.Handlers
             .WithThumbnailUrl(await player.Track.FetchArtworkAsync())
             .WithCurrentTimestamp());
 
-            if (player.Queue.Count > 0 && includeQueue)
+            if (player.Vueue.Count > 0 && includeQueue)
             {
                 var queue = string.Empty;
 
@@ -69,7 +70,7 @@ namespace TharBot.Handlers
 
                 var trackNum = 1;
 
-                foreach (var queuedTrack in player.Queue)
+                foreach (var queuedTrack in player.Vueue)
                 {
                     if (trackNum > 4) break;
                     string shortTitle = queuedTrack.Title.Length > 40 ? queuedTrack.Title.Substring(0, 40) + "..." : queuedTrack.Title;

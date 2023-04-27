@@ -6,8 +6,8 @@ using Microsoft.Extensions.Logging;
 using MongoDB.Driver;
 using System.Timers;
 using TharBot.DBModels;
-using Victoria;
-using Victoria.Enums;
+using Victoria.Node;
+using Victoria.Player;
 
 namespace TharBot.Handlers
 {
@@ -532,18 +532,20 @@ namespace TharBot.Handlers
                     if (bot == null) continue;
 
                     var voiceChannel = bot.VoiceChannel;
-
                     if (voiceChannel == null) continue;
 
                     if (voiceChannel.ConnectedUsers.Count == 1)
                     {
                         if (_lavaNode.HasPlayer(guild))
                         {
-                            var player = _lavaNode.GetPlayer(guild);
+                            if (_lavaNode.TryGetPlayer(guild, out var player))
+                            {
+
+                            }
 
                             if (player.PlayerState is PlayerState.Playing)
                             {
-                                player.Queue.Clear();
+                                player.Vueue.Clear();
                                 await player.StopAsync();
 
                                 await _lavaNode.LeaveAsync(voiceChannel);

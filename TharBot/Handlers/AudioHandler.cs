@@ -2,9 +2,12 @@
 using Discord.Addons.Hosting;
 using Discord.WebSocket;
 using Microsoft.Extensions.Logging;
+using Victoria.Node;
 using Victoria;
-using Victoria.Enums;
-using Victoria.EventArgs;
+using Victoria.Player;
+using Victoria.Resolvers;
+using Victoria.Responses.Search;
+using Victoria.Node.EventArgs;
 
 namespace TharBot.Handlers
 {
@@ -23,8 +26,8 @@ namespace TharBot.Handlers
         {
             _client.Ready += OnClientReady;
 
-            _lavaNode.OnTrackEnded += OnTrackEnded;
-            _lavaNode.OnLog += LogAsync;
+            _lavaNode.OnTrackEnd += OnTrackEnded;
+            //_lavaNode.OnStatsReceived += LogAsync;
         }
 
 
@@ -41,7 +44,7 @@ namespace TharBot.Handlers
             await LoggingHandler.LogAsync(logMessage.Source, logMessage.Severity, logMessage.Message);
         }
 
-        private async Task OnTrackEnded(TrackEndedEventArgs args)
+        private async Task OnTrackEnded(TrackEndEventArg<LavaPlayer<LavaTrack>, LavaTrack> args)
         {
             if (args.Reason == TrackEndReason.Replaced) return;
             if (args.Reason == TrackEndReason.Stopped) return;
@@ -49,8 +52,8 @@ namespace TharBot.Handlers
             try
             {
                 if (args.Player == null) return;
-                if (args.Player.Queue == null) return;
-                if (!args.Player.Queue.TryDequeue(out var queueable))
+                if (args.Player.Vueue == null) return;
+                if (!args.Player.Vueue.TryDequeue(out var queueable))
                 {
                     await args.Player.TextChannel.SendMessageAsync("Playback Finished!");
                     return;
