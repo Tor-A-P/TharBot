@@ -6,7 +6,9 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using MongoDB.Driver;
 using System.Reflection;
+using System.Text.RegularExpressions;
 using TharBot.DBModels;
+using static System.Net.WebRequestMethods;
 
 namespace TharBot.Handlers
 {
@@ -26,6 +28,7 @@ namespace TharBot.Handlers
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
             _client.MessageReceived += EXPCoinOnMessage;
+            _client.MessageReceived += TwitterReplacer;
         }
         private async Task EXPCoinOnMessage(SocketMessage socketMessage)
         {
@@ -203,6 +206,73 @@ namespace TharBot.Handlers
                     .Set(x => x.Servers, existingUserProfile.Servers)
                     .Set(x => x.LastSeenUsername, message.Author.Username);
                 await db.UpdateUserAsync<GameUser>("UserProfiles", message.Author.Id, update);
+            }
+        }
+
+        private async Task TwitterReplacer(SocketMessage socketMessage)
+        {
+            if (socketMessage is not SocketUserMessage message) return;
+            if (socketMessage.Author.IsBot) return;
+
+            var forGuildId = socketMessage.Channel as SocketGuildChannel;
+            var serverSettings = await db.LoadRecordByIdAsync<ServerSpecifics>("ServerSpecifics", forGuildId.Guild.Id);
+
+            if (serverSettings == null) return;
+            if (serverSettings.ReplaceTwitterLinks == null)
+            {
+                return;
+            }
+
+            if (serverSettings.ReplaceTwitterLinks == "off")
+            {
+                return;
+            }
+
+            Regex urlRx = new(@"((https?|ftp|file)\://|www.)[A-Za-z0-9\.\-]+(/[A-Za-z0-9\?\&\=;\+!'\(\)\*\-\._~%]*)*", RegexOptions.IgnoreCase);
+            string url = urlRx.Match(message.Content).ToString();
+            string OGurl = url;
+
+            if (serverSettings.ReplaceTwitterLinks == "reply" || message.Content != url)
+            {
+                if (url.Contains("twitter.com"))
+                {
+                    if (url.Contains("?t="))
+                    {
+                        url = url.Remove(url.IndexOf("?t="));
+                    }
+
+                    if (!url.Contains("vxtwitter.com") && !url.Contains("fxtwitter.com"))
+                    {
+                        url = url.Insert(url.IndexOf("twitter.com"), "vx");
+                    }
+
+                    if (url == OGurl) return;
+                    else await message.Channel.SendMessageAsync(url);
+                }
+                else return;
+            }
+            else
+            {
+                if (url.Contains("twitter.com"))
+                {
+                    if (url.Contains("?t="))
+                    {
+                        url = url.Remove(url.IndexOf("?t="));
+                    }
+
+                    if (!url.Contains("vxtwitter.com") && !url.Contains("fxtwitter.com"))
+                    {
+                        url = url.Insert(url.IndexOf("twitter.com"), "vx");
+                    }
+
+                    if (url == OGurl) return;
+                    else
+                    {
+                        await message.Channel.SendMessageAsync($"Posted by {message.Author.Username}: " + url);
+                        await message.DeleteAsync();
+                    }
+                }
+                else return;
             }
         }
     }

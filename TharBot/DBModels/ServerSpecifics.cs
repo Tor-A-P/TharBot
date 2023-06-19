@@ -21,5 +21,6 @@ namespace TharBot.DBModels
         public List<Reminders>? Reminders { get; set; }
         public bool ShowLevelUpMessage { get; set; }
         public ulong LastChannelUsedId { get; set; }
+        public string? ReplaceTwitterLinks { get; set; }
     }
 }
