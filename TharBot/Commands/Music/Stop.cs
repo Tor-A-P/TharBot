@@ -23,63 +23,39 @@ namespace TharBot.Commands
         {
             if (!_lavaNode.TryGetPlayer(Context.Guild, out var player))
             {
-                await ReplyAsync("I'm not connected to a voice channel.");
+                var notPlayingEmbed = await EmbedHandler.CreateUserErrorEmbed("Stop", "I'm not connected to a voice channel!");
+                await ReplyAsync(embed: notPlayingEmbed);
+                return;
+            }
+
+            var commandUser = Context.User as SocketGuildUser;
+            var bot = Context.Guild.GetUser(Context.Client.CurrentUser.Id);
+
+            if (commandUser.VoiceChannel != bot.VoiceChannel)
+            {
+                var wrongVCEmbed = await EmbedHandler.CreateUserErrorEmbed("Stop", "You must be connected to the same voice channel as the bot!");
+                await ReplyAsync(embed: wrongVCEmbed);
                 return;
             }
 
             if (player.PlayerState == PlayerState.Stopped)
             {
-                await ReplyAsync("Woaaah there, I can't stop the stopped forced.");
+                var alreadyStoppedEmbed = await EmbedHandler.CreateUserErrorEmbed("Stop", "Player is already stopped!");
+                await ReplyAsync(embed: alreadyStoppedEmbed);
                 return;
             }
 
             try
             {
                 await player.StopAsync();
-                await ReplyAsync("No longer playing anything.");
+                player.Vueue.Clear();                
+                var embed = await EmbedHandler.CreateBasicEmbed("Stopped player", "Playback has stopped and the queue has been cleared. Bye!");
+                await ReplyAsync(embed: embed);
             }
             catch (Exception exception)
             {
                 await ReplyAsync(exception.Message);
             }
-            //var commandUser = Context.User as SocketGuildUser;
-            //var bot = await Context.Channel.GetUserAsync(Context.Client.CurrentUser.Id) as SocketGuildUser;
-
-            //if (commandUser.VoiceChannel == null || commandUser.VoiceChannel != bot.VoiceChannel)
-            //{
-            //    var notVCEmbed = await EmbedHandler.CreateUserErrorEmbed("Stop", "You must be connected to the same voice channel as the bot!");
-            //    await ReplyAsync(embed: notVCEmbed);
-            //    return;
-            //}
-            //else if (!_lavaNode.HasPlayer(Context.Guild))
-            //{
-            //    var noPlayerEmbed = await EmbedHandler.CreateUserErrorEmbed("Stop", $"Could not acquire player.\n" +
-            //            $"Are you sure the bot is active right now? Try using the Play command to start the player.");
-            //    await ReplyAsync(embed: noPlayerEmbed);
-            //    return;
-            //}
-
-            //try
-            //{
-            //    var player = _lavaNode.GetPlayer(Context.Guild);
-
-            //    if (player.PlayerState is PlayerState.Playing && commandUser.VoiceChannel != null)
-            //    {
-            //        player.Queue.Clear();
-            //        await player.StopAsync();
-
-            //        var embed = await EmbedHandler.CreateBasicEmbed("Stopped player", "Playback has stopped and the queue has been cleared. Bye!");
-
-            //        await _lavaNode.LeaveAsync(commandUser.VoiceChannel);
-            //        await ReplyAsync(embed: embed);
-            //    }
-            //}
-            //catch (Exception ex)
-            //{
-            //    var exEmbed = await EmbedHandler.CreateErrorEmbed("Stop", ex.Message);
-            //    await ReplyAsync(embed: exEmbed);
-            //    await LoggingHandler.LogCriticalAsync("COMND: Stop", null, ex);
-            //}
         }
     }
 }

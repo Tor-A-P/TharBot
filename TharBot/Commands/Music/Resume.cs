@@ -4,6 +4,7 @@ using Discord.WebSocket;
 using TharBot.Handlers;
 using Victoria;
 using Victoria.Node;
+using Victoria.Player;
 
 namespace TharBot.Commands
 {
@@ -20,48 +21,35 @@ namespace TharBot.Commands
         [Remarks("Music")]
         public async Task ResumeAsync()
         {
-            //if (!_lavaNode.HasPlayer(Context.Guild))
-            //{
-            //    var noPlayerEmbed = await EmbedHandler.CreateUserErrorEmbed("Resume", $"Could not acquire player.\n" +
-            //            $"Are you sure the bot is active right now? Try using the Play command to start the player.");
-            //    await ReplyAsync(embed: noPlayerEmbed);
-            //    return;
-            //}
+            if (!_lavaNode.TryGetPlayer(Context.Guild, out var player))
+            {
+                var notPlayingEmbed = await EmbedHandler.CreateUserErrorEmbed("Resume", "I'm not connected to a voice channel!");
+                await ReplyAsync(embed: notPlayingEmbed);
+                return;
+            }
 
-            //var player = _lavaNode.GetPlayer(Context.Guild);
+            if (player.PlayerState != PlayerState.Paused)
+            {
+                var alreadyStoppedEmbed = await EmbedHandler.CreateUserErrorEmbed("Resume", "I'm not paused, play something with the play command instead!");
+                await ReplyAsync(embed: alreadyStoppedEmbed);
+                return;
+            }
 
-            //var commandUser = Context.User as SocketGuildUser;
-            //var bot = await Context.Channel.GetUserAsync(Context.Client.CurrentUser.Id) as SocketGuildUser;
+            try
+            {
+                await player.ResumeAsync();
 
-            //if (commandUser.VoiceChannel == null || commandUser.VoiceChannel != bot.VoiceChannel)
-            //{
-            //    var notVCEmbed = await EmbedHandler.CreateUserErrorEmbed("Resume", "You must be connected to the same voice channel as the bot!");
-            //    await ReplyAsync(embed: notVCEmbed);
-            //}
-            //else if (player.PlayerState is not PlayerState.Paused)
-            //{
-            //    var notPlayingEmbed = await EmbedHandler.CreateUserErrorEmbed("Resume", "The player is not currently playing anything, try pausing something before resuming");
-            //    await ReplyAsync(embed: notPlayingEmbed);
-            //}
-            //else
-            //{
-            //    try
-            //    {
-            //        await player.ResumeAsync();
+                string shortTitle = player.Track.Title.Length > 40 ? player.Track.Title.Substring(0, 40) + "..." : player.Track.Title;
+                var embed = await EmbedHandler.CreateMusicEmbedBuilder("Resumed song", $"Resumed {shortTitle} from {player.Track.Position:%h\\:mm\\:ss}", player, false);
 
-            //        string shortTitle = player.Track.Title.Length > 40 ? player.Track.Title.Substring(0, 40) + "..." : player.Track.Title;
-
-            //        var embed = await EmbedHandler.CreateMusicEmbedBuilder("Resumed song", $"Resumed {shortTitle} at {player.Track.Position:%h\\:mm\\:ss}", player, false);
-
-            //        await ReplyAsync(embed: embed.Build());
-            //    }
-            //    catch (Exception ex)
-            //    {
-            //        var exEmbed = await EmbedHandler.CreateErrorEmbed("Pause", ex.Message);
-            //        await ReplyAsync(embed: exEmbed);
-            //        await LoggingHandler.LogCriticalAsync("COMND: Resume", null, ex);
-            //    }
-            //}
+                await ReplyAsync(embed: embed.Build());
+            }
+            catch (Exception ex)
+            {
+                var exEmbed = await EmbedHandler.CreateErrorEmbed("Resume", ex.Message);
+                await ReplyAsync(embed: exEmbed);
+                await LoggingHandler.LogCriticalAsync("COMND: Resume", null, ex);
+            }
         }
     }
 }

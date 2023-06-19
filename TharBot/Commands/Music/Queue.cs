@@ -1,55 +1,40 @@
-﻿//using Discord.Commands;
-//using TharBot.Handlers;
-//using Victoria.Node;
+﻿using Discord.Commands;
+using TharBot.Handlers;
+using Victoria.Node;
+using Victoria.Player;
 
-//namespace TharBot.Commands
-//{
-//    public class Queue : ModuleBase<SocketCommandContext>
-//    {
-//        private readonly LavaNode _lavaNode;
+namespace TharBot.Commands
+{
+    public class Queue : ModuleBase<SocketCommandContext>
+    {
+        private readonly LavaNode _lavaNode;
 
-//        public Queue(LavaNode lavaNode)
-//            => _lavaNode = lavaNode;
+        public Queue(LavaNode lavaNode)
+            => _lavaNode = lavaNode;
 
-//        [Command("Queue")]
-//        [Alias("Now", "Nowplaying", "np")]
-//        [Summary("Shows the current music queue.\n" +
-//            "**USAGE:** th.queue")]
-//        public async Task QueueAsync()
-//        {
-//            if (!_lavaNode.HasPlayer(Context.Guild))
-//            {
-//                var noPlayerEmbed = await EmbedHandler.CreateUserErrorEmbed("Queue", "Could not acquire player.\n" +
-//                    "Are you sure the bot is active right now? Try using the Play command to start the player.");
-//                await ReplyAsync(embed: noPlayerEmbed);
-//            }
-//            else
-//            {
-//                try
-//                {
-//                    var player = _lavaNode.GetPlayer(Context.Guild);
-//                    var track = player.Track;
-//                    if (track == null)
-//                    {
-//                        var noQueueEmbed = await EmbedHandler.CreateUserErrorEmbed("Queue", "Could not acquire queue.\n" +
-//                            "There's no songs in queue right now, add some with the play command!");
+        [Command("Queue")]
+        [Alias("Now", "Nowplaying", "np")]
+        [Summary("Shows the current music queue.\n" +
+            "**USAGE:** th.queue")]
+        public async Task QueueAsync()
+        {
+            if (!_lavaNode.TryGetPlayer(Context.Guild, out var player))
+            {
+                var notPlayingEmbed = await EmbedHandler.CreateUserErrorEmbed("Queue", "I'm not connected to any voice channel!");
+                await ReplyAsync(embed: notPlayingEmbed);
+                return;
+            }
 
-//                        await ReplyAsync(embed: noQueueEmbed);
-//                    }
-//                    else
-//                    {
-//                        var embed = await EmbedHandler.CreateMusicEmbedBuilder("Now Playing:", $"{track.Title} - {track.Position:%h\\:mm\\:ss} / {track.Duration:%h\\:mm\\:ss}\n{track.Url}", player, true, false);
+            if (player.PlayerState != PlayerState.Playing)
+            {
+                var notPlayingEmbed = await EmbedHandler.CreateUserErrorEmbed("Queue", "I'm not playing anything!");
+                await ReplyAsync(embed: notPlayingEmbed);
+                return;
+            }
 
-//                        await ReplyAsync(embed: embed.Build());
-//                    }
-//                }
-//                catch (Exception ex)
-//                {
-//                    var exEmbed = await EmbedHandler.CreateErrorEmbed("Queue", ex.Message);
-//                    await ReplyAsync(embed: exEmbed);
-//                    await LoggingHandler.LogCriticalAsync("COMND: Queue", null, ex);
-//                }
-//            }
-//        }
-//    }
-//}
+            var embed = await EmbedHandler.CreateMusicEmbedBuilder("Now Playing:", $"{player.Track.Title} - {player.Track.Position:%h\\:mm\\:ss} / {player.Track.Duration:%h\\:mm\\:ss}\n{player.Track.Url}", player, true, false);
+
+            await ReplyAsync(embed: embed.Build());
+        }
+    }
+}

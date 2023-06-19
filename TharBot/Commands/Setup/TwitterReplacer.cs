@@ -22,7 +22,7 @@ namespace TharBot.Commands
         [Command("TwitterReplacer")]
         [Alias("twr")]
         [Summary("Toggles whether or not the bot should reply to twitter links with a link free of twitter trackers and using vxtwitter, or delete the message containing the link entirely\n" +
-            "If a message contains more text than only the twitter link, the delete option will function like the reply option instead" +
+            "If a message contains more text than only the twitter link, the delete option will function like the reply option instead\n" +
             "**USAGE:** th.twitterreplacer [OPTION]\n" +
             "**EXAMPLES:** th.twitterreplacer reply, th.twr delete, th.twr off")]
         [Remarks("Setup")]

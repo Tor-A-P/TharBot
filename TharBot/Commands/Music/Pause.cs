@@ -4,6 +4,7 @@ using Discord.WebSocket;
 using TharBot.Handlers;
 using Victoria;
 using Victoria.Node;
+using Victoria.Player;
 
 namespace TharBot.Commands
 {
@@ -20,6 +21,35 @@ namespace TharBot.Commands
         [Remarks("Music")]
         public async Task PauseAsync()
         {
+            if (!_lavaNode.TryGetPlayer(Context.Guild, out var player))
+            {
+                var notPlayingEmbed = await EmbedHandler.CreateUserErrorEmbed("Pause", "I'm not connected to a voice channel!");
+                await ReplyAsync(embed: notPlayingEmbed);
+                return;
+            }
+
+            if (player.PlayerState != PlayerState.Playing)
+            {
+                var alreadyStoppedEmbed = await EmbedHandler.CreateUserErrorEmbed("Pause", "I'm not playing anything!");
+                await ReplyAsync(embed: alreadyStoppedEmbed);
+                return;
+            }
+
+            try
+            {
+                await player.PauseAsync();
+
+                string shortTitle = player.Track.Title.Length > 40 ? player.Track.Title.Substring(0, 40) + "..." : player.Track.Title;
+                var embed = await EmbedHandler.CreateMusicEmbedBuilder("Paused song", $"Paused {shortTitle} at {player.Track.Position:%h\\:mm\\:ss}", player, false);
+
+                await ReplyAsync(embed: embed.Build());
+            }
+            catch (Exception ex)
+            {
+                var exEmbed = await EmbedHandler.CreateErrorEmbed("Pause", ex.Message);
+                await ReplyAsync(embed: exEmbed);
+                await LoggingHandler.LogCriticalAsync("COMND: Pause", null, ex);
+            }
             //if (!_lavaNode.HasPlayer(Context.Guild))
             //{
             //    var noPlayerEmbed = await EmbedHandler.CreateUserErrorEmbed("Pause", $"Could not acquire player.\n" +
