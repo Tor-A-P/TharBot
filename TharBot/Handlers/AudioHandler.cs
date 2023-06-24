@@ -48,11 +48,12 @@ namespace TharBot.Handlers
         {
             if (args.Reason == TrackEndReason.Replaced) return;
             if (args.Reason == TrackEndReason.Stopped) return;
-
             try
             {
                 if (args.Player == null) return;
                 if (args.Player.Vueue == null) return;
+
+                if (args.Reason is TrackEndReason.LoadFailed) await args.Player.TextChannel.SendMessageAsync("Loading song failed, trying next song, if any!");
                 if (!args.Player.Vueue.TryDequeue(out var queueable))
                 {
                     await args.Player.TextChannel.SendMessageAsync("Playback Finished!");
@@ -64,8 +65,6 @@ namespace TharBot.Handlers
                     await args.Player.TextChannel.SendMessageAsync("Next item in queue is not a track.");
                     return;
                 }
-
-                if (args.Reason is TrackEndReason.LoadFailed) await args.Player.TextChannel.SendMessageAsync("Loading song failed, trying next song!");
 
                 await args.Player.PlayAsync(track);
 

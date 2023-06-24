@@ -47,14 +47,17 @@ namespace TharBot.Commands
 
             try
             {
+                await _lavaNode.LeaveAsync(player.VoiceChannel);
                 await player.StopAsync();
-                player.Vueue.Clear();                
+                player.Vueue.Clear();
                 var embed = await EmbedHandler.CreateBasicEmbed("Stopped player", "Playback has stopped and the queue has been cleared. Bye!");
                 await ReplyAsync(embed: embed);
             }
-            catch (Exception exception)
+            catch (Exception ex)
             {
-                await ReplyAsync(exception.Message);
+                var exEmbed = await EmbedHandler.CreateErrorEmbed("Stop", ex.Message);
+                await ReplyAsync(embed: exEmbed);
+                await LoggingHandler.LogCriticalAsync("COMND: Stop", null, ex);
             }
         }
     }

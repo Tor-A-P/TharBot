@@ -236,6 +236,11 @@ namespace TharBot.Handlers
             {
                 if (url.Contains("twitter.com"))
                 {
+                    if (url.Contains("?s="))
+                    {
+                        url = url.Remove(url.IndexOf("?s="));
+                    }
+
                     if (url.Contains("?t="))
                     {
                         url = url.Remove(url.IndexOf("?t="));
@@ -255,6 +260,11 @@ namespace TharBot.Handlers
             {
                 if (url.Contains("twitter.com"))
                 {
+                    if (url.Contains("?s="))
+                    {
+                        url = url.Remove(url.IndexOf("?s="));
+                    }
+
                     if (url.Contains("?t="))
                     {
                         url = url.Remove(url.IndexOf("?t="));

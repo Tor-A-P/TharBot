@@ -532,16 +532,34 @@ namespace TharBot.Handlers
                     if (bot == null) continue;
 
                     var voiceChannel = bot.VoiceChannel;
-                    if (voiceChannel == null) continue;
+                    if (voiceChannel == null)
+                    {
+                        if (_lavaNode.TryGetPlayer(guild, out var player))
+                        {
+                            if (player.VoiceChannel != null)
+                            {
+                                if (player.PlayerState is PlayerState.Playing)
+                                {
+                                    player.Vueue.Clear();
+                                    await player.StopAsync();
+
+                                    await _lavaNode.LeaveAsync(player.VoiceChannel);
+                                }
+                                else
+                                {
+                                    await player.StopAsync();
+                                    await _lavaNode.LeaveAsync(player.VoiceChannel);
+                                }
+                            }
+                        }
+                        continue;
+                    }
 
                     if (voiceChannel.ConnectedUsers.Count == 1)
                     {
                         if (_lavaNode.HasPlayer(guild))
                         {
-                            if (_lavaNode.TryGetPlayer(guild, out var player))
-                            {
-
-                            }
+                            _lavaNode.TryGetPlayer(guild, out var player);
 
                             if (player.PlayerState is PlayerState.Playing)
                             {

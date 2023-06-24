@@ -41,6 +41,7 @@ namespace TharBot.Commands
                 await ReplyAsync(embed: noOptionEmbed);
                 return;
             }
+
             twrOption = twrOption.ToLower();
 
             if (twrOption == "reply")
@@ -52,7 +53,7 @@ namespace TharBot.Commands
             else if (twrOption == "delete")
             {
                 var embed = await EmbedHandler.CreateBasicEmbed("TwitterReplacer", "The bot will now delete the original message, and post a fixed twitter link.\n" +
-                    "If the message contains more than just a twitter link, it will not delete ir, and simply reply with a fixed link.");
+                    "If the message contains more than just a twitter link, it will not delete it, and simply reply with a fixed link.");
                 serverSettings.ReplaceTwitterLinks = "delete";
                 await ReplyAsync(embed: embed);
             }
