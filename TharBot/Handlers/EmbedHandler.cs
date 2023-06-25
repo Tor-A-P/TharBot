@@ -51,12 +51,24 @@ namespace TharBot.Handlers
 
         public static async Task<EmbedBuilder> CreateMusicEmbedBuilder(string title, string description, LavaPlayer<LavaTrack> player, bool includeQueue = true, bool current = true)
         {
-            var embedBuilder = await Task.Run(async () => new EmbedBuilder()
+            var embedBuilder = await Task.Run(() => new EmbedBuilder()
             .WithTitle(title)
             .WithDescription(description)
             .WithColor(new Color(76, 164, 210))
-            .WithThumbnailUrl(await player.Track.FetchArtworkAsync())
             .WithCurrentTimestamp());
+
+            bool artworkExists = false;
+            try
+            {
+                await player.Track.FetchArtworkAsync();
+                artworkExists = true;
+            }
+            catch (Exception)
+            {
+                artworkExists = false;
+            }
+            
+            if (artworkExists) embedBuilder = embedBuilder.WithThumbnailUrl(await player.Track.FetchArtworkAsync());
 
             if (player.Vueue.Count > 0 && includeQueue)
             {
