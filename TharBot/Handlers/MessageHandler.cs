@@ -211,8 +211,10 @@ namespace TharBot.Handlers
 
         private async Task TwitterReplacer(SocketMessage socketMessage)
         {
-            if (socketMessage is not SocketUserMessage message) return;
-            if (socketMessage.Author.IsBot) return;
+            if (socketMessage is not SocketUserMessage message || socketMessage.Author.IsBot) return;
+
+            var existingBan = await db.LoadRecordByIdAsync<BannedUser>("UserBanlist", socketMessage.Author.Id);
+            if (existingBan != null) return;
 
             var forGuildId = socketMessage.Channel as SocketGuildChannel;
             var serverSettings = await db.LoadRecordByIdAsync<ServerSpecifics>("ServerSpecifics", forGuildId.Guild.Id);
@@ -232,58 +234,84 @@ namespace TharBot.Handlers
             string url = urlRx.Match(message.Content).ToString();
             string OGurl = url;
 
-            if (serverSettings.ReplaceTwitterLinks == "reply" || message.Content != url)
+            try
             {
-                if (url.Contains("twitter.com"))
+                if (serverSettings.ReplaceTwitterLinks == "reply" || message.Content != url)
                 {
-                    if (url.Contains("?s="))
+                    if (url.Contains("twitter.com"))
                     {
-                        url = url.Remove(url.IndexOf("?s="));
-                    }
+                        if (url.Contains("?s="))
+                        {
+                            url = url.Remove(url.IndexOf("?s="));
+                        }
 
-                    if (url.Contains("?t="))
-                    {
-                        url = url.Remove(url.IndexOf("?t="));
-                    }
+                        if (url.Contains("?t="))
+                        {
+                            url = url.Remove(url.IndexOf("?t="));
+                        }
 
-                    if (!url.Contains("vxtwitter.com") && !url.Contains("fxtwitter.com"))
-                    {
-                        url = url.Insert(url.IndexOf("twitter.com"), "vx");
-                    }
+                        if (!url.Contains("vxtwitter.com") && !url.Contains("fxtwitter.com"))
+                        {
+                            url = url.Insert(url.IndexOf("twitter.com"), "vx");
+                        }
 
-                    if (url == OGurl) return;
-                    else await message.Channel.SendMessageAsync(url);
+                        if (url == OGurl) return;
+                        else
+                        {
+                            var repost = await message.Channel.SendMessageAsync(url) as IUserMessage;
+                            await AddTwitterPost(message, repost);
+                            await repost.AddReactionAsync(EmoteHandler.DeletThis);
+                        }
+                    }
+                    else return;
                 }
-                else return;
+                else
+                {
+                    if (url.Contains("twitter.com"))
+                    {
+                        if (url.Contains("?s="))
+                        {
+                            url = url.Remove(url.IndexOf("?s="));
+                        }
+
+                        if (url.Contains("?t="))
+                        {
+                            url = url.Remove(url.IndexOf("?t="));
+                        }
+
+                        if (!url.Contains("vxtwitter.com") && !url.Contains("fxtwitter.com"))
+                        {
+                            url = url.Insert(url.IndexOf("twitter.com"), "vx");
+                        }
+
+                        if (url == OGurl) return;
+                        else
+                        {
+                            var repost = await message.Channel.SendMessageAsync($"Posted by {message.Author.Username}: " + url) as IUserMessage;
+                            await AddTwitterPost(message, repost);
+                            await repost.AddReactionAsync(EmoteHandler.DeletThis);
+                            await message.DeleteAsync();
+                        }
+                    }
+                    else return;
+                }
             }
-            else
+            catch (Exception ex)
             {
-                if (url.Contains("twitter.com"))
-                {
-                    if (url.Contains("?s="))
-                    {
-                        url = url.Remove(url.IndexOf("?s="));
-                    }
-
-                    if (url.Contains("?t="))
-                    {
-                        url = url.Remove(url.IndexOf("?t="));
-                    }
-
-                    if (!url.Contains("vxtwitter.com") && !url.Contains("fxtwitter.com"))
-                    {
-                        url = url.Insert(url.IndexOf("twitter.com"), "vx");
-                    }
-
-                    if (url == OGurl) return;
-                    else
-                    {
-                        await message.Channel.SendMessageAsync($"Posted by {message.Author.Username}: " + url);
-                        await message.DeleteAsync();
-                    }
-                }
-                else return;
+                await LoggingHandler.LogCriticalAsync("COMND: Twitter Posts", null, ex);
             }
+        }
+
+        private async Task AddTwitterPost(IUserMessage post, IUserMessage repost)
+        {
+            TwitterPost twitterPost = new()
+            {
+                UserId = post.Author.Id,
+                MessageId = repost.Id,
+                ChannelId = repost.Channel.Id,
+                CreationTime = DateTime.UtcNow
+            };
+            await db.InsertRecordAsync("TwitterPosts", twitterPost);
         }
     }
 }

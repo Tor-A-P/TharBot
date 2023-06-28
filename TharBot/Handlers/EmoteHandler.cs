@@ -37,5 +37,6 @@ namespace TharBot.Handlers
         public readonly static Emote BoxLeftRight3 = Emote.Parse("<:slotlr3:995647187952353380>");
         public readonly static Emote BoxLeftUpRight = Emote.Parse("<:slotlur:995647209699807272>");
         public readonly static Emote BoxLeftDownRight = Emote.Parse("<:slotldr:995647113658642442>");
+        public readonly static Emote DeletThis = Emote.Parse("<:Delet_This:1123671183578108004>");
     }
 }

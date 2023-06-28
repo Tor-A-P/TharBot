@@ -22,7 +22,8 @@ namespace TharBot.Commands
         [Command("TwitterReplacer")]
         [Alias("twr")]
         [Summary("Toggles whether or not the bot should reply to twitter links with a link free of twitter trackers and using vxtwitter, or delete the message containing the link entirely\n" +
-            "If a message contains more text than only the twitter link, the delete option will function like the reply option instead\n" +
+            "If a message contains more text than only the twitter link, the delete option will function like the reply option instead.\n" +
+            "The reposted link comes with a reaction that the original poster can react to, which will delete the repost.\n" +
             "**USAGE:** th.twitterreplacer [OPTION]\n" +
             "**EXAMPLES:** th.twitterreplacer reply, th.twr delete, th.twr off")]
         [Remarks("Setup")]
@@ -46,14 +47,16 @@ namespace TharBot.Commands
 
             if (twrOption == "reply")
             {
-                var embed = await EmbedHandler.CreateBasicEmbed("TwitterReplacer", $"The bot will now reply to twitter links with a fixed link.");
+                var embed = await EmbedHandler.CreateBasicEmbed("TwitterReplacer", "The bot will now reply to twitter links with a fixed link.\n" +
+                    "The original poster can react with the added reaction to delete the repost.");
                 serverSettings.ReplaceTwitterLinks = "reply";
                 await ReplyAsync(embed: embed);
             }
             else if (twrOption == "delete")
             {
                 var embed = await EmbedHandler.CreateBasicEmbed("TwitterReplacer", "The bot will now delete the original message, and post a fixed twitter link.\n" +
-                    "If the message contains more than just a twitter link, it will not delete it, and simply reply with a fixed link.");
+                    "If the message contains more than just a twitter link, it will not delete it, and simply reply with a fixed link.\n" +
+                    "The original poster can react with the added reaction to delete the repost.");
                 serverSettings.ReplaceTwitterLinks = "delete";
                 await ReplyAsync(embed: embed);
             }
