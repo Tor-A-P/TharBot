@@ -17,6 +17,7 @@ namespace TharBot.Commands
         [Alias("Randomize")]
         [Summary("Shuffles the current queue, putting the songs in a random order.\n" +
             "**USAGE:** th.shuffle")]
+        [Remarks("Music")]
         public async Task ShuffleAsync()
         {
             if (!_lavaNode.TryGetPlayer(Context.Guild, out var player))

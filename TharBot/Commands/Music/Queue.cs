@@ -16,6 +16,7 @@ namespace TharBot.Commands
         [Alias("Now", "Nowplaying", "np")]
         [Summary("Shows the current music queue.\n" +
             "**USAGE:** th.queue")]
+        [Remarks("Music")]
         public async Task QueueAsync()
         {
             if (!_lavaNode.TryGetPlayer(Context.Guild, out var player))
