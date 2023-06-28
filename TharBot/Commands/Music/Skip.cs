@@ -49,7 +49,7 @@ namespace TharBot.Commands
             {
                 var (skipped, currenTrack) = await player.SkipAsync();
                 var embedBuilder = await EmbedHandler.CreateMusicEmbedBuilder("Skipped song!", $"Skipped {skipped.Title}\n**NOW PLAYING:**\n\n{currenTrack.Title} / {currenTrack.Duration:%h\\:mm\\:ss}\n{currenTrack.Url}", player);
-                await ReplyAsync(embed: embedBuilder.Build());
+                await ReplyAsync(embed: embedBuilder);
             }
             catch (Exception ex)
             {

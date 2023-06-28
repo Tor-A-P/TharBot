@@ -49,7 +49,7 @@ namespace TharBot.Handlers
             return embed;
         }
 
-        public static async Task<EmbedBuilder> CreateMusicEmbedBuilder(string title, string description, LavaPlayer<LavaTrack> player, bool includeQueue = true, bool current = true)
+        public static async Task<Embed> CreateMusicEmbedBuilder(string title, string description, LavaPlayer<LavaTrack> player, bool includeQueue = true, bool current = true)
         {
             var embedBuilder = await Task.Run(() => new EmbedBuilder()
             .WithTitle(title)
@@ -92,7 +92,7 @@ namespace TharBot.Handlers
 
                 embedBuilder.AddField("Current queue:", queue);
             }
-            return embedBuilder;
+            return embedBuilder.Build();
         }
 
         public static async Task<Embed> CreateGameEmbed(GameFight fight, GameServerStats user, string userName)

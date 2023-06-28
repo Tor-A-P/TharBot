@@ -52,7 +52,7 @@ namespace TharBot.Commands
                     }
 
                     var embed = await EmbedHandler.CreateMusicEmbedBuilder("Queue shuffled!", "Queue has been shuffled successfully.", player);
-                    await ReplyAsync(embed: embed.Build());
+                    await ReplyAsync(embed: embed);
                 }
                 catch (Exception ex)
                 {

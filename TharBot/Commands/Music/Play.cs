@@ -74,40 +74,58 @@ namespace TharBot.Commands
 
             if (!string.IsNullOrWhiteSpace(searchResponse.Playlist.Name))
             {
-                player.Vueue.Enqueue(searchResponse.Tracks);
-                if (!(player.Track != null && (player.PlayerState == PlayerState.Playing || player.PlayerState == PlayerState.Paused)))
+                try
                 {
-                    player.Vueue.TryDequeue(out var lavaTrack);
-                    await player.PlayAsync(lavaTrack);
+                    player.Vueue.Enqueue(searchResponse.Tracks);
+                    if (!(player.Track != null && (player.PlayerState == PlayerState.Playing || player.PlayerState == PlayerState.Paused)))
+                    {
+                        player.Vueue.TryDequeue(out var lavaTrack);
+                        await player.PlayAsync(lavaTrack);
+                    }
+                    var embed = await EmbedHandler.CreateMusicEmbedBuilder("Added to queue:", $"{searchResponse.Tracks.First().Title} / {searchResponse.Tracks.First().Duration:%h\\:mm\\:ss}\n{searchResponse.Tracks.First().Url}\n\nAnd {searchResponse.Tracks.Count - 1} more songs.", player);
+                    await ReplyAsync(embed: embed);
                 }
-                var embedBuilder = await EmbedHandler.CreateMusicEmbedBuilder("Added to queue:", $"{searchResponse.Tracks.First().Title} / {searchResponse.Tracks.First().Duration:%h\\:mm\\:ss}\n{searchResponse.Tracks.First().Url}\n\nAnd {searchResponse.Tracks.Count - 1} more songs.", player);
-                await ReplyAsync(embed: embedBuilder.Build());
+                catch (Exception ex)
+                {
+                    var exEmbed = await EmbedHandler.CreateErrorEmbed("Play", "Sorry, that song created an error, I'll look into it but in the meantime try another song!");
+                    await ReplyAsync(embed: exEmbed);
+                    await LoggingHandler.LogCriticalAsync("COMND: Play", null, ex);
+                }
             }
             else
             {
-                if (player.Track != null && (player.PlayerState == PlayerState.Playing || player.PlayerState == PlayerState.Paused))
+                try
                 {
-                    var track = searchResponse.Tracks.FirstOrDefault();
-                    player.Vueue.Enqueue(track);
-
-                    var embedBuilder = await EmbedHandler.CreateMusicEmbedBuilder("Added to queue:", $"{searchResponse.Tracks.First().Title} / {searchResponse.Tracks.First().Duration:%h\\:mm\\:ss}\n{searchResponse.Tracks.First().Url}", player);
-                    await ReplyAsync(embed: embedBuilder.Build());
-                }
-                else
-                {
-                    var track = searchResponse.Tracks.FirstOrDefault();
-                    player.Vueue.Enqueue(track);
-
-                    if (player.PlayerState is PlayerState.Playing or PlayerState.Paused)
+                    if (player.Track != null && (player.PlayerState == PlayerState.Playing || player.PlayerState == PlayerState.Paused))
                     {
-                        return;
+                        var track = searchResponse.Tracks.FirstOrDefault();
+                        player.Vueue.Enqueue(track);
+
+                        var embed = await EmbedHandler.CreateMusicEmbedBuilder("Added to queue:", $"{searchResponse.Tracks.First().Title} / {searchResponse.Tracks.First().Duration:%h\\:mm\\:ss}\n{searchResponse.Tracks.First().Url}", player);
+                        await ReplyAsync(embed: embed);
                     }
+                    else
+                    {
+                        var track = searchResponse.Tracks.FirstOrDefault();
+                        player.Vueue.Enqueue(track);
 
-                    player.Vueue.TryDequeue(out var lavaTrack);
-                    await player.PlayAsync(lavaTrack);
+                        if (player.PlayerState is PlayerState.Playing or PlayerState.Paused)
+                        {
+                            return;
+                        }
 
-                    var embedBuilder = await EmbedHandler.CreateMusicEmbedBuilder("Now Playing:", $"{track.Title} / {track.Duration:%h\\:mm\\:ss}\n{track.Url}", player);
-                    await ReplyAsync(embed: embedBuilder.Build());
+                        player.Vueue.TryDequeue(out var lavaTrack);
+                        await player.PlayAsync(lavaTrack);
+
+                        var embed = await EmbedHandler.CreateMusicEmbedBuilder("Now Playing:", $"{track.Title} / {track.Duration:%h\\:mm\\:ss}\n{track.Url}", player);
+                        await ReplyAsync(embed: embed);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    var exEmbed = await EmbedHandler.CreateErrorEmbed("Play", "Sorry, that song created an error, I'll look into it but in the meantime try another song!");
+                    await ReplyAsync(embed: exEmbed);
+                    await LoggingHandler.LogCriticalAsync("COMND: Play", null, ex);
                 }
             }
         }

@@ -27,7 +27,6 @@ namespace TharBot.Handlers
             _client.Ready += OnClientReady;
 
             _lavaNode.OnTrackEnd += OnTrackEnded;
-            //_lavaNode.OnStatsReceived += LogAsync;
         }
 
 
@@ -70,7 +69,7 @@ namespace TharBot.Handlers
 
                 var embed = await EmbedHandler.CreateMusicEmbedBuilder("Now Playing:", $"{track.Title} / {track.Duration:%h\\:mm\\:ss}\n{track.Url}", args.Player, false);
 
-                await args.Player.TextChannel.SendMessageAsync(embed: embed.Build());
+                await args.Player.TextChannel.SendMessageAsync(embed: embed);
             }
             catch (Exception ex)
             {

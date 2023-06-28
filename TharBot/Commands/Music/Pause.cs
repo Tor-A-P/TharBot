@@ -42,7 +42,7 @@ namespace TharBot.Commands
                 string shortTitle = player.Track.Title.Length > 40 ? player.Track.Title.Substring(0, 40) + "..." : player.Track.Title;
                 var embed = await EmbedHandler.CreateMusicEmbedBuilder("Paused song", $"Paused {shortTitle} at {player.Track.Position:%h\\:mm\\:ss}", player, false);
 
-                await ReplyAsync(embed: embed.Build());
+                await ReplyAsync(embed: embed);
             }
             catch (Exception ex)
             {
