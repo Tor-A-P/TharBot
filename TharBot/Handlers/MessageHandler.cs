@@ -238,7 +238,7 @@ namespace TharBot.Handlers
             {
                 if (serverSettings.ReplaceTwitterLinks == "reply" || message.Content != url)
                 {
-                    if (url.Contains("twitter.com"))
+                    if (url.Contains("https://twitter.com") || url.Contains("http://twitter.com"))
                     {
                         if (url.Contains("?s="))
                         {
@@ -263,11 +263,35 @@ namespace TharBot.Handlers
                             await repost.AddReactionAsync(EmoteHandler.DeletThis);
                         }
                     }
-                    else return;
+                    else if (url.Contains("https://x.com") || url.Contains("http://x.com"))
+                    {
+                        if (url.Contains("?s="))
+                        {
+                            url = url.Remove(url.IndexOf("?s="));
+                        }
+
+                        if (url.Contains("?t="))
+                        {
+                            url = url.Remove(url.IndexOf("?t="));
+                        }
+
+                        if (!url.Contains("vxtwitter.com") && !url.Contains("fxtwitter.com"))
+                        {
+                            url = url.Replace("x.com", "vxtwitter.com");
+                        }
+
+                        if (url == OGurl) return;
+                        else
+                        {
+                            var repost = await message.Channel.SendMessageAsync(url) as IUserMessage;
+                            await AddTwitterPost(message, repost);
+                            await repost.AddReactionAsync(EmoteHandler.DeletThis);
+                        }
+                    } else return;
                 }
                 else
                 {
-                    if (url.Contains("twitter.com"))
+                    if (url.Contains("https://twitter.com") || url.Contains("http://twitter.com"))
                     {
                         if (url.Contains("?s="))
                         {
@@ -284,10 +308,46 @@ namespace TharBot.Handlers
                             url = url.Insert(url.IndexOf("twitter.com"), "vx");
                         }
 
+                        if (!url.Contains("https") && url.Contains("http"))
+                        {
+                            url = url.Replace("http", "https");
+                        }
+
                         if (url == OGurl) return;
                         else
                         {
                             var repost = await message.Channel.SendMessageAsync($"Posted by {message.Author.Username}: " + url) as IUserMessage;
+                            await AddTwitterPost(message, repost);
+                            await repost.AddReactionAsync(EmoteHandler.DeletThis);
+                            await message.DeleteAsync();
+                        }
+                    }
+                    else if (url.Contains("https://x.com") || url.Contains("http://x.com"))
+                    {
+                        if (url.Contains("?s="))
+                        {
+                            url = url.Remove(url.IndexOf("?s="));
+                        }
+
+                        if (url.Contains("?t="))
+                        {
+                            url = url.Remove(url.IndexOf("?t="));
+                        }
+
+                        if (!url.Contains("https") && url.Contains("http"))
+                        {
+                            url = url.Replace("http", "https");
+                        }
+
+                        if (!url.Contains("vxtwitter.com") && !url.Contains("fxtwitter.com"))
+                        {
+                            url = url.Replace("x.com", "vxtwitter.com");
+                        }
+
+                        if (url == OGurl) return;
+                        else
+                        {
+                            var repost = await message.Channel.SendMessageAsync(url) as IUserMessage;
                             await AddTwitterPost(message, repost);
                             await repost.AddReactionAsync(EmoteHandler.DeletThis);
                             await message.DeleteAsync();
