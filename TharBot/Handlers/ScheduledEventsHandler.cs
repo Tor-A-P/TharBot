@@ -44,8 +44,8 @@ namespace TharBot.Handlers
             timer60s.Elapsed += AttributeDialogCleanup;
             timer60s.Elapsed += TwitterPostCleanup;
 
-            timer300s.Enabled = true;
-            timer300s.Elapsed += AvatarChanging;
+            //timer300s.Enabled = true;
+            //timer300s.Elapsed += AvatarChanging;
         }
 
         public async void PollHandling(object? source, ElapsedEventArgs e)
@@ -588,21 +588,21 @@ namespace TharBot.Handlers
             }
         }
 
-        public async void AvatarChanging(object? source, ElapsedEventArgs e)
-        {
-            try
-            {
-                Random random = new();
-                var fileStream = new FileStream(Directory.GetCurrentDirectory() + "/Avatars/Avatar" + random.Next(0, 5) + ".png", FileMode.Open);
-                var image = new Image(fileStream);
-                await Client.CurrentUser.ModifyAsync(u => u.Avatar = image);
-            }
-            catch (Exception ex)
-            {
-                await LoggingHandler.LogCriticalAsync("bot", null, ex);
-            }
+        //public async void AvatarChanging(object? source, ElapsedEventArgs e)
+        //{
+        //    try
+        //    {
+        //        Random random = new();
+        //        var fileStream = new FileStream(Directory.GetCurrentDirectory() + "/Avatars/Avatar" + random.Next(0, 5) + ".png", FileMode.Open);
+        //        var image = new Image(fileStream);
+        //        await Client.CurrentUser.ModifyAsync(u => u.Avatar = image);
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        await LoggingHandler.LogCriticalAsync("bot", null, ex);
+        //    }
             
-        }
+        //}
         public async void TwitterPostCleanup(object? source, ElapsedEventArgs e)
         {
             try

@@ -1,6 +1,7 @@
 ﻿using Discord.Commands;
 using Microsoft.Extensions.Configuration;
 using QuickType;
+using System.Text.RegularExpressions;
 using TharBot.Handlers;
 
 namespace TharBot.Commands
@@ -32,6 +33,7 @@ namespace TharBot.Commands
                 var httpClient = _httpClientFactory.CreateClient();
                 var responseGeo = await httpClient.GetStringAsync($"http://api.openweathermap.org/geo/1.0/direct?q={location}&limit=1&appid={weatherAPIKey}");
                 var geocode = Geocode.FromJson(responseGeo);
+                location = Regex.Replace(location, @"(^\w)|(\s\w)", m => m.Value.ToUpper());
 
                 try
                 {
@@ -70,7 +72,7 @@ namespace TharBot.Commands
                 }
 
                 var embedBuilder = await EmbedHandler.CreateBasicEmbedBuilder(
-                    $"Pollution data for {geocode[0].Name}, {geocode[0].Country} :flag_{geocode[0].Country.ToLower()}:");
+                    $"Pollution data for {location}, {geocode[0].Country} :flag_{geocode[0].Country.ToLower()}:");
 
                 var embed = embedBuilder.AddField("Air Quality:", airQuality, false)
                     .AddField("Tiny particles (PM₂.₅)", pollution.List[0].Components["pm2_5"].ToString("0.###") + " μg/m³", true)

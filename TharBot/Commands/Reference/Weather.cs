@@ -1,6 +1,7 @@
 ﻿using Discord.Commands;
 using Microsoft.Extensions.Configuration;
 using QuickType;
+using System.Text.RegularExpressions;
 using TharBot.Handlers;
 
 namespace TharBot.Commands
@@ -30,6 +31,7 @@ namespace TharBot.Commands
                 var httpClient = _httpClientFactory.CreateClient();
                 var responseGeo = await httpClient.GetStringAsync($"http://api.openweathermap.org/geo/1.0/direct?q={location}&limit=1&appid={weatherAPIKey}");
                 var geocode = Geocode.FromJson(responseGeo);
+                location = Regex.Replace(location, @"(^\w)|(\s\w)", m => m.Value.ToUpper());
 
                 try
                 {
@@ -47,7 +49,7 @@ namespace TharBot.Commands
                 var weather = WeatherResult.FromJson(responseWeather);
 
                 var embedBuilder = await EmbedHandler.CreateBasicEmbedBuilder(
-                    $"Weather for {weather.Name}, {weather.Sys.Country} :flag_{weather.Sys.Country.ToLower()}:");
+                    $"Weather for {location}, {weather.Sys.Country} :flag_{weather.Sys.Country.ToLower()}:");
 
                 embedBuilder = embedBuilder.AddField("Temperature:", $"{weather.Main.Temp}°C / {(weather.Main.Temp * 1.8) + 32:0.##}°F", true)
                     .AddField("Feels like:", $"{weather.Main.FeelsLike}°C / {(weather.Main.FeelsLike * 1.8) + 32:0.##}°F", true)
