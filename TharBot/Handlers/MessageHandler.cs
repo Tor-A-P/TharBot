@@ -347,7 +347,7 @@ namespace TharBot.Handlers
                         if (url == OGurl) return;
                         else
                         {
-                            var repost = await message.Channel.SendMessageAsync(url) as IUserMessage;
+                            var repost = await message.Channel.SendMessageAsync($"Posted by {message.Author.Username}: " + url) as IUserMessage;
                             await AddTwitterPost(message, repost);
                             await repost.AddReactionAsync(EmoteHandler.DeletThis);
                             await message.DeleteAsync();
