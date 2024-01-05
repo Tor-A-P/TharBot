@@ -211,10 +211,10 @@ namespace TharBot.Handlers
 
         private async Task TwitterReplacer(SocketMessage socketMessage)
         {
-            if (socketMessage is not SocketUserMessage message || socketMessage.Author.IsBot) return;
 
-            var existingBan = await db.LoadRecordByIdAsync<BannedUser>("UserBanlist", socketMessage.Author.Id);
-            if (existingBan != null) return;
+            try
+            {
+                if (socketMessage is not SocketUserMessage message || socketMessage.Author.IsBot) return;
 
             var forGuildId = socketMessage.Channel as SocketGuildChannel;
             var serverSettings = await db.LoadRecordByIdAsync<ServerSpecifics>("ServerSpecifics", forGuildId.Guild.Id);
@@ -238,7 +238,7 @@ namespace TharBot.Handlers
             {
                 if (serverSettings.ReplaceTwitterLinks == "reply" || message.Content != url)
                 {
-                    if (url.Contains("https://twitter.com") || url.Contains("http://twitter.com"))
+                    if (url.Contains("twitter.com") || url.Contains("twitter.com"))
                     {
                         if (url.Contains("?s="))
                         {
@@ -287,11 +287,12 @@ namespace TharBot.Handlers
                             await AddTwitterPost(message, repost);
                             await repost.AddReactionAsync(EmoteHandler.DeletThis);
                         }
-                    } else return;
+                    }
+                    else return;
                 }
                 else
                 {
-                    if (url.Contains("https://twitter.com") || url.Contains("http://twitter.com"))
+                    if (url.Contains("twitter.com") || url.Contains("twitter.com"))
                     {
                         if (url.Contains("?s="))
                         {
@@ -360,6 +361,13 @@ namespace TharBot.Handlers
             {
                 await LoggingHandler.LogCriticalAsync("COMND: Twitter Posts", null, ex);
             }
+            }
+            catch (Exception)
+            {
+
+                throw;
+            }
+            
         }
 
         private async Task AddTwitterPost(IUserMessage post, IUserMessage repost)
