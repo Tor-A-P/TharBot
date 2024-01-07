@@ -238,7 +238,7 @@ namespace TharBot.Handlers
             {
                 if (serverSettings.ReplaceTwitterLinks == "reply" || message.Content != url)
                 {
-                    if (url.Contains("twitter.com") || url.Contains("twitter.com"))
+                    if (url.Contains("twitter.com") || url.Contains("twitter.com") && !url.Contains("ssstwitter") && !url.Contains("cdn.discordapp.com"))
                     {
                         if (url.Contains("?s="))
                         {
@@ -263,7 +263,7 @@ namespace TharBot.Handlers
                             await repost.AddReactionAsync(EmoteHandler.DeletThis);
                         }
                     }
-                    else if (url.Contains("https://x.com") || url.Contains("http://x.com"))
+                    else if (url.Contains("https://x.com") || url.Contains("http://x.com") && !url.Contains("ssstwitter") && !url.Contains("cdn.discordapp.com"))
                     {
                         if (url.Contains("?s="))
                         {
@@ -317,7 +317,7 @@ namespace TharBot.Handlers
                 }
                 else
                 {
-                    if (url.Contains("twitter.com") || url.Contains("twitter.com"))
+                    if (url.Contains("twitter.com") || url.Contains("twitter.com") && !url.Contains("ssstwitter") && !url.Contains("cdn.discordapp.com"))
                     {
                         if (url.Contains("?s="))
                         {
@@ -348,7 +348,7 @@ namespace TharBot.Handlers
                             await message.DeleteAsync();
                         }
                     }
-                    else if (url.Contains("https://x.com") || url.Contains("http://x.com"))
+                    else if (url.Contains("https://x.com") || url.Contains("http://x.com") && !url.Contains("ssstwitter") && !url.Contains("cdn.discordapp.com"))
                     {
                         if (url.Contains("?s="))
                         {

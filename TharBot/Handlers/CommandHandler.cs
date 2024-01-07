@@ -96,6 +96,7 @@ namespace TharBot.Handlers
         {
             if (socketMessage is not SocketUserMessage message) return;
             if (socketMessage.Author.IsBot && socketMessage.Author.Id != 966367996408905768) return;
+            if (socketMessage.Channel is SocketDMChannel) return;
             var existingBan = await db.LoadRecordByIdAsync<BannedUser>("UserBanlist", socketMessage.Author.Id);
             if (existingBan != null) return;
             var forGuildId = socketMessage.Channel as SocketGuildChannel;
