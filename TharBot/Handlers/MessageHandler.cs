@@ -233,6 +233,10 @@ namespace TharBot.Handlers
             Regex urlRx = new(@"((https?|ftp|file)\://|www.)[A-Za-z0-9\.\-]+(/[A-Za-z0-9\?\&\=;\+!'\(\)\*\-\._~%]*)*", RegexOptions.IgnoreCase);
             string url = urlRx.Match(message.Content).ToString();
             string OGurl = url;
+            int numOfSlashes = 0;
+            foreach (char c in url)
+                if (c == '/') numOfSlashes++;
+            if (numOfSlashes <= 4) return;
 
             try
             {
@@ -241,6 +245,7 @@ namespace TharBot.Handlers
                     if (url.Contains("twitter.com") || url.Contains("twitter.com"))
                     {
                         if (url.Contains("ssstwitter") || url.Contains("cdn.discordapp.com")) return;
+                        if (!url.Contains("/status/") || !url.Contains("/i/")) return;
                             
                         if (url.Contains("?s="))
                         {
@@ -267,6 +272,8 @@ namespace TharBot.Handlers
                     }
                     else if (url.Contains("https://x.com") || url.Contains("http://x.com"))
                     {
+                        if (!url.Contains("/status/") || !url.Contains("/i/")) return;
+
                         if (url.Contains("?s="))
                         {
                             url = url.Remove(url.IndexOf("?s="));
@@ -292,6 +299,8 @@ namespace TharBot.Handlers
                     }
                     else if (url.Contains("fixupx.com") || url.Contains("fixupx.com"))
                     {
+                        if (!url.Contains("/status/") || !url.Contains("/i/")) return;
+
                         if (url.Contains("?s="))
                         {
                             url = url.Remove(url.IndexOf("?s="));
@@ -322,6 +331,7 @@ namespace TharBot.Handlers
                     if (url.Contains("twitter.com") || url.Contains("twitter.com"))
                     {
                         if (url.Contains("ssstwitter") || url.Contains("cdn.discordapp.com")) return;
+                        if (!url.Contains("/status/") || !url.Contains("/i/")) return;
 
                         if (url.Contains("?s="))
                         {
@@ -354,6 +364,8 @@ namespace TharBot.Handlers
                     }
                     else if (url.Contains("https://x.com") || url.Contains("http://x.com") && !url.Contains("ssstwitter") && !url.Contains("cdn.discordapp.com"))
                     {
+                        if (!url.Contains("/status/") || !url.Contains("/i/")) return;
+
                         if (url.Contains("?s="))
                         {
                             url = url.Remove(url.IndexOf("?s="));
@@ -385,6 +397,8 @@ namespace TharBot.Handlers
                     }
                     else if (url.Contains("fixupx.com") || url.Contains("fixupx.com"))
                     {
+                        if (!url.Contains("/status/") || !url.Contains("/i/")) return;
+
                         if (url.Contains("?s="))
                         {
                             url = url.Remove(url.IndexOf("?s="));
