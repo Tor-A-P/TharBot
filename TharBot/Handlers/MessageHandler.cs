@@ -260,7 +260,7 @@ namespace TharBot.Handlers
                         if (url == OGurl) return;
                         else
                         {
-                            var repost = await message.Channel.SendMessageAsync(url.Replace("_", "\\_").Replace("*", "\\*").Replace("'", "\\'").Replace(">", "\\>").Replace("-", "\\-").Replace("#", "\\#")) as IUserMessage;
+                            var repost = await message.Channel.SendMessageAsync(url) as IUserMessage;
                             await AddTwitterPost(message, repost);
                             await repost.AddReactionAsync(EmoteHandler.DeletThis);
                         }
@@ -285,7 +285,7 @@ namespace TharBot.Handlers
                         if (url == OGurl) return;
                         else
                         {
-                            var repost = await message.Channel.SendMessageAsync(url.Replace("_", "\\_").Replace("*", "\\*").Replace("'", "\\'").Replace(">", "\\>").Replace("-", "\\-").Replace("#", "\\#")) as IUserMessage;
+                            var repost = await message.Channel.SendMessageAsync(url) as IUserMessage;
                             await AddTwitterPost(message, repost);
                             await repost.AddReactionAsync(EmoteHandler.DeletThis);
                         }
@@ -310,7 +310,7 @@ namespace TharBot.Handlers
                         if (url == OGurl) return;
                         else
                         {
-                            var repost = await message.Channel.SendMessageAsync(url.Replace("_", "\\_").Replace("*", "\\*").Replace("'", "\\'").Replace(">", "\\>").Replace("-", "\\-").Replace("#", "\\#")) as IUserMessage;
+                            var repost = await message.Channel.SendMessageAsync(url) as IUserMessage;
                             await AddTwitterPost(message, repost);
                             await repost.AddReactionAsync(EmoteHandler.DeletThis);
                         }
@@ -346,7 +346,7 @@ namespace TharBot.Handlers
                         if (url == OGurl) return;
                         else
                         {
-                            var repost = await message.Channel.SendMessageAsync($"Posted by {message.Author.Username.Replace("_", "\\_").Replace("*", "\\*").Replace("'", "\\'").Replace(">", "\\>").Replace("-", "\\-").Replace("#", "\\#")}: " + url.Replace("_", "\\_").Replace("*", "\\*").Replace("'", "\\'").Replace(">", "\\>").Replace("-", "\\-").Replace("#", "\\#")) as IUserMessage;
+                            var repost = await message.Channel.SendMessageAsync($"Posted by {message.Author.Username.Replace("_", "\\_").Replace("*", "\\*").Replace("'", "\\'").Replace(">", "\\>").Replace("-", "\\-").Replace("#", "\\#")}: " + url) as IUserMessage;
                             await AddTwitterPost(message, repost);
                             await repost.AddReactionAsync(EmoteHandler.DeletThis);
                             await message.DeleteAsync();
@@ -377,7 +377,7 @@ namespace TharBot.Handlers
                         if (url == OGurl) return;
                         else
                         {
-                            var repost = await message.Channel.SendMessageAsync($"Posted by {message.Author.Username.Replace("_", "\\_").Replace("*", "\\*").Replace("'", "\\'").Replace(">", "\\>").Replace("-", "\\-").Replace("#", "\\#")}: " + url.Replace("_", "\\_").Replace("*", "\\*").Replace("'", "\\'").Replace(">", "\\>").Replace("-", "\\-").Replace("#", "\\#")) as IUserMessage;
+                            var repost = await message.Channel.SendMessageAsync($"Posted by {message.Author.Username.Replace("_", "\\_").Replace("*", "\\*").Replace("'", "\\'").Replace(">", "\\>").Replace("-", "\\-").Replace("#", "\\#")}: " + url) as IUserMessage;
                             await AddTwitterPost(message, repost);
                             await repost.AddReactionAsync(EmoteHandler.DeletThis);
                             await message.DeleteAsync();
@@ -408,7 +408,7 @@ namespace TharBot.Handlers
                         if (url == OGurl) return;
                         else
                         {
-                            var repost = await message.Channel.SendMessageAsync($"Posted by {message.Author.Username.Replace("_", "\\_").Replace("*", "\\*").Replace("'", "\\'").Replace(">", "\\>").Replace("-", "\\-").Replace("#", "\\#")}: " + url.Replace("_", "\\_").Replace("*", "\\*").Replace("'", "\\'").Replace(">", "\\>").Replace("-", "\\-").Replace("#", "\\#")) as IUserMessage;
+                            var repost = await message.Channel.SendMessageAsync($"Posted by {message.Author.Username.Replace("_", "\\_").Replace("*", "\\*").Replace("'", "\\'").Replace(">", "\\>").Replace("-", "\\-").Replace("#", "\\#")}: " + url) as IUserMessage;
                             await AddTwitterPost(message, repost);
                             await repost.AddReactionAsync(EmoteHandler.DeletThis);
                             await message.DeleteAsync();
