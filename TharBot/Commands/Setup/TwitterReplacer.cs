@@ -69,7 +69,7 @@ namespace TharBot.Commands
             else
             {
                 var invalidOptionEmbed = await EmbedHandler.CreateUserErrorEmbed("TwitterReplacer", $"\"{twrOption}\" is not a valid option! Please use the command with one of the following options: reply, delete, off.\n" +
-                    $"**EXAMPLE:** {serverSettings.Prefix}.twitterreplacer off");
+                    $"**EXAMPLE:** {serverSettings.Prefix}twitterreplacer off");
                 await ReplyAsync(embed: invalidOptionEmbed);
                 return;
             }

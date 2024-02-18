@@ -43,6 +43,7 @@ namespace TharBot.Handlers
             timer60s.Elapsed += FightOverHandling;
             timer60s.Elapsed += AttributeDialogCleanup;
             timer60s.Elapsed += TwitterPostCleanup;
+            timer60s.Elapsed += InstagramPostCleanup;
 
             //timer300s.Enabled = true;
             //timer300s.Elapsed += AvatarChanging;
@@ -615,6 +616,35 @@ namespace TharBot.Handlers
                     if (post.CreationTime + TwitterPost.LifeTime < DateTime.UtcNow)
                     {
                         await db.DeleteRecordAsync<TwitterPost>("TwitterPosts", post.MessageId);
+                        if (await Client.GetChannelAsync(post.ChannelId) is IMessageChannel chn)
+                        {
+                            var msg = await chn.GetMessageAsync(post.MessageId);
+                            if (msg != null)
+                            {
+                                await msg.RemoveAllReactionsAsync();
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                await LoggingHandler.LogCriticalAsync("COMND: Twitter Posts (Cleanup)", null, ex);
+            }
+        }
+
+        public async void InstagramPostCleanup(object? source, ElapsedEventArgs e)
+        {
+            try
+            {
+                var instagramPosts = await db.LoadRecordsAsync<InstagramPost>("InstagramPosts");
+                if (instagramPosts == null) return;
+
+                foreach (var post in instagramPosts)
+                {
+                    if (post.CreationTime + TwitterPost.LifeTime < DateTime.UtcNow)
+                    {
+                        await db.DeleteRecordAsync<InstagramPost>("InstagramPosts", post.MessageId);
                         if (await Client.GetChannelAsync(post.ChannelId) is IMessageChannel chn)
                         {
                             var msg = await chn.GetMessageAsync(post.MessageId);

@@ -26,6 +26,7 @@ namespace TharBot.Handlers
             _client.ReactionAdded += PollHandling;
             _client.ReactionAdded += AttributesHandling;
             _client.ReactionAdded += TwitterDelete;
+            _client.ReactionAdded += InstagramDelete;
         }
 
         private async Task PollHandling(Cacheable<IUserMessage, ulong> message, Cacheable<IMessageChannel, ulong> channel, SocketReaction reaction)
@@ -251,6 +252,32 @@ namespace TharBot.Handlers
             catch (Exception ex)
             {
                 await LoggingHandler.LogCriticalAsync("COMND: Twitter Posts (deleting)", null, ex);
+            }
+        }
+
+        private async Task InstagramDelete(Cacheable<IUserMessage, ulong> message, Cacheable<IMessageChannel, ulong> channel, SocketReaction reaction)
+        {
+            if (reaction.UserId == _client.CurrentUser.Id) return;
+            if (reaction.Emote.Name != EmoteHandler.DeletThis.Name) return;
+
+            var chan = await Client.GetChannelAsync(reaction.Channel.Id) as IMessageChannel;
+            IUserMessage? msg = message.HasValue ? message.Value : await chan.GetMessageAsync(message.Id) as IUserMessage;
+
+            var twitterPost = await db.LoadRecordByIdAsync<InstagramPost>("InstagramPosts", message.Id);
+            if (twitterPost == null) return;
+
+            try
+            {
+                if (reaction.UserId == twitterPost.UserId)
+                {
+                    await msg.DeleteAsync();
+                    await db.DeleteRecordAsync<InstagramPost>("InstagramPosts", msg.Id);
+                }
+                else await msg.RemoveReactionAsync(reaction.Emote, reaction.UserId);
+            }
+            catch (Exception ex)
+            {
+                await LoggingHandler.LogCriticalAsync("COMND: Instagram Posts (deleting)", null, ex);
             }
         }
     }

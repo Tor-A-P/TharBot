@@ -22,5 +22,6 @@ namespace TharBot.DBModels
         public bool ShowLevelUpMessage { get; set; }
         public ulong LastChannelUsedId { get; set; }
         public string? ReplaceTwitterLinks { get; set; }
+        public string? ReplaceInstagramLinks { get; set; }
     }
 }

@@ -29,6 +29,7 @@ namespace TharBot.Handlers
         {
             _client.MessageReceived += EXPCoinOnMessage;
             _client.MessageReceived += TwitterReplacer;
+            _client.MessageReceived += InstagramReplacer;
         }
         private async Task EXPCoinOnMessage(SocketMessage socketMessage)
         {
@@ -233,10 +234,6 @@ namespace TharBot.Handlers
             Regex urlRx = new(@"((https?|ftp|file)\://|www.)[A-Za-z0-9\.\-]+(/[A-Za-z0-9\?\&\=;\+!'\(\)\*\-\._~%]*)*", RegexOptions.IgnoreCase);
             string url = urlRx.Match(message.Content).ToString();
             string OGurl = url;
-            int numOfSlashes = 0;
-            foreach (char c in url)
-                if (c == '/') numOfSlashes++;
-            if (numOfSlashes <= 4) return;
 
             try
             {
@@ -245,7 +242,7 @@ namespace TharBot.Handlers
                     if (url.Contains("twitter.com") || url.Contains("twitter.com"))
                     {
                         if (url.Contains("ssstwitter") || url.Contains("cdn.discordapp.com")) return;
-                        if (!url.Contains("/status/") || !url.Contains("/i/")) return;
+                        if (!url.Contains("/status/") && !url.Contains("/i/")) return;
                             
                         if (url.Contains("?s="))
                         {
@@ -272,7 +269,7 @@ namespace TharBot.Handlers
                     }
                     else if (url.Contains("https://x.com") || url.Contains("http://x.com"))
                     {
-                        if (!url.Contains("/status/") || !url.Contains("/i/")) return;
+                        if (!url.Contains("/status/") && !url.Contains("/i/")) return;
 
                         if (url.Contains("?s="))
                         {
@@ -299,7 +296,7 @@ namespace TharBot.Handlers
                     }
                     else if (url.Contains("fixupx.com") || url.Contains("fixupx.com"))
                     {
-                        if (!url.Contains("/status/") || !url.Contains("/i/")) return;
+                        if (!url.Contains("/status/") && !url.Contains("/i/")) return;
 
                         if (url.Contains("?s="))
                         {
@@ -331,7 +328,7 @@ namespace TharBot.Handlers
                     if (url.Contains("twitter.com") || url.Contains("twitter.com"))
                     {
                         if (url.Contains("ssstwitter") || url.Contains("cdn.discordapp.com")) return;
-                        if (!url.Contains("/status/") || !url.Contains("/i/")) return;
+                        if (!url.Contains("/status/") && !url.Contains("/i/")) return;
 
                         if (url.Contains("?s="))
                         {
@@ -364,7 +361,7 @@ namespace TharBot.Handlers
                     }
                     else if (url.Contains("https://x.com") || url.Contains("http://x.com") && !url.Contains("ssstwitter") && !url.Contains("cdn.discordapp.com"))
                     {
-                        if (!url.Contains("/status/") || !url.Contains("/i/")) return;
+                        if (!url.Contains("/status/") && !url.Contains("/i/")) return;
 
                         if (url.Contains("?s="))
                         {
@@ -397,7 +394,7 @@ namespace TharBot.Handlers
                     }
                     else if (url.Contains("fixupx.com") || url.Contains("fixupx.com"))
                     {
-                        if (!url.Contains("/status/") || !url.Contains("/i/")) return;
+                        if (!url.Contains("/status/") && !url.Contains("/i/")) return;
 
                         if (url.Contains("?s="))
                         {
@@ -454,6 +451,107 @@ namespace TharBot.Handlers
                 CreationTime = DateTime.UtcNow
             };
             await db.InsertRecordAsync("TwitterPosts", twitterPost);
+        }
+
+        private async Task InstagramReplacer(SocketMessage socketMessage)
+        {
+            try
+            {
+                if (socketMessage is not SocketUserMessage message || socketMessage.Author.IsBot) return;
+
+                var forGuildId = socketMessage.Channel as SocketGuildChannel;
+                var serverSettings = await db.LoadRecordByIdAsync<ServerSpecifics>("ServerSpecifics", forGuildId.Guild.Id);
+
+                if (serverSettings == null) return;
+                if (serverSettings.ReplaceInstagramLinks == null)
+                {
+                    return;
+                }
+
+                if (serverSettings.ReplaceInstagramLinks == "off")
+                {
+                    return;
+                }
+
+                Regex urlRx = new(@"((https?|ftp|file)\://|www.)[A-Za-z0-9\.\-]+(/[A-Za-z0-9\?\&\=;\+!'\(\)\*\-\._~%]*)*", RegexOptions.IgnoreCase);
+                string url = urlRx.Match(message.Content).ToString();
+                string OGurl = url;
+
+                if (serverSettings.ReplaceInstagramLinks == "reply" || message.Content != url)
+                {
+                    if (url.Contains("instagram.com"))
+                    {
+                        if (url.Contains("sssinstagram") || url.Contains("cdn.discordapp.com")) return;
+                        if (!url.Contains("/reel/") && !url.Contains("/p/")) return;
+
+                        if (url.Contains("?utm_source=") || url.Contains("&utm_source="))
+                        {
+                            url = url.Remove(url.IndexOf("utm_source=") - 1);
+                        }
+
+                        if (url.Contains("?igsh=") || url.Contains("&igsh="))
+                        {
+                            url = url.Remove(url.IndexOf("igsh=") - 1);
+                        }
+
+                        if (url == OGurl) return;
+                        else
+                        {
+                            var repost = await message.Channel.SendMessageAsync(url) as IUserMessage;
+                            await AddInstagramPost(message, repost);
+                            await repost.AddReactionAsync(EmoteHandler.DeletThis);
+                        }
+                    }
+                }
+                else
+                {
+                    if (url.Contains("instagram.com"))
+                    {
+                        if (url.Contains("sssinstagram") || url.Contains("cdn.discordapp.com")) return;
+                        if (!url.Contains("/reel/") && !url.Contains("/p/")) return;
+
+                        if (url.Contains("?utm_source=") || url.Contains("&utm_source="))
+                        {
+                            url = url.Remove(url.IndexOf("utm_source=") - 1);
+                        }
+
+                        if (url.Contains("?igsh=") || url.Contains("&igsh="))
+                        {
+                            url = url.Remove(url.IndexOf("igsh=") - 1);
+                        }
+
+                        if (!url.Contains("ddinstagram.com"))
+                        {
+                            url = url.Insert(url.IndexOf("instagram.com"), "dd");
+                        }
+
+                        if (url == OGurl) return;
+                        else
+                        {
+                            var repost = await message.Channel.SendMessageAsync(url) as IUserMessage;
+                            await AddInstagramPost(message, repost);
+                            await repost.AddReactionAsync(EmoteHandler.DeletThis);
+                            await message.DeleteAsync();
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                await LoggingHandler.LogCriticalAsync("COMND: Instagram Posts", null, ex);
+            }
+        }
+
+        private async Task AddInstagramPost(IUserMessage post, IUserMessage repost)
+        {
+            TwitterPost instagramPost = new()
+            {
+                UserId = post.Author.Id,
+                MessageId = repost.Id,
+                ChannelId = repost.Channel.Id,
+                CreationTime = DateTime.UtcNow
+            };
+            await db.InsertRecordAsync("InstagramPosts", instagramPost);
         }
     }
 }
