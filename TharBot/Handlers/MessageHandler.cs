@@ -5,6 +5,8 @@ using Discord.WebSocket;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using MongoDB.Driver;
+using MongoDB.Driver.Linq;
+using Ninject.Activation;
 using System.Reflection;
 using System.Text.RegularExpressions;
 using TharBot.DBModels;
@@ -557,13 +559,28 @@ namespace TharBot.Handlers
 
         private async Task HeckExMeme(SocketMessage socketMessage)
         {
-            if (socketMessage is not SocketUserMessage message || socketMessage.Author.IsBot) return;
+            try
+            {
+                if (socketMessage is not SocketUserMessage message || socketMessage.Author.IsBot) return;
 
-            var forGuildId = socketMessage.Channel as SocketGuildChannel;
-            if (forGuildId.Guild.Id != 318741497417695234) return;
-            if (!message.Content.Contains("my ex")) return;
+                var forGuildId = socketMessage.Channel as SocketGuildChannel;
+                if (forGuildId.Guild.Id != 318741497417695234) return;
+                if (!message.Content.ToLower().Contains("my ex")) return;
 
-            await message.ReplyAsync("https://i.imgur.com/Kb2lYGI.png");
+                var serverSettings = await db.LoadRecordByIdAsync<ServerSpecifics>("ServerSpecifics", forGuildId.Guild.Id);
+                if (serverSettings == null) return;
+                if (serverSettings.LastExMention == null) serverSettings.LastExMention = 0;
+                serverSettings.LastExMention = new DateTimeOffset(DateTime.UtcNow).ToUnixTimeSeconds();
+
+                await message.ReplyAsync($"https://i.imgur.com/Kb2lYGI.png\n Last time someone mentioned their ex here was <t:{serverSettings.LastExMention}:R>");
+
+                var update = Builders<ServerSpecifics>.Update.Set(x => x.LastExMention, serverSettings.LastExMention);
+                await db.UpdateServerAsync<ServerSpecifics>("ServerSpecifics", forGuildId.Guild.Id, update);
+            }
+            catch (Exception ex)
+            {
+                await LoggingHandler.LogCriticalAsync("COMND: HeckExMeme", null, ex);
+            }
         }
     }
 }

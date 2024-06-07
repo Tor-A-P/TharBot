@@ -23,5 +23,6 @@ namespace TharBot.DBModels
         public ulong LastChannelUsedId { get; set; }
         public string? ReplaceTwitterLinks { get; set; }
         public string? ReplaceInstagramLinks { get; set; }
+        public long? LastExMention { get; set; }
     }
 }
