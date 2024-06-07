@@ -30,6 +30,7 @@ namespace TharBot.Handlers
             _client.MessageReceived += EXPCoinOnMessage;
             _client.MessageReceived += TwitterReplacer;
             _client.MessageReceived += InstagramReplacer;
+            _client.MessageReceived += HeckExMeme;
         }
         private async Task EXPCoinOnMessage(SocketMessage socketMessage)
         {
@@ -552,6 +553,17 @@ namespace TharBot.Handlers
                 CreationTime = DateTime.UtcNow
             };
             await db.InsertRecordAsync("InstagramPosts", instagramPost);
+        }
+
+        private async Task HeckExMeme(SocketMessage socketMessage)
+        {
+            if (socketMessage is not SocketUserMessage message || socketMessage.Author.IsBot) return;
+
+            var forGuildId = socketMessage.Channel as SocketGuildChannel;
+            if (forGuildId.Guild.Id != 318741497417695234) return;
+            if (!message.Content.Contains("my ex")) return;
+
+            await message.ReplyAsync("https://i.imgur.com/Kb2lYGI.png");
         }
     }
 }
