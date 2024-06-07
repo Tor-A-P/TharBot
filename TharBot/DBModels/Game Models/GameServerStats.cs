@@ -20,6 +20,7 @@
         public DateTime FightPeriodStart { get; set; }
         public int FightsThisHour { get; set; }
         public GameDebuffs? Debuffs { get; set; }
+        public long ExMentions { get; set; }
         public double ExpToLevel => (3 * Math.Pow(Level, 2)) + (25 * Level) + 100;
         public double BaseHP => 100 + (Level * 30) + (Attributes.Constitution * ConstitutionHPBonus);
         public double BaseMP => 50 + (Level * 15) + (Attributes.Wisdom * WisdomMPBonus);

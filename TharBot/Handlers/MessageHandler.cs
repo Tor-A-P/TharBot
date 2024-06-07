@@ -564,18 +564,73 @@ namespace TharBot.Handlers
                 if (socketMessage is not SocketUserMessage message || socketMessage.Author.IsBot) return;
 
                 var forGuildId = socketMessage.Channel as SocketGuildChannel;
-                if (forGuildId.Guild.Id != 318741497417695234) return;
+                if (forGuildId.Guild.Id != 682615452140306465) return;
                 if (!message.Content.ToLower().Contains("my ex")) return;
 
                 var serverSettings = await db.LoadRecordByIdAsync<ServerSpecifics>("ServerSpecifics", forGuildId.Guild.Id);
                 if (serverSettings == null) return;
                 if (serverSettings.LastExMention == null) serverSettings.LastExMention = 0;
 
-                await message.ReplyAsync($"https://i.imgur.com/Kb2lYGI.png\n Last time someone mentioned their ex here was <t:{serverSettings.LastExMention}:R>");
-                serverSettings.LastExMention = new DateTimeOffset(DateTime.UtcNow).ToUnixTimeSeconds();
+                var userProfile = await db.LoadRecordByIdAsync<GameUser>("UserProfiles", message.Author.Id);
+                if (userProfile == null)
+                {
+                    userProfile = new GameUser
+                    {
+                        UserId = message.Author.Id,
+                        Servers = new List<GameServerStats>(),
+                        Revision = 0
+                    };
+                }
 
-                var update = Builders<ServerSpecifics>.Update.Set(x => x.LastExMention, serverSettings.LastExMention);
-                await db.UpdateServerAsync<ServerSpecifics>("ServerSpecifics", forGuildId.Guild.Id, update);
+                var serverStats = userProfile.Servers.Where(x => x.ServerId == forGuildId.Guild.Id).FirstOrDefault();
+                if (serverStats == null)
+                {
+                    Random random = new();
+                    serverStats = new GameServerStats
+                    {
+                        ServerId = forGuildId.Guild.Id,
+                        NextRewards = DateTime.UtcNow + TimeSpan.FromMinutes(1),
+                        TharCoins = 10,
+                        Exp = random.Next(8, 13),
+                        Level = 1,
+                        Attributes = new GameStats
+                        {
+                            Strength = 0,
+                            Dexterity = 0,
+                            Intelligence = 0,
+                            Constitution = 0,
+                            Wisdom = 0,
+                            Luck = 0
+                        },
+                        AttributePoints = GameServerStats.StartingAttributePoints,
+                        NumMessages = 1,
+                        Debuffs = new GameDebuffs
+                        {
+                            StunDuration = 0,
+                            HoTDuration = 0,
+                            HoTStrength = 0,
+                            DoTDuration = 0,
+                            DoTStrength = 0
+                        },
+                        ExMentions = 0
+                    };
+                    serverStats.CurrentHP = serverStats.BaseHP;
+                    serverStats.CurrentMP = serverStats.BaseMP;
+                    userProfile.Servers.Add(serverStats);
+                    await db.InsertRecordAsync("UserProfiles", userProfile);
+                }
+
+                await message.ReplyAsync($"https://i.imgur.com/Kb2lYGI.png");
+                await message.Channel.SendMessageAsync($"Last time someone mentioned their ex here was <t:{serverSettings.LastExMention}:R>\n {message.Author.Mention} has mentioned their ex {serverStats.ExMentions} times");
+                serverSettings.LastExMention = new DateTimeOffset(DateTime.UtcNow).ToUnixTimeSeconds();
+                serverStats.ExMentions++;
+
+                var updateServerSpecs = Builders<ServerSpecifics>.Update.Set(x => x.LastExMention, serverSettings.LastExMention);
+                await db.UpdateServerAsync<ServerSpecifics>("ServerSpecifics", forGuildId.Guild.Id, updateServerSpecs);
+                var updateUserProfile = Builders<GameUser>.Update
+                    .Set(x => x.Servers, userProfile.Servers)
+                    .Set(x => x.LastSeenUsername, message.Author.Username);
+                await db.UpdateUserAsync<GameUser>("UserProfiles", message.Author.Id, updateUserProfile);
             }
             catch (Exception ex)
             {
