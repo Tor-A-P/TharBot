@@ -570,9 +570,9 @@ namespace TharBot.Handlers
                 var serverSettings = await db.LoadRecordByIdAsync<ServerSpecifics>("ServerSpecifics", forGuildId.Guild.Id);
                 if (serverSettings == null) return;
                 if (serverSettings.LastExMention == null) serverSettings.LastExMention = 0;
-                serverSettings.LastExMention = new DateTimeOffset(DateTime.UtcNow).ToUnixTimeSeconds();
 
                 await message.ReplyAsync($"https://i.imgur.com/Kb2lYGI.png\n Last time someone mentioned their ex here was <t:{serverSettings.LastExMention}:R>");
+                serverSettings.LastExMention = new DateTimeOffset(DateTime.UtcNow).ToUnixTimeSeconds();
 
                 var update = Builders<ServerSpecifics>.Update.Set(x => x.LastExMention, serverSettings.LastExMention);
                 await db.UpdateServerAsync<ServerSpecifics>("ServerSpecifics", forGuildId.Guild.Id, update);
