@@ -1,8 +1,7 @@
 ﻿using Discord;
 using Discord.WebSocket;
 using TharBot.DBModels;
-using Victoria;
-using Victoria.Player;
+
 
 namespace TharBot.Handlers
 {
@@ -49,51 +48,51 @@ namespace TharBot.Handlers
             return embed;
         }
 
-        public static async Task<Embed> CreateMusicEmbedBuilder(string title, string description, LavaPlayer<LavaTrack> player, bool includeQueue = true, bool current = true)
-        {
-            var embedBuilder = await Task.Run(() => new EmbedBuilder()
-            .WithTitle(title)
-            .WithDescription(description)
-            .WithColor(new Color(76, 164, 210))
-            .WithCurrentTimestamp());
+        //public static async Task<Embed> CreateMusicEmbedBuilder(string title, string description, LavaPlayer<LavaTrack> player, bool includeQueue = true, bool current = true)
+        //{
+        //    var embedBuilder = await Task.Run(() => new EmbedBuilder()
+        //    .WithTitle(title)
+        //    .WithDescription(description)
+        //    .WithColor(new Color(76, 164, 210))
+        //    .WithCurrentTimestamp());
 
-            bool artworkExists = false;
-            try
-            {
-                await player.Track.FetchArtworkAsync();
-                artworkExists = true;
-            }
-            catch (Exception)
-            {
-                artworkExists = false;
-            }
+        //    bool artworkExists = false;
+        //    try
+        //    {
+        //        await player.Track.FetchArtworkAsync();
+        //        artworkExists = true;
+        //    }
+        //    catch (Exception)
+        //    {
+        //        artworkExists = false;
+        //    }
             
-            if (artworkExists) embedBuilder = embedBuilder.WithThumbnailUrl(await player.Track.FetchArtworkAsync());
+        //    if (artworkExists) embedBuilder = embedBuilder.WithThumbnailUrl(await player.Track.FetchArtworkAsync());
 
-            if (player.Vueue.Count > 0 && includeQueue)
-            {
-                var queue = string.Empty;
+        //    if (player.Vueue.Count > 0 && includeQueue)
+        //    {
+        //        var queue = string.Empty;
 
-                if (current)
-                {
-                    string currentShortTitle = player.Track.Title.Length > 40 ? player.Track.Title.Substring(0, 40) + "..." : player.Track.Title;
-                    queue += $"Current: {currentShortTitle} - {player.Track.Position:%h\\:mm\\:ss} / {player.Track.Duration:%h\\:mm\\:ss}\n\t{player.Track.Url}\n";
-                }
+        //        if (current)
+        //        {
+        //            string currentShortTitle = player.Track.Title.Length > 40 ? player.Track.Title.Substring(0, 40) + "..." : player.Track.Title;
+        //            queue += $"Current: {currentShortTitle} - {player.Track.Position:%h\\:mm\\:ss} / {player.Track.Duration:%h\\:mm\\:ss}\n\t{player.Track.Url}\n";
+        //        }
 
-                var trackNum = 1;
+        //        var trackNum = 1;
 
-                foreach (var queuedTrack in player.Vueue)
-                {
-                    if (trackNum > 4) break;
-                    string shortTitle = queuedTrack.Title.Length > 40 ? queuedTrack.Title.Substring(0, 40) + "..." : queuedTrack.Title;
-                    queue += $"{trackNum}:\t{shortTitle} - {queuedTrack.Duration:%h\\:mm\\:ss}\n\t{queuedTrack.Url}\n";
-                    trackNum++;
-                }
+        //        foreach (var queuedTrack in player.Vueue)
+        //        {
+        //            if (trackNum > 4) break;
+        //            string shortTitle = queuedTrack.Title.Length > 40 ? queuedTrack.Title.Substring(0, 40) + "..." : queuedTrack.Title;
+        //            queue += $"{trackNum}:\t{shortTitle} - {queuedTrack.Duration:%h\\:mm\\:ss}\n\t{queuedTrack.Url}\n";
+        //            trackNum++;
+        //        }
 
-                embedBuilder.AddField("Current queue:", queue);
-            }
-            return embedBuilder.Build();
-        }
+        //        embedBuilder.AddField("Current queue:", queue);
+        //    }
+        //    return embedBuilder.Build();
+        //}
 
         public static async Task<Embed> CreateGameEmbed(GameFight fight, GameServerStats user, string userName)
         {

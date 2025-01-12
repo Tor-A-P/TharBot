@@ -32,7 +32,8 @@ namespace TharBot.Handlers
             _client.MessageReceived += EXPCoinOnMessage;
             _client.MessageReceived += TwitterReplacer;
             _client.MessageReceived += InstagramReplacer;
-            _client.MessageReceived += HeckExMeme;
+            _client.MessageReceived += PixivReplacer;
+            //_client.MessageReceived += HeckExMeme;
         }
         private async Task EXPCoinOnMessage(SocketMessage socketMessage)
         {
@@ -497,6 +498,11 @@ namespace TharBot.Handlers
                             url = url.Remove(url.IndexOf("igsh=") - 1);
                         }
 
+                        if (!url.Contains("ddinstagram.com"))
+                        {
+                            url = url.Insert(url.IndexOf("instagram.com"), "dd");
+                        }
+
                         if (url == OGurl) return;
                         else
                         {
@@ -557,6 +563,90 @@ namespace TharBot.Handlers
             await db.InsertRecordAsync("InstagramPosts", instagramPost);
         }
 
+        private async Task PixivReplacer(SocketMessage socketMessage)
+        {
+            try
+            {
+                if (socketMessage is not SocketUserMessage message || socketMessage.Author.IsBot) return;
+
+                var forGuildId = socketMessage.Channel as SocketGuildChannel;
+                var serverSettings = await db.LoadRecordByIdAsync<ServerSpecifics>("ServerSpecifics", forGuildId.Guild.Id);
+
+                if (serverSettings == null) return;
+                if (serverSettings.ReplacePixivLinks == null)
+                {
+                    return;
+                }
+
+                if (serverSettings.ReplacePixivLinks == "off")
+                {
+                    return;
+                }
+
+                Regex urlRx = new(@"((https?|ftp|file)\://|www.)[A-Za-z0-9\.\-]+(/[A-Za-z0-9\?\&\=;\+!'\(\)\*\-\._~%]*)*", RegexOptions.IgnoreCase);
+                string url = urlRx.Match(message.Content).ToString();
+                string OGurl = url;
+
+                if (serverSettings.ReplacePixivLinks == "reply" || message.Content != url)
+                {
+                    if (url.Contains("pixiv.net"))
+                    {
+                        if (url.Contains("/users/") || url.Contains("cdn.discordapp.com")) return;
+
+                        if (!url.Contains("phixiv.net"))
+                        {
+                            url = url.Replace("pixiv.net", "phixiv.net");
+                        }
+
+                        if (url == OGurl) return;
+                        else
+                        {
+                            var repost = await message.Channel.SendMessageAsync(url) as IUserMessage;
+                            await AddPixivPost(message, repost);
+                            await repost.AddReactionAsync(EmoteHandler.DeletThis);
+                        }
+                    }
+                }
+                else
+                {
+                    if (url.Contains("pixiv.net"))
+                    {
+                        if (url.Contains("/users/") || url.Contains("cdn.discordapp.com")) return;
+
+                        if (!url.Contains("phixiv.net"))
+                        {
+                            url = url.Replace("pixiv.net", "phixiv.net");
+                        }
+
+                        if (url == OGurl) return;
+                        else
+                        {
+                            var repost = await message.Channel.SendMessageAsync($"Posted by {message.Author.Username.Replace("_", "\\_").Replace("*", "\\*").Replace("'", "\\'").Replace(">", "\\>").Replace("-", "\\-").Replace("#", "\\#")}: " + url) as IUserMessage;
+                            await AddPixivPost(message, repost);
+                            await repost.AddReactionAsync(EmoteHandler.DeletThis);
+                            await message.DeleteAsync();
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                await LoggingHandler.LogCriticalAsync("COMND: Pixiv Posts", null, ex);
+            }
+        }
+
+        private async Task AddPixivPost(IUserMessage post, IUserMessage repost)
+        {
+            TwitterPost pixivPost = new()
+            {
+                UserId = post.Author.Id,
+                MessageId = repost.Id,
+                ChannelId = repost.Channel.Id,
+                CreationTime = DateTime.UtcNow
+            };
+            await db.InsertRecordAsync("PixivPosts", pixivPost);
+        }
+
         private async Task HeckExMeme(SocketMessage socketMessage)
         {
             try
@@ -564,8 +654,8 @@ namespace TharBot.Handlers
                 if (socketMessage is not SocketUserMessage message || socketMessage.Author.IsBot) return;
 
                 var forGuildId = socketMessage.Channel as SocketGuildChannel;
-                if (forGuildId.Guild.Id != 682615452140306465) return;
-                if (!message.Content.ToLower().Contains("my ex")) return;
+                if (forGuildId.Guild.Id != 318741497417695234) return;
+                if (!message.Content.ToLower().Contains("my ex") && !message.Content.ToLower().Contains("myex")) return;
 
                 var serverSettings = await db.LoadRecordByIdAsync<ServerSpecifics>("ServerSpecifics", forGuildId.Guild.Id);
                 if (serverSettings == null) return;
@@ -621,7 +711,7 @@ namespace TharBot.Handlers
                 }
 
                 await message.ReplyAsync($"https://i.imgur.com/Kb2lYGI.png");
-                await message.Channel.SendMessageAsync($"Last time someone mentioned their ex here was <t:{serverSettings.LastExMention}:R>\n {message.Author.Mention} has mentioned their ex {serverStats.ExMentions} times");
+                await message.Channel.SendMessageAsync($"Last time someone mentioned their ex here was <t:{serverSettings.LastExMention}:R>\n {message.Author.Mention} has mentioned their ex {serverStats.ExMentions} times before this");
                 serverSettings.LastExMention = new DateTimeOffset(DateTime.UtcNow).ToUnixTimeSeconds();
                 serverStats.ExMentions++;
 

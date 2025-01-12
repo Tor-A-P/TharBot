@@ -53,7 +53,6 @@ namespace TharBot.Commands
                 embedBuilder.AddField("Fun", PopulateCategory(commands, "Fun"));
                 embedBuilder.AddField("Game", PopulateCategory(commands, "Game"));
                 embedBuilder.AddField("Info", PopulateCategory(commands, "Info"));
-                embedBuilder.AddField("Music", PopulateCategory(commands, "Music"));
                 embedBuilder.AddField("Reference", PopulateCategory(commands, "Reference"));
                 embedBuilder.AddField("Utility", PopulateCategory(commands, "Utility"));
                 embedBuilder.AddField("Anime Reactions", PopulateCategory(commands, "Anime Reactions"));

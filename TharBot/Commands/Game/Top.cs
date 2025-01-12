@@ -61,7 +61,7 @@ namespace TharBot.Commands
                     "exp" or "xp" or "experience" or "level" or "lvl" => await EmbedCreator("exp", statsList),
                     "coins" or "money" or "tharcoins" => await EmbedCreator("coins", statsList),
                     "fights" or "fight" or "combat" or "monsters" => await EmbedCreator("fights", statsList),
-                    "ex" or "exmentions" or "exes" => await EmbedCreator("ex", statsList),
+                    //"ex" or "exmentions" or "exes" => await EmbedCreator("ex", statsList),
                     _ => await EmbedHandler.CreateUserErrorEmbed("Invalid sorting flag", $"\"{flag}\" is not a valid statistic to sort by, " +
                                             $"valid flags include: messages, exp, coins, fights. If you use the command without a flag at all, it will default to messages."),
                 };
@@ -179,28 +179,28 @@ namespace TharBot.Commands
                          .AddField("Fights won", valueFieldString, true)
                          .WithFooter(footerString);
                 }
-                else if (flag == "ex")
-                {
-                    var sortedProfiles = profiles.OrderByDescending(x => x.ExMentions);
-                    foreach (var profile in sortedProfiles)
-                    {
-                        var user = await _client.GetUserAsync(profile.UserId);
-                        if (user == null) continue;
-                        if (leaderBoardPos <= 15)
-                        {
-                            if (user.Id == Context.User.Id) nameFieldString += $"{leaderBoardPos}. {EmoteHandler.You}{user.Mention}\n";
-                            else nameFieldString += $"{leaderBoardPos}. {user.Mention}\n";
-                            valueFieldString += $"{profile.ExMentions}\n";
-                        }
+                //else if (flag == "ex")
+                //{
+                //    var sortedProfiles = profiles.OrderByDescending(x => x.ExMentions);
+                //    foreach (var profile in sortedProfiles)
+                //    {
+                //        var user = await _client.GetUserAsync(profile.UserId);
+                //        if (user == null) continue;
+                //        if (leaderBoardPos <= 15)
+                //        {
+                //            if (user.Id == Context.User.Id) nameFieldString += $"{leaderBoardPos}. {EmoteHandler.You}{user.Mention}\n";
+                //            else nameFieldString += $"{leaderBoardPos}. {user.Mention}\n";
+                //            valueFieldString += $"{profile.ExMentions}\n";
+                //        }
 
-                        if (user.Id == Context.User.Id) footerString = $"You are at position {leaderBoardPos} with {profile.ExMentions} mentions of your ex.";
-                        if (footerString != "" && leaderBoardPos > 15) break;
-                        leaderBoardPos++;
-                    }
-                    embed.AddField("Username", nameFieldString, true)
-                         .AddField("Exes mentioned", valueFieldString, true)
-                         .WithFooter(footerString);
-                }
+                //        if (user.Id == Context.User.Id) footerString = $"You are at position {leaderBoardPos} with {profile.ExMentions} mentions of your ex.";
+                //        if (footerString != "" && leaderBoardPos > 15) break;
+                //        leaderBoardPos++;
+                //    }
+                //    embed.AddField("Username", nameFieldString, true)
+                //         .AddField("Exes mentioned", valueFieldString, true)
+                //         .WithFooter(footerString);
+                //}
 
                 return embed.Build();
             }

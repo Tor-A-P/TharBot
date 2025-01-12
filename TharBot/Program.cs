@@ -7,7 +7,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using TharBot.Handlers;
-using Victoria;
 
 var builder = new HostBuilder()
         .ConfigureAppConfiguration(x =>
@@ -45,17 +44,11 @@ var builder = new HostBuilder()
         {
             services
             .AddHostedService<CommandHandler>()
-            .AddHostedService<AudioHandler>()
             .AddHostedService<ReactionsHandler>()
             .AddHostedService<ScheduledEventsHandler>()
             .AddHostedService<MessageHandler>()
             .AddHostedService<FightHandler>()
-            .AddHttpClient()
-            .AddLavaNode(x =>
-             {
-                 x.SelfDeaf = false;
-                 x.Hostname = "127.0.0.1";
-             });
+            .AddHttpClient();
         })
         .UseConsoleLifetime();
 

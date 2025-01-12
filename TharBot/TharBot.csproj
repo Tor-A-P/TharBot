@@ -19,7 +19,6 @@
     <PackageReference Include="MongoDB.Driver" Version="2.21.0" />
     <PackageReference Include="org.matheval" Version="1.0.0.3" />
     <PackageReference Include="Reddit" Version="1.5.2" />
-    <PackageReference Include="Victoria" Version="6.0.1026" />
   </ItemGroup>
 
   <ItemGroup>

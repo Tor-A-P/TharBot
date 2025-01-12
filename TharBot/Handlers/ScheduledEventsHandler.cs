@@ -6,8 +6,6 @@ using Microsoft.Extensions.Logging;
 using MongoDB.Driver;
 using System.Timers;
 using TharBot.DBModels;
-using Victoria.Node;
-using Victoria.Player;
 
 namespace TharBot.Handlers
 {
@@ -19,15 +17,13 @@ namespace TharBot.Handlers
         private readonly DiscordSocketClient _client;
         private readonly IConfiguration _configuration;
         private readonly MongoCRUDHandler db;
-        private readonly LavaNode _lavaNode;
 
-        public ScheduledEventsHandler(DiscordSocketClient client, IConfiguration configuration, ILogger<DiscordClientService> logger, LavaNode lavaNode)
+        public ScheduledEventsHandler(DiscordSocketClient client, IConfiguration configuration, ILogger<DiscordClientService> logger)
             : base(client, logger)
         {
             _client = client;
             _configuration = configuration;
             db = new MongoCRUDHandler("TharBot", _configuration);
-            _lavaNode = lavaNode;
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -36,7 +32,6 @@ namespace TharBot.Handlers
             timer25s.Elapsed += PollHandling;
             timer25s.Elapsed += ReminderHandling;
             timer25s.Elapsed += DailyPCHandling;
-            timer25s.Elapsed += StopMusic;
 
             timer60s.Enabled = true;
             timer60s.Elapsed += GameHandling;
@@ -44,6 +39,7 @@ namespace TharBot.Handlers
             timer60s.Elapsed += AttributeDialogCleanup;
             timer60s.Elapsed += TwitterPostCleanup;
             timer60s.Elapsed += InstagramPostCleanup;
+            timer60s.Elapsed += PixivPostCleanup;
 
             //timer300s.Enabled = true;
             //timer300s.Elapsed += AvatarChanging;
@@ -519,75 +515,75 @@ namespace TharBot.Handlers
             await db.UpdateServerAsync<ServerSpecifics>("ServerSpecifics", server.ServerId, update);
         }
 
-        public async void StopMusic(object? source, ElapsedEventArgs e)
-        {
-            try
-            {
-                var serverSpecifics = await db.LoadRecordsAsync<ServerSpecifics>("ServerSpecifics");
-                if (serverSpecifics == null) return;
-                foreach (var server in serverSpecifics)
-                {
-                    var guild = _client.GetGuild(server.ServerId);
-                    if (guild == null) continue;
+        //public async void StopMusic(object? source, ElapsedEventArgs e)
+        //{
+        //    try
+        //    {
+        //        var serverSpecifics = await db.LoadRecordsAsync<ServerSpecifics>("ServerSpecifics");
+        //        if (serverSpecifics == null) return;
+        //        foreach (var server in serverSpecifics)
+        //        {
+        //            var guild = _client.GetGuild(server.ServerId);
+        //            if (guild == null) continue;
 
-                    var bot = guild.GetUser(_client.CurrentUser.Id);
-                    if (bot == null) continue;
+        //            var bot = guild.GetUser(_client.CurrentUser.Id);
+        //            if (bot == null) continue;
 
-                    var voiceChannel = bot.VoiceChannel;
-                    if (voiceChannel == null)
-                    {
-                        if (_lavaNode.TryGetPlayer(guild, out var player))
-                        {
-                            if (player.VoiceChannel != null)
-                            {
-                                if (player.PlayerState is PlayerState.Playing)
-                                {
-                                    player.Vueue.Clear();
-                                    await player.StopAsync();
+        //            var voiceChannel = bot.VoiceChannel;
+        //            if (voiceChannel == null)
+        //            {
+        //                if (_lavaNode.TryGetPlayer(guild, out var player))
+        //                {
+        //                    if (player.VoiceChannel != null)
+        //                    {
+        //                        if (player.PlayerState is PlayerState.Playing)
+        //                        {
+        //                            player.Vueue.Clear();
+        //                            await player.StopAsync();
 
-                                    await _lavaNode.LeaveAsync(player.VoiceChannel);
-                                }
-                                else
-                                {
-                                    await player.StopAsync();
-                                    await _lavaNode.LeaveAsync(player.VoiceChannel);
-                                }
-                            }
-                        }
-                        continue;
-                    }
+        //                            await _lavaNode.LeaveAsync(player.VoiceChannel);
+        //                        }
+        //                        else
+        //                        {
+        //                            await player.StopAsync();
+        //                            await _lavaNode.LeaveAsync(player.VoiceChannel);
+        //                        }
+        //                    }
+        //                }
+        //                continue;
+        //            }
 
-                    if (voiceChannel.ConnectedUsers.Count == 1)
-                    {
-                        if (_lavaNode.HasPlayer(guild))
-                        {
-                            _lavaNode.TryGetPlayer(guild, out var player);
+        //            if (voiceChannel.ConnectedUsers.Count == 1)
+        //            {
+        //                if (_lavaNode.HasPlayer(guild))
+        //                {
+        //                    _lavaNode.TryGetPlayer(guild, out var player);
 
-                            if (player.PlayerState is PlayerState.Playing)
-                            {
-                                player.Vueue.Clear();
-                                await player.StopAsync();
+        //                    if (player.PlayerState is PlayerState.Playing)
+        //                    {
+        //                        player.Vueue.Clear();
+        //                        await player.StopAsync();
 
-                                await _lavaNode.LeaveAsync(voiceChannel);
-                            }
-                            else
-                            {
-                                await player.StopAsync();
-                                await _lavaNode.LeaveAsync(voiceChannel);
-                            }
+        //                        await _lavaNode.LeaveAsync(voiceChannel);
+        //                    }
+        //                    else
+        //                    {
+        //                        await player.StopAsync();
+        //                        await _lavaNode.LeaveAsync(voiceChannel);
+        //                    }
 
-                            var embed = await EmbedHandler.CreateBasicEmbed("Left voice chat and stopped player", "I'm not gonna play music for only myself! >:(");
-                            var channel = await _client.GetChannelAsync(server.LastChannelUsedId) as IMessageChannel;
-                            await channel.SendMessageAsync(embed: embed);
-                        }
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                await LoggingHandler.LogCriticalAsync("bot", null, ex);
-            }
-        }
+        //                    var embed = await EmbedHandler.CreateBasicEmbed("Left voice chat and stopped player", "I'm not gonna play music for only myself! >:(");
+        //                    var channel = await _client.GetChannelAsync(server.LastChannelUsedId) as IMessageChannel;
+        //                    await channel.SendMessageAsync(embed: embed);
+        //                }
+        //            }
+        //        }
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        await LoggingHandler.LogCriticalAsync("bot", null, ex);
+        //    }
+        //}
 
         //public async void AvatarChanging(object? source, ElapsedEventArgs e)
         //{
@@ -658,7 +654,36 @@ namespace TharBot.Handlers
             }
             catch (Exception ex)
             {
-                await LoggingHandler.LogCriticalAsync("COMND: Twitter Posts (Cleanup)", null, ex);
+                await LoggingHandler.LogCriticalAsync("COMND: Instagram Posts (Cleanup)", null, ex);
+            }
+        }
+
+        public async void PixivPostCleanup(object? source, ElapsedEventArgs e)
+        {
+            try
+            {
+                var instagramPosts = await db.LoadRecordsAsync<InstagramPost>("PixivPosts");
+                if (instagramPosts == null) return;
+
+                foreach (var post in instagramPosts)
+                {
+                    if (post.CreationTime + TwitterPost.LifeTime < DateTime.UtcNow)
+                    {
+                        await db.DeleteRecordAsync<InstagramPost>("PixivPosts", post.MessageId);
+                        if (await Client.GetChannelAsync(post.ChannelId) is IMessageChannel chn)
+                        {
+                            var msg = await chn.GetMessageAsync(post.MessageId);
+                            if (msg != null)
+                            {
+                                await msg.RemoveAllReactionsAsync();
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                await LoggingHandler.LogCriticalAsync("COMND: Pixiv Posts (Cleanup)", null, ex);
             }
         }
     }
