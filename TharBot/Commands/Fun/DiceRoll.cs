@@ -1,5 +1,7 @@
 ﻿using Discord.Commands;
 using DnDGen.RollGen.IoC;
+using Ninject.Infrastructure.Language;
+using System.Linq;
 using TharBot.Handlers;
 
 namespace TharBot.Commands
@@ -16,6 +18,8 @@ namespace TharBot.Commands
         {
             Random random = new();
             int result;
+            IEnumerable<int> results;
+            List<int> resultsList = new List<int>();
 
             try
             {
@@ -32,18 +36,45 @@ namespace TharBot.Commands
                 else
                 {
                     var dice = DiceFactory.Create();
+                    results = dice.Roll(expression).AsIndividualRolls<int>();
+                    resultsList = results.ToList();
                     result = dice.Roll(expression).AsSum();
                 }
 
-                var embedBuilder = await EmbedHandler.CreateBasicEmbedBuilder("Dice Roll");
+                if (resultsList.Count == 1 || resultsList.Count == 0)
+                {
+                    var embedBuilder = await EmbedHandler.CreateBasicEmbedBuilder("Dice Roll");
 
-                var embed = embedBuilder
-                            .AddField("Input", $"```{expression}```")
-                            .AddField("Result of dice roll", $"```{result}```")
-                            .WithThumbnailUrl("https://i.imgur.com/ut3Cyin.png")
-                            .Build();
+                    var embed = embedBuilder
+                                .AddField("Input", $"```{expression}```")
+                                .AddField("Result of dice roll", $"```{result}```")
+                                .WithThumbnailUrl("https://i.imgur.com/ut3Cyin.png")
+                                .Build();
 
-                await ReplyAsync(embed: embed);
+                    await ReplyAsync(embed: embed);
+                }
+                else
+                {
+                    var embedBuilder = await EmbedHandler.CreateBasicEmbedBuilder("Dice Roll");
+
+                    embedBuilder = embedBuilder
+                                    .AddField("Input", $"```{expression}```");
+
+                    for(var i = 0; i < resultsList.Count; i++)
+                    {
+                        embedBuilder = embedBuilder
+                                        .AddField($"Result of die {i+1}:", $"```{resultsList[i]}```");
+                        if (i == 9) break;
+                    }
+
+                    var embed = embedBuilder
+                                .AddField("Total result of dice roll", $"```{resultsList.Sum()}```")
+                                .WithThumbnailUrl("https://i.imgur.com/ut3Cyin.png")
+                                .WithFooter("To save space, this will not display more than 10 individual dice rolls")
+                                .Build();
+
+                    await ReplyAsync(embed: embed);
+                }
             }
             catch (Exception ex)
             {
